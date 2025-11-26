@@ -105,3 +105,52 @@ export const useVerifyOTPCode = () => {
     },
   });
 };
+//
+export const useVerifyOtp = () => {
+  const router = useRouter();
+  return useMutation({
+    meta: {
+      successMessage: "OTP verified",
+      showErrorMessage: true,
+    },
+    mutationFn: async ({ access_token }: { access_token: string }) => {
+      const client = createSupabaseClient();
+      const { data, error } = await client.auth.verifyOtp({
+        email: localStorage.getItem("recovery_email") || "",
+        token: access_token,
+        type: "recovery",
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      router.push("/auth/set-new-password");
+    },
+  });
+};
+
+//set new password
+export const useSetNewPassword = () => {
+  const router = useRouter();
+  return useMutation({
+    meta: {
+      successMessage: "Password reset successful",
+      showErrorMessage: true,
+    },
+    mutationFn: async ({ password }: { password: string }) => {
+      const client = createSupabaseClient();
+      const { data, error } = await client.auth.updateUser({
+        password,
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      router.push("/auth/password-success");
+    },
+  });
+};

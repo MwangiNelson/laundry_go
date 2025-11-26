@@ -13,6 +13,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { useVerifyOtp, useSendRecoveryEmail } from "@/api/auth/use_auth";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete OTP"),
@@ -22,7 +23,9 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 
 export const OtpVerificationPageUI = () => {
   const [countdown, setCountdown] = useState(59);
-
+  const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
+  const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
+    useSendRecoveryEmail();
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -38,12 +41,14 @@ export const OtpVerificationPageUI = () => {
   });
 
   const onSubmit = (data: OtpFormValues) => {
-    console.log(data);
+    verifyOtp({ access_token: data.otp });
   };
 
   const handleResend = () => {
     setCountdown(59);
-    // Add resend logic here
+    resendRecoveryEmail({
+      email: localStorage.getItem("recovery_email") || "",
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -63,7 +68,7 @@ export const OtpVerificationPageUI = () => {
             <h1 className="text-3xl font-bold leading-tight text-title">
               OTP Verification
             </h1>
-            <p className="text-sm leading-normal text-subtitle text-secondary">
+            <p className="text-sm leading-normal text-secondary">
               Check your email to see the verification code
             </p>
           </div>
@@ -81,12 +86,12 @@ export const OtpVerificationPageUI = () => {
                   <FormItem className="flex justify-center">
                     <FormControl>
                       <InputOTP
-                        maxLength={6}
+                        maxLength={8}
                         value={field.value}
                         onChange={field.onChange}
                       >
                         <InputOTPGroup className="gap-3">
-                          {[0, 1, 2, 3, 4, 5].map((index) => (
+                          {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
                             <InputOTPSlot
                               key={index}
                               index={index}
@@ -102,6 +107,7 @@ export const OtpVerificationPageUI = () => {
 
               <Button
                 type="submit"
+                loading={isPending}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 h-auto text-sm font-normal"
               >
                 Verify

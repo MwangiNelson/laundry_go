@@ -15,7 +15,7 @@ const AuthSharedPageUI = (props: Props) => {
         fill
         className="object-cover absolute top-0 left-0 -z-1"
       />
-      <Card className="w-[90vw] max-w-[450px] rounded-3xl bg-white px-6 py-6 pb-8 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_2px_6px_2px_rgba(0,0,0,0.15)]">
+      <Card className="w-[90vw] max-w-[600px] rounded-3xl bg-white px-6 py-6 pb-8 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_2px_6px_2px_rgba(0,0,0,0.15)]">
         {props.children}
       </Card>
     </div>

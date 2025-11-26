@@ -10,6 +10,7 @@ import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form } from "@/components/ui/form";
 import { PasswordInput } from "@/components/fields/inputs/password_input";
 import { Button } from "@/components/ui/button";
+import { useSetNewPassword } from "@/api/auth/use_auth";
 
 const setNewPasswordSchema = z
   .object({
@@ -24,6 +25,7 @@ const setNewPasswordSchema = z
 type SetNewPasswordFormValues = z.infer<typeof setNewPasswordSchema>;
 
 export const SetNewPasswordPageUI = () => {
+  const { mutateAsync, isPending } = useSetNewPassword();
   const form = useForm<SetNewPasswordFormValues>({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
@@ -33,14 +35,15 @@ export const SetNewPasswordPageUI = () => {
   });
 
   const onSubmit = (data: SetNewPasswordFormValues) => {
-    console.log(data);
+    mutateAsync({
+      password: data.password,
+    });
   };
 
   return (
     <AuthSharedPageUI>
       <div className="flex flex-col gap-6 pt-6">
         <div className="flex flex-col gap-4">
-          {/* Title Section */}
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold leading-tight text-title">
               Set New Password
@@ -73,6 +76,7 @@ export const SetNewPasswordPageUI = () => {
 
               <Button
                 type="submit"
+                loading={isPending}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 h-auto text-sm font-normal"
               >
                 Save New Password
