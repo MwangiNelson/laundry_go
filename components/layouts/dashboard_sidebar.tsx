@@ -15,7 +15,7 @@ import {
 import { useDashboardUI } from "../context/dashboard_ui_provider";
 import { TIcon } from "@/types/ui.types";
 import { PiChartPieSliceFill } from "react-icons/pi";
-import { ImProfile } from "react-icons/im";
+import { RiProfileLine } from "react-icons/ri";
 type NavItem = {
   key: string;
   label: string;
@@ -34,7 +34,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     key: "orders",
     label: "Orders",
-    icon: ImProfile,
+    icon: RiProfileLine,
     link: "/dashboard/orders",
   },
   {
