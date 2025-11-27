@@ -1,11 +1,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-import { LayoutDashboard } from "lucide-react";
 import { IoLogOutOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
-import { BsClipboardCheck } from "react-icons/bs";
 import { RiUserLine } from "react-icons/ri";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,6 +14,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useDashboardUI } from "../context/dashboard_ui_provider";
 import { TIcon } from "@/types/ui.types";
+import { PiChartPieSliceFill } from "react-icons/pi";
+import { ImProfile } from "react-icons/im";
 type NavItem = {
   key: string;
   label: string;
@@ -29,13 +28,13 @@ const NAV_ITEMS: NavItem[] = [
   {
     key: "overview",
     label: "Overview",
-    icon: LayoutDashboard,
+    icon: PiChartPieSliceFill,
     link: "/dashboard",
   },
   {
     key: "orders",
     label: "Orders",
-    icon: BsClipboardCheck,
+    icon: ImProfile,
     link: "/dashboard/orders",
   },
   {
@@ -59,22 +58,25 @@ export const DashboardSidebar = () => {
 
   return (
     <motion.aside
-      className="flex h-full w-[16rem] flex-col gap-4 md:w-[16rem] bg-card border-r border-border shadow-sm"
+      className={cn(
+        "flex h-full w-68 flex-col gap-4 md:w-[16rem] bg-background border-r border-border ",
+        !isCollapsed ? "px-4" : "px-2"
+      )}
       initial={false}
-      animate={{ width: isCollapsed ? 60 : 256 }}
+      animate={{ width: isCollapsed ? 60 : 272 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
     >
-      <div className="px-4 pt-6 pb-3 relative">
+      <div className={cn(" pb-1 relative", !isCollapsed ? "pt-6 " : "")}>
         <div className="flex items-center gap-3">
           {!isCollapsed && (
-            <h1 className="text-xl font-semibold text-foreground italic">
-              LaundryMart
+            <h1 className="text-2xl font-semibold text-foreground font-marck ">
+              Admin
             </h1>
           )}
         </div>
       </div>
 
-      <div className="px-2">
+      <div className="">
         <ul className="flex w-full flex-col gap-0">
           {NAV_ITEMS.map((item) => (
             <li key={item.key}>
@@ -154,9 +156,9 @@ const SidebarItem = React.forwardRef<
   } = props;
   const Icon = icon;
   const common = cn(
-    "py-3",
-    isActive ? "text-foreground bg-muted" : "text-muted-foreground",
-    "flex w-full items-center gap-2 rounded-lg px-3 text-sm hover:bg-muted transition-colors",
+    "py-4",
+    isActive && "bg-foreground/5",
+    "flex w-full items-center gap-2 rounded-lg px-3 text-sm hover:bg-muted transition-colors text-foreground",
     className
   );
 
@@ -179,10 +181,9 @@ const SidebarItem = React.forwardRef<
       >
         {Icon ? (
           <Icon
-            strokeWidth={1.5}
             className={cn(
-              "size-5",
-              isActive ? "text-foreground" : "text-muted-foreground",
+              "size-6",
+
               collapsed && "size-6"
             )}
           />
@@ -194,11 +195,7 @@ const SidebarItem = React.forwardRef<
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.15 }}
-              className={cn(
-                isActive
-                  ? "font-medium text-foreground"
-                  : "text-muted-foreground"
-              )}
+              className={cn("text-foreground")}
             >
               {label}
             </motion.span>

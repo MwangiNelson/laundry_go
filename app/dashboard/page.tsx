@@ -1,9 +1,13 @@
-import React from "react";
+import DashboardPageUI from "@/components/pageUIs/dashboard/dashboard_page_ui";
+import { Metadata } from "next";
 
-type Props = {};
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Overview of key metrics and statistics",
+};
 
-const Page = (props: Props) => {
-  return <div>Page</div>;
+const Page = () => {
+  return <DashboardPageUI />;
 };
 
 export default Page;
