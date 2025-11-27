@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Marck_Script, Manrope } from "next/font/google";
 import "./globals.css";
+import "./globals.css";
 import { AuthContextProvider } from "@/components/context/auth_provider";
 import TanstackProvider from "@/lib/tanstack";
 import { Toaster } from "sonner";

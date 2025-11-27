@@ -1,0 +1,35 @@
+button {
+  @apply cursor-pointer;
+}
+
+.fx {
+  @apply flex;
+}
+
+.fx-btw {
+  @apply flex justify-between;
+}
+.fx-c {
+  @apply flex justify-center;
+}
+.fx-e {
+  @apply flex justify-end;
+}
+.fx-s {
+  @apply flex justify-start;
+}
+/* items center justify center */
+.fx-c-c {
+  @apply flex flex-col items-center;
+}
+/* justify between items center */
+.fx-btw-c {
+  @apply flex justify-between  items-center;
+}
+/* items center */
+.fx--c {
+  @apply flex items-center;
+}
+.fx-col {
+  @apply flex flex-col;
+}

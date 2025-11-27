@@ -32,22 +32,22 @@ const NAV_ITEMS: NavItem[] = [
     link: "/dashboard",
   },
   {
+    key: "laundry-marts",
+    label: "Laundry Marts",
+    icon: RiProfileLine,
+    link: "/dashboard/laundry-marts",
+  },
+  {
     key: "orders",
     label: "Orders",
-    icon: RiProfileLine,
+    icon: TbTruckDelivery,
     link: "/dashboard/orders",
   },
   {
-    key: "riders",
-    label: "Riders",
-    icon: TbTruckDelivery,
-    link: "/dashboard/riders",
-  },
-  {
-    key: "account",
-    label: "Account",
+    key: "transactions",
+    label: "Transactions",
     icon: RiUserLine,
-    link: "/dashboard/account",
+    link: "/dashboard/transactions",
   },
 ];
 
