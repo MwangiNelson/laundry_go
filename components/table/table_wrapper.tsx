@@ -140,7 +140,7 @@ export const Table_Wrapper = <TData, TValue>({
           .filter((key) => newRowSelection[key])
           .map((key) => {
             const row =
-              data.find((item: unknown) => (item as unknown).id === key) ||
+              data.find((item) => (item as { id?: string }).id === key) ||
               data.find((_, index) => index.toString() === key);
             return row;
           })
