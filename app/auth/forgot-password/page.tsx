@@ -1,4 +1,4 @@
-import { ForgotPasswordPageUI } from "@/components/pageUIs/auth/forgot_password_page_ui";
+import { ForgotPasswordPageUI } from "@/components/pageUIs/auth/admin/forgot_password_page_ui";
 
 export default function ForgotPasswordPage() {
   return <ForgotPasswordPageUI />;

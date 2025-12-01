@@ -1,4 +1,4 @@
-import { SigninPageUI } from "@/components/pageUIs/auth/signin_page_ui";
+import { SigninPageUI } from "@/components/pageUIs/auth/admin/signin_page_ui";
 import { Metadata } from "next";
 import React from "react";
 
