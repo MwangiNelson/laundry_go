@@ -6,7 +6,7 @@ import {
   StatCardSelect,
   StatItem,
 } from "@/components/pageUIs/shared/start_cards";
-import { LaundryMartsTable } from "@/components/table/laundry_marts/laundry_marts.table";
+import { LaundryMartsTable } from "@/components/tables/laundry_marts/laundry_marts.table";
 
 const LaundryMartsPageUI = () => {
   return (

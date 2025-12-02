@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useDashboardUI } from "../context/dashboard_ui_provider";
-import { useAuth } from "../context/auth_provider";
+import { useDashboardUI } from "../../context/dashboard_ui_provider";
+import { useAuth } from "../../context/auth_provider";
 import { PanelLeft } from "lucide-react";
 import { BellIcon } from "@phosphor-icons/react";
 export const DashboardNavbar = () => {

@@ -1,4 +1,4 @@
-import DashboardPageUI from "@/components/pageUIs/dashboard/dashboard_page_ui";
+import DashboardPageUI from "@/components/pageUIs/admin/dashboard/dashboard_page_ui";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

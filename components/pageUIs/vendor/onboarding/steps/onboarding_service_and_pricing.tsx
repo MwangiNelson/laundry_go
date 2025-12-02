@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray } from "react-hook-form";
 import { SERVICE_TYPES } from "../onboarding_utils";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
+import { NumberInput } from "@/components/fields/inputs/number_input";
 
 type ServiceId = (typeof SERVICE_TYPES)[number]["id"];
 
@@ -244,12 +245,12 @@ const ServiceItemInputs = ({ serviceId, index }: ServiceItemInputsProps) => {
             label="Unit"
             placeholder="Item"
           />
-          <BasicInput
+          <NumberInput
             control={service_and_pricing_form.control}
             name={`${basePath}.cost` as `laundry.items.${number}.cost`}
             label="Cost (Kes)"
             placeholder="0"
-            type="number"
+            min={0}
           />
         </div>
       );
@@ -264,12 +265,12 @@ const ServiceItemInputs = ({ serviceId, index }: ServiceItemInputsProps) => {
             label="Room"
             placeholder="Enter room"
           />
-          <BasicInput
+          <NumberInput
             control={service_and_pricing_form.control}
             name={`${basePath}.cost` as `moving.items.${number}.cost`}
             label="Cost (Kes)"
             placeholder="0"
-            type="number"
+            min={0}
           />
         </div>
       );
@@ -284,23 +285,23 @@ const ServiceItemInputs = ({ serviceId, index }: ServiceItemInputsProps) => {
             label="Room"
             placeholder="Parking"
           />
-          <BasicInput
+          <NumberInput
             control={service_and_pricing_form.control}
             name={
               `${basePath}.regular_clean` as `house_cleaning.items.${number}.regular_clean`
             }
             label="Regular Clean (Kes)"
             placeholder="0"
-            type="number"
+            min={0}
           />
-          <BasicInput
+          <NumberInput
             control={service_and_pricing_form.control}
             name={
               `${basePath}.deep_clean` as `house_cleaning.items.${number}.deep_clean`
             }
             label="Deep Clean (Kes)"
             placeholder="0"
-            type="number"
+            min={0}
           />
         </div>
       );

@@ -12,7 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useDashboardUI } from "../context/dashboard_ui_provider";
+import { useDashboardUI } from "../../context/dashboard_ui_provider";
 import { TIcon } from "@/types/ui.types";
 import { PiChartPieSliceFill } from "react-icons/pi";
 import { RiProfileLine } from "react-icons/ri";

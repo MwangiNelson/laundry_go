@@ -1,0 +1,82 @@
+"use client";
+
+import React from "react";
+import { Form } from "@/components/ui/form";
+import { useSettings } from "./settings_context";
+import { BasicInput } from "@/components/fields/inputs/basic_input";
+import { PhoneInput } from "@/components/fields/inputs/phone_input";
+import { FileUpload } from "@/components/fields/files/basic_image_input";
+import { Button } from "@/components/ui/button";
+import { TBusinessProfile } from "./settings_utils";
+import { ArrowRight } from "lucide-react";
+
+export const BusinessProfileSettings = () => {
+  const { business_profile_form, onUpdateBusinessProfile } = useSettings();
+
+  const handleSubmit = business_profile_form.handleSubmit(
+    onUpdateBusinessProfile
+  );
+
+  return (
+    <Form {...business_profile_form}>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+        {/* Form Fields */}
+        <div className="flex flex-col gap-4">
+          {/* Row 1: Username, Business Name, Phone Number, Email */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <BasicInput<TBusinessProfile>
+              control={business_profile_form.control}
+              name="username"
+              label="Username"
+              placeholder="LaundrySmart"
+            />
+            <BasicInput<TBusinessProfile>
+              control={business_profile_form.control}
+              name="business_name"
+              label="Business Name"
+              placeholder="LaundrySmart"
+            />
+            <PhoneInput<TBusinessProfile>
+              control={business_profile_form.control}
+              name="phone_number"
+              label="Phone Number"
+              placeholder="12345678"
+              defaultCountryCode="KE"
+            />
+            <BasicInput<TBusinessProfile>
+              control={business_profile_form.control}
+              name="email"
+              label="Email Address"
+              placeholder="email@email.com"
+              type="email"
+            />
+          </div>
+
+          {/* Logo Upload */}
+          <div className="w-full max-w-[276px]">
+            <FileUpload<TBusinessProfile>
+              control={business_profile_form.control}
+              name="logo"
+              label="Upload Logo"
+              accept="image/png,image/jpeg,image/gif"
+              multiple={false}
+              placeholder="Browse photo"
+              description="PNG, JPG or GIF (max 3MB)"
+            />
+          </div>
+        </div>
+
+        {/* Action Button */}
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            className="bg-[#f5c555] hover:bg-[#f5c555]/90 text-[#1a1a1a] rounded-lg px-4 py-3 w-[252px]"
+          >
+            Update
+            <ArrowRight className="ml-1 h-5 w-5" />
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+};
