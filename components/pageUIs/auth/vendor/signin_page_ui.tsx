@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { useLoginWithEmail } from "@/api/auth/use_auth";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -20,6 +21,7 @@ const schema = z.object({
   rememberMe: z.boolean().optional(),
 });
 const SignInPageUI = () => {
+  const { mutateAsync: signInWithEmail, isPending } = useLoginWithEmail();
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -28,10 +30,22 @@ const SignInPageUI = () => {
       rememberMe: false,
     },
   });
+  const onSubmit = async (data: z.infer<typeof schema>) => {
+    await signInWithEmail({
+      email: data.email,
+      password: data.password,
+    }).then(() => {
+      window.location.href = "/vendor";
+      form.reset();
+    });
+  };
   return (
     <VendorAuthPageUI>
       <Form {...form}>
-        <form className="flex flex-col gap-10">
+        <form
+          className="flex flex-col gap-10"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           {/* Title Section */}
           <div className="flex flex-col gap-2">
             <h1 className="font-manrope font-bold text-[32px] leading-tight text-title">
@@ -94,6 +108,7 @@ const SignInPageUI = () => {
                 <Button
                   type="submit"
                   className="w-full h-12 bg-primary hover:bg-primary/90 text-foreground font-manrope text-sm rounded-lg"
+                  loading={isPending}
                 >
                   Sign In
                 </Button>
@@ -139,7 +154,7 @@ const SignInPageUI = () => {
                 </span>
                 <Link
                   href="/auth/vendor/signup"
-                  className="font-medium text-primary-blue hover:underline"
+                  className="font-medium text-secondary hover:underline"
                 >
                   Sign Up
                 </Link>

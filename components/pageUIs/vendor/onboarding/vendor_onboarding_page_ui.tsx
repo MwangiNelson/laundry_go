@@ -48,7 +48,7 @@ export const VendorOboardingPageUI = () => {
       {/* Modal-like card container */}
       <div className="w-[90vw] max-w-[800px] max-h-[90vh] flex flex-col gap-4">
         <VendorOnboardingTabHeader />
-        <Card className="rounded-xl bg-background px-6 py-6 border-t-0 flex flex-col flex-1 min-h-0">
+        <Card className="rounded-xl  px-6 py-6 border-t-0 flex flex-col flex-1 min-h-0">
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto min-h-0 pr-2">
             <StepComponent />

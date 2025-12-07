@@ -28,7 +28,15 @@ export const VendorSidebar = () => {
   };
 
   const isItemActive = (item: TVendorNavItem) => {
-    return pathname.startsWith(item.link ?? "");
+    const link = item.link ?? "";
+
+    // For the root dashboard path (/vendor), require exact match
+    if (link === "/vendor") {
+      return pathname === "/vendor" || pathname === "/vendor/";
+    }
+
+    // For other paths, use startsWith to handle nested routes like /vendor/riders/123
+    return pathname.startsWith(link);
   };
 
   return (

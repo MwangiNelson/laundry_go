@@ -3,7 +3,6 @@ import { Upload, X, FileImage, FileText, FileVideo, File } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Control, FieldPath, FieldValues } from "react-hook-form";
 import {
-  FormControl,
   FormField,
   FormItem,
   FormLabel,
@@ -190,83 +189,81 @@ export const FileUpload = <TFieldValues extends FieldValues>({
                 {label}
               </FormLabel>
             )}
-            <FormControl>
-              <div className="space-y-3">
-                {/* Upload Area */}
-                <div
-                  className={cn(
-                    "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-                    isDragOver
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50 hover:bg-muted/50"
-                  )}
-                  onDrop={handleDrop}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onClick={handleClick}
-                >
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm font-medium text-foreground mb-1">
-                    {placeholder}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{description}</p>
-                </div>
+            <div className="space-y-3">
+              {/* Upload Area */}
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+                  isDragOver
+                    ? "border-primary bg-primary/5"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                )}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onClick={handleClick}
+              >
+                <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground mb-1">
+                  {placeholder}
+                </p>
+                <p className="text-xs text-muted-foreground">{description}</p>
+              </div>
 
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept={accept}
-                  multiple={multiple && maxFiles > 1}
-                  onChange={(e) => handleFileSelect(e.target.files)}
-                  className="hidden"
-                />
+              {/* Hidden File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={accept}
+                multiple={multiple && maxFiles > 1}
+                onChange={(e) => handleFileSelect(e.target.files)}
+                className="hidden"
+              />
 
-                {/* File List */}
-                {files.length > 0 && (
-                  <div className="space-y-2">
-                    {files.map((file: File, index: number) => (
-                      <div
-                        key={`${file.name}-${index}`}
-                        className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                      >
-                        <div className="flex items-center gap-3">
-                          {getFilePreview(file)}
-                          <div>
-                            <p className="text-sm font-medium text-foreground">
-                              {file.name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatFileSize(file.size)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-primary font-medium">
-                            ✓ Uploaded
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleFileRemove(file);
-                            }}
-                            className="p-1 hover:bg-muted rounded transition-colors"
-                          >
-                            <X className="w-4 h-4 text-muted-foreground" />
-                          </button>
+              {/* File List */}
+              {files.length > 0 && (
+                <div className="space-y-2">
+                  {files.map((file: File, index: number) => (
+                    <div
+                      key={`${file.name}-${index}`}
+                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        {getFilePreview(file)}
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            {file.name}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)}
+                          </p>
                         </div>
                       </div>
-                    ))}
-                    {multiple && files.length >= maxFiles && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        Maximum {maxFiles} file{maxFiles > 1 ? "s" : ""} reached
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </FormControl>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-primary font-medium">
+                          ✓ Uploaded
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFileRemove(file);
+                          }}
+                          className="p-1 hover:bg-muted rounded transition-colors"
+                        >
+                          <X className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {multiple && files.length >= maxFiles && (
+                    <p className="text-xs text-muted-foreground text-center">
+                      Maximum {maxFiles} file{maxFiles > 1 ? "s" : ""} reached
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
             <FormMessage />
           </FormItem>
         );

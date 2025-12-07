@@ -6,11 +6,11 @@ import { ChevronDown } from "lucide-react";
 import * as countryCodes from "country-codes-list";
 
 import {
-  FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormMessage,
+  useFormField,
 } from "@/components/ui/form";
 import {
   Popover,
@@ -69,6 +69,130 @@ const getCountryList = (): CountryData[] => {
     .sort((a, b) => a.name.localeCompare(b.name));
 };
 
+interface PhoneInputInnerProps<TFieldValues extends FieldValues>
+  extends Omit<
+    PhoneInputProps<TFieldValues>,
+    "name" | "control" | "formItemClassName" | "description"
+  > {
+  field: {
+    value: unknown;
+    onChange: (value: unknown) => void;
+    onBlur: () => void;
+    name: string;
+  };
+  countries: CountryData[];
+}
+
+const PhoneInputInner = <TFieldValues extends FieldValues>({
+  label,
+  className,
+  defaultCountryCode = "KE",
+  placeholder = "Enter number",
+  onChange,
+  onBlur,
+  field,
+  countries,
+  ...rest
+}: PhoneInputInnerProps<TFieldValues>) => {
+  const { formItemId, formDescriptionId, formMessageId, error } = useFormField();
+  const [open, setOpen] = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState<CountryData>(() => {
+    const defaultCountry = countries.find((c) => c.code === defaultCountryCode);
+    return (
+      defaultCountry || countries.find((c) => c.code === "KE") || countries[0]
+    );
+  });
+
+  return (
+    <div
+      className={cn(
+        "relative rounded-2xl border px-4 py-3 transition-colors",
+        "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
+        error && "border-destructive",
+        className
+      )}
+    >
+      <div className="flex flex-col gap-1">
+        {label && (
+          <label
+            htmlFor={formItemId}
+            className="text-xs font-medium tracking-wide text-label"
+          >
+            {label}
+          </label>
+        )}
+        <div className="flex items-center gap-2">
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm text-foreground font-medium shrink-0 hover:opacity-70 transition-opacity focus:outline-none"
+                aria-label="Select country code"
+              >
+                <span>+{selectedCountry.callingCode}</span>
+                <ChevronDown size={14} className="text-muted-foreground" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[280px] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search country..." />
+                <CommandList>
+                  <CommandEmpty>No country found.</CommandEmpty>
+                  <CommandGroup>
+                    {countries.map((country) => (
+                      <CommandItem
+                        key={country.code}
+                        value={`${country.name} ${country.code} +${country.callingCode}`}
+                        onSelect={() => {
+                          setSelectedCountry(country);
+                          setOpen(false);
+                        }}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="truncate">{country.name}</span>
+                        <span className="text-muted-foreground text-sm shrink-0">
+                          +{country.callingCode}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+
+          <div className="h-4 w-px bg-border" />
+
+          <input
+            id={formItemId}
+            type="tel"
+            inputMode="numeric"
+            aria-describedby={
+              !error
+                ? formDescriptionId
+                : `${formDescriptionId} ${formMessageId}`
+            }
+            aria-invalid={!!error}
+            {...rest}
+            value={(field.value as string) ?? ""}
+            onChange={(event) => {
+              const value = event.target.value.replace(/[^0-9]/g, "");
+              field.onChange(value);
+              onChange?.(event);
+            }}
+            onBlur={(event) => {
+              field.onBlur();
+              onBlur?.(event);
+            }}
+            placeholder={placeholder}
+            className="flex-1 bg-transparent text-sm text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const PhoneInput = <TFieldValues extends FieldValues>({
   name,
   control,
@@ -83,108 +207,27 @@ export const PhoneInput = <TFieldValues extends FieldValues>({
   ...rest
 }: PhoneInputProps<TFieldValues>) => {
   const countries = useMemo(() => getCountryList(), []);
-  const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<CountryData>(() => {
-    const defaultCountry = countries.find((c) => c.code === defaultCountryCode);
-    return (
-      defaultCountry || countries.find((c) => c.code === "KE") || countries[0]
-    );
-  });
 
   return (
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <FormItem className={cn("w-full", formItemClassName)}>
           {description ? (
             <FormDescription>{description}</FormDescription>
           ) : null}
-          <FormControl>
-            <div
-              className={cn(
-                "relative rounded-2xl border px-4 py-3 transition-colors",
-                "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
-                fieldState.error && "border-destructive",
-                className
-              )}
-            >
-              <div className="flex flex-col gap-1">
-                {label && (
-                  <label
-                    htmlFor={name}
-                    className="text-xs font-medium tracking-wide text-label"
-                  >
-                    {label}
-                  </label>
-                )}
-                <div className="flex items-center gap-2">
-                  <Popover open={open} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="flex items-center gap-1 text-sm text-foreground font-medium shrink-0 hover:opacity-70 transition-opacity focus:outline-none"
-                        aria-label="Select country code"
-                      >
-                        <span>+{selectedCountry.callingCode}</span>
-                        <ChevronDown
-                          size={14}
-                          className="text-muted-foreground"
-                        />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[280px] p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Search country..." />
-                        <CommandList>
-                          <CommandEmpty>No country found.</CommandEmpty>
-                          <CommandGroup>
-                            {countries.map((country) => (
-                              <CommandItem
-                                key={country.code}
-                                value={`${country.name} ${country.code} +${country.callingCode}`}
-                                onSelect={() => {
-                                  setSelectedCountry(country);
-                                  setOpen(false);
-                                }}
-                                className="flex items-center justify-between"
-                              >
-                                <span className="truncate">{country.name}</span>
-                                <span className="text-muted-foreground text-sm shrink-0">
-                                  +{country.callingCode}
-                                </span>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-
-                  <div className="h-4 w-px bg-border" />
-
-                  <input
-                    id={name}
-                    type="tel"
-                    inputMode="numeric"
-                    {...rest}
-                    value={field.value ?? ""}
-                    onChange={(event) => {
-                      const value = event.target.value.replace(/[^0-9]/g, "");
-                      field.onChange(value);
-                      onChange?.(event);
-                    }}
-                    onBlur={(event) => {
-                      field.onBlur();
-                      onBlur?.(event);
-                    }}
-                    placeholder={placeholder}
-                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-placeholder focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-                  />
-                </div>
-              </div>
-            </div>
-          </FormControl>
+          <PhoneInputInner
+            label={label}
+            className={className}
+            defaultCountryCode={defaultCountryCode}
+            placeholder={placeholder}
+            onChange={onChange}
+            onBlur={onBlur}
+            field={field}
+            countries={countries}
+            {...rest}
+          />
           <FormMessage />
         </FormItem>
       )}
