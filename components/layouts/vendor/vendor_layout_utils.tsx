@@ -36,6 +36,34 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
     label: "Orders",
     icon: PackageIcon,
     link: "/vendor/orders",
+    children: [
+      {
+        key: "laundry_orders",
+        label: "Laundry Orders",
+        link: "/vendor/orders/laundry_orders",
+      },
+
+      {
+        key: "moving_orders",
+        label: "Moving Orders",
+        link: "/vendor/orders/moving_orders",
+      },
+      {
+        key: "house_cleaning_orders",
+        label: "House Cleaning Orders",
+        link: "/vendor/orders/house_cleaning_orders",
+      },
+      {
+        key: "office_cleaning_orders",
+        label: "Office Cleaning Orders",
+        link: "/vendor/orders/office_cleaning_orders",
+      },
+      {
+        key: "fumigation_orders",
+        label: "Fumigation Orders",
+        link: "/vendor/orders/fumigation_orders",
+      },
+    ],
   },
   {
     key: "services",

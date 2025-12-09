@@ -31,13 +31,10 @@ export const VendorProvider = (props: Props) => {
   const router = useRouter();
 
   useEffect(() => {
-    // Not logged in and not loading → redirect to signin
     if (!loggedIn && !loading) {
       router.push("/auth/vendor/signin");
       return;
     }
-
-    // Logged in but no vendor found → redirect to onboarding
     if (
       loggedIn &&
       !vendorProviders.loading_vendor &&
@@ -53,8 +50,6 @@ export const VendorProvider = (props: Props) => {
     vendorProviders.loading_vendor,
     router,
   ]);
-
-  // Show loading while checking auth
   if (loading) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
@@ -63,12 +58,6 @@ export const VendorProvider = (props: Props) => {
     );
   }
 
-  // Not logged in - show nothing while redirecting
-  if (!loggedIn) {
-    return null;
-  }
-
-  // Show loading while fetching vendor
   if (vendorProviders.loading_vendor) {
     return (
       <div className="w-screen h-screen flex items-center justify-center">
@@ -76,8 +65,6 @@ export const VendorProvider = (props: Props) => {
       </div>
     );
   }
-
-  // No vendor found - show nothing while redirecting to onboarding
   if (!vendorProviders.vendor) {
     return null;
   }
@@ -89,10 +76,10 @@ export const VendorProvider = (props: Props) => {
   );
 };
 
-export const useVendorProvider = () => {
+export const useVendor = () => {
   const context = React.useContext(VendorProviderContext);
   if (context === undefined) {
-    throw new Error("useVendorProvider must be used within a VendorProvider");
+    throw new Error("useVendormust be used within a VendorProvider");
   }
   return context;
 };

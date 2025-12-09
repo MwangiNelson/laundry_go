@@ -7,24 +7,35 @@ import {
 } from "./steps";
 import {
   TBusinessInformation,
+  TOnboardingFormData,
   TOperationHours,
-  SERVICE_TYPES,
   TServiceAndPricing,
   business_information,
+  convertToServiceTypes,
   operation_hours,
   service_and_pricing,
 } from "./onboarding_utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useFetchMainServices } from "@/api/vendor/onboarding/use_fetch_services";
+import { useAuth } from "@/components/context/auth_provider";
+import { useCreateVendor } from "@/api/vendor/onboarding/use_save_vendor";
+import { useRouter } from "next/navigation";
 const useOnboardingProvider = () => {
   const [current_step, set_current_step] = useState<number>(0);
   const [is_open, set_is_open] = useState<boolean>(false);
   const [completed_steps, set_completed_steps] = useState<number[]>([]);
+  const { user } = useAuth();
+  const { data: mainServices = [] } = useFetchMainServices();
+  const { mutateAsync: createVendor, isPending: creating } = useCreateVendor();
+  const router = useRouter();
+  const SERVICE_TYPES = convertToServiceTypes(mainServices);
 
   const business_info_form = useForm<TBusinessInformation>({
     resolver: zodResolver(business_information),
     defaultValues: {
       business_name: "",
+      email: "",
       address: "",
       phone_number: "",
       logo: undefined,
@@ -67,10 +78,18 @@ const useOnboardingProvider = () => {
   ];
 
   const is_in_last_step = current_step === steps.length - 1;
-  const handleNextStep = () => {
-    // Mark current step as completed
+  const handleNextStep = async () => {
     if (is_in_last_step) {
-      return;
+      const data: TOnboardingFormData = {
+        business_information: business_info_form.getValues(),
+        operation_hours: operation_hours_form.getValues(),
+        service_and_pricing: service_and_pricing_form.getValues(),
+        admin_user_id: user?.id,
+      };
+      await createVendor(data).then(() => {
+        router.refresh();
+        window.location.href = "/vendor/";
+      });
     }
     if (!completed_steps.includes(current_step)) {
       set_completed_steps([...completed_steps, current_step]);
@@ -109,6 +128,7 @@ const useOnboardingProvider = () => {
     service_and_pricing_form,
     SERVICE_TYPES,
     handleback,
+    creating,
   };
 };
 

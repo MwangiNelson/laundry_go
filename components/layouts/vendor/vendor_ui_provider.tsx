@@ -1,4 +1,6 @@
 "use client";
+import { NewLaundryOrderModal } from "@/components/modals/vendors/orders/laundry/laundry_order_main.modal";
+import { LaundryModalProvider } from "@/components/modals/vendors/orders/laundry/use_laundry_modal";
 import React, {
   createContext,
   Dispatch,
@@ -44,7 +46,9 @@ export const VendorUIProvider = ({ children }: Props) => {
         },
       }}
     >
-      <Modals>{children}</Modals>
+      <LaundryModalProvider>
+        <Modals>{children}</Modals>
+      </LaundryModalProvider>
     </VendorUIContext.Provider>
   );
 };
@@ -57,4 +61,9 @@ export function useVendorUI() {
   return context;
 }
 
-const Modals = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+const Modals = ({ children }: { children: React.ReactNode }) => (
+  <>
+    <NewLaundryOrderModal />
+    {children}
+  </>
+);

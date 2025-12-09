@@ -14,9 +14,11 @@ import { TIcon } from "@/types/ui.types";
 import { useVendorUI } from "./vendor_ui_provider";
 import { TVendorNavItem, VENDOR_NAV_ITEMS } from "./vendor_layout_utils";
 import { CaretRightIcon, SignOutIcon } from "@phosphor-icons/react";
+import { useVendor } from "@/components/context/vendors/vendor_provider";
 
 export const VendorSidebar = () => {
   const { sidebar } = useVendorUI();
+  const { vendor } = useVendor();
   const isCollapsed = !sidebar.isOpen;
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -35,7 +37,13 @@ export const VendorSidebar = () => {
       return pathname === "/vendor" || pathname === "/vendor/";
     }
 
-    // For other paths, use startsWith to handle nested routes like /vendor/riders/123
+    // For items with children, only mark as active if it's an exact match
+    // This prevents parent items from being marked active when a child is active
+    if (item.children && item.children.length > 0) {
+      return pathname === link;
+    }
+
+    // For other paths without children, use startsWith to handle nested routes like /vendor/riders/123
     return pathname.startsWith(link);
   };
 
@@ -53,7 +61,7 @@ export const VendorSidebar = () => {
         <div className="flex items-center gap-3">
           {!isCollapsed && (
             <h1 className="text-2xl font-semibold text-foreground font-marck">
-              LaundryMart
+              {vendor?.business_name}
             </h1>
           )}
         </div>
@@ -188,7 +196,7 @@ const SidebarItemWithChildren = ({
                     "block py-2 pl-4 pr-3 text-sm hover:bg-muted rounded-r-lg transition-colors",
                     pathname === child.link
                       ? "text-foreground font-medium bg-foreground/5"
-                      : "text-muted-foreground"
+                      : "text-foreground/90"
                   )}
                 >
                   {child.label}

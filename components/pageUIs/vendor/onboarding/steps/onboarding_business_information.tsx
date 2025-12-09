@@ -42,6 +42,12 @@ export const OnboardingBusinessInformation = () => {
             />
             <BasicInput<TBusinessInformation>
               control={business_info_form.control}
+              name="email"
+              label="Email Address"
+              placeholder="Business Email"
+            />
+            <BasicInput<TBusinessInformation>
+              control={business_info_form.control}
               name="address"
               label="Location"
               placeholder="Enter location"
