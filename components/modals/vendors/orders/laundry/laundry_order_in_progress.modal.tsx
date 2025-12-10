@@ -2,12 +2,12 @@
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Check } from "lucide-react";
+import { X, Check, Dot, ChevronRight, ChevronDown } from "lucide-react";
 import { CustomerProfile } from "./customer_profile";
 import { useLaundryModal } from "./use_laundry_modal";
 import { LaundryOrderOverview } from "./laundry_order_overview";
 
-export const NewOrderModal = () => {
+export const LaundryOrderInProgressModal = () => {
   const { order, open, setOpen } = useLaundryModal();
   const handleAccept = () => {};
 
@@ -48,31 +48,18 @@ export const NewOrderModal = () => {
               <div className="size-4 flex items-center justify-center">
                 <div className="size-2 rounded-full bg-destructive" />
               </div>
-              <span className="text-base font-normal text-destructive font-manrope">
-                New
-              </span>
             </Badge>
           </div>
 
           <div className="flex items-center gap-1.5">
             <Button
-              variant="outline"
-              className="border-primary text-foreground bg-transparent hover:bg-primary/10 rounded-xl px-4 py-2 h-auto gap-2"
+              variant="ghost"
+              className="border-secondary text-foreground bg-transparent hover:bg-primary/10 rounded-xl px-4 py-2 h-auto gap-2"
               onClick={handleReject}
             >
-              <X className="size-4" />
-              <span className="text-sm font-normal font-manrope">
-                Reject Order
-              </span>
-            </Button>
-            <Button
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2"
-              onClick={handleAccept}
-            >
-              <Check className="size-4" />
-              <span className="text-sm font-normal font-manrope">
-                Accept Order
-              </span>
+              <Dot className="size-4" />
+              <span className="text-sm font-normal font-manrope">Ongoing</span>
+              <ChevronDown className="size-4" />
             </Button>
           </div>
         </div>

@@ -1,26 +1,23 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { faker } from "@faker-js/faker";
+
 const generateOrderData = () => {
-  const items = [
+  const rooms = [
     {
-      name: "Curtains",
+      name: "Bedrooms",
       quantity: faker.number.int({ min: 1, max: 5 }),
-      services: ["Cleaning"],
     },
     {
-      name: "Sheets",
-      quantity: faker.number.int({ min: 2, max: 6 }),
-      services: ["Cleaning", "Ironing"],
-    },
-    {
-      name: "Shoes",
+      name: "Toilets",
       quantity: faker.number.int({ min: 1, max: 4 }),
-      services: ["Cleaning"],
     },
     {
-      name: "Beddings",
-      quantity: faker.number.int({ min: 2, max: 5 }),
-      services: ["Cleaning", "Ironing"],
+      name: "Living room",
+      quantity: 1,
+    },
+    {
+      name: "Bathrooms",
+      quantity: faker.number.int({ min: 1, max: 3 }),
     },
   ];
 
@@ -28,18 +25,39 @@ const generateOrderData = () => {
   const customerEmail = faker.internet.email().toLowerCase();
   const customerAvatar = faker.image.avatarGitHub();
   const orderNumber = faker.number.int({ min: 1000, max: 9999 });
-  const totalAmount = faker.number.int({ min: 8000, max: 25000 });
-  const location = `${faker.number.int({
+  const totalAmount = faker.number.int({ min: 50000, max: 150000 });
+
+  const pickupFloor = faker.number.int({ min: 1, max: 10 });
+  const destinationFloor = faker.number.int({ min: 1, max: 10 });
+
+  const pickupLocation = `No. ${faker.number.int({
     min: 1,
-    max: 999,
+    max: 99,
   })} ${faker.location.street()}, ${faker.helpers.arrayElement([
+    "Loresho",
     "Westlands",
     "Kilimani",
     "Karen",
     "Lavington",
-    "Parklands",
+  ])}, Nairobi`;
+
+  const destinationLocation = `Block ${faker.helpers.arrayElement([
+    "A",
+    "B",
+    "C",
+    "D",
+  ])}, ${faker.helpers.arrayElement([
+    "Riverside Residency",
+    "Garden Estate",
+    "Parklands Towers",
+    "Kilimani Heights",
+  ])}, ${faker.helpers.arrayElement([
     "Riverside",
-  ])}`;
+    "Westlands",
+    "Parklands",
+    "Kilimani",
+  ])}, Nairobi`;
+
   const timeSlot = faker.helpers.arrayElement([
     "Today 2-4 PM",
     "Tomorrow 10-12 AM",
@@ -53,9 +71,12 @@ const generateOrderData = () => {
     customerName,
     customerEmail,
     customerAvatar,
-    items,
+    rooms,
     totalAmount,
-    location,
+    pickupLocation,
+    destinationLocation,
+    pickupFloor,
+    destinationFloor,
     timeSlot,
     minutesAgo,
   };
@@ -63,7 +84,7 @@ const generateOrderData = () => {
 
 type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
 
-interface LaundryModalContextType {
+interface MovingModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
   orderId: string | null;
@@ -74,15 +95,16 @@ interface LaundryModalContextType {
   order: ReturnType<typeof generateOrderData>;
 }
 
-const LaundryModalContext = createContext<LaundryModalContextType | undefined>(
+const MovingModalContext = createContext<MovingModalContextType | undefined>(
   undefined
 );
 
-export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
+export const MovingModalProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
   const [orderData] = useState(generateOrderData());
+
   const openModal = ({
     orderId,
     orderStatus,
@@ -96,7 +118,7 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LaundryModalContext.Provider
+    <MovingModalContext.Provider
       value={{
         open,
         setOpen,
@@ -109,14 +131,14 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
-    </LaundryModalContext.Provider>
+    </MovingModalContext.Provider>
   );
 };
 
-export const useLaundryModal = () => {
-  const context = useContext(LaundryModalContext);
+export const useMovingModal = () => {
+  const context = useContext(MovingModalContext);
   if (!context) {
-    throw new Error("useLaundryModal must be used within LaundryModalProvider");
+    throw new Error("useMovingModal must be used within a MovingModalProvider");
   }
   return context;
 };

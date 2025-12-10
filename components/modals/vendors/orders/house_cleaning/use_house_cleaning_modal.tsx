@@ -1,26 +1,27 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { faker } from "@faker-js/faker";
+
 const generateOrderData = () => {
-  const items = [
+  const services = [
     {
-      name: "Curtains",
-      quantity: faker.number.int({ min: 1, max: 5 }),
-      services: ["Cleaning"],
+      name: "General Cleaning",
+      rooms: faker.number.int({ min: 2, max: 5 }),
+      price: faker.number.int({ min: 2000, max: 5000 }),
     },
     {
-      name: "Sheets",
-      quantity: faker.number.int({ min: 2, max: 6 }),
-      services: ["Cleaning", "Ironing"],
+      name: "Deep Cleaning",
+      rooms: faker.number.int({ min: 1, max: 3 }),
+      price: faker.number.int({ min: 3000, max: 8000 }),
     },
     {
-      name: "Shoes",
-      quantity: faker.number.int({ min: 1, max: 4 }),
-      services: ["Cleaning"],
+      name: "Window Cleaning",
+      rooms: faker.number.int({ min: 2, max: 6 }),
+      price: faker.number.int({ min: 1500, max: 3000 }),
     },
     {
-      name: "Beddings",
-      quantity: faker.number.int({ min: 2, max: 5 }),
-      services: ["Cleaning", "Ironing"],
+      name: "Kitchen Cleaning",
+      rooms: 1,
+      price: faker.number.int({ min: 2500, max: 4000 }),
     },
   ];
 
@@ -28,10 +29,11 @@ const generateOrderData = () => {
   const customerEmail = faker.internet.email().toLowerCase();
   const customerAvatar = faker.image.avatarGitHub();
   const orderNumber = faker.number.int({ min: 1000, max: 9999 });
-  const totalAmount = faker.number.int({ min: 8000, max: 25000 });
-  const location = `${faker.number.int({
+  const totalAmount = services.reduce((sum, service) => sum + service.price, 0);
+
+  const location = `No. ${faker.number.int({
     min: 1,
-    max: 999,
+    max: 99,
   })} ${faker.location.street()}, ${faker.helpers.arrayElement([
     "Westlands",
     "Kilimani",
@@ -39,7 +41,8 @@ const generateOrderData = () => {
     "Lavington",
     "Parklands",
     "Riverside",
-  ])}`;
+  ])}, Nairobi`;
+
   const timeSlot = faker.helpers.arrayElement([
     "Today 2-4 PM",
     "Tomorrow 10-12 AM",
@@ -53,7 +56,7 @@ const generateOrderData = () => {
     customerName,
     customerEmail,
     customerAvatar,
-    items,
+    services,
     totalAmount,
     location,
     timeSlot,
@@ -63,7 +66,7 @@ const generateOrderData = () => {
 
 type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
 
-interface LaundryModalContextType {
+interface HouseCleaningModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
   orderId: string | null;
@@ -74,15 +77,20 @@ interface LaundryModalContextType {
   order: ReturnType<typeof generateOrderData>;
 }
 
-const LaundryModalContext = createContext<LaundryModalContextType | undefined>(
-  undefined
-);
+const HouseCleaningModalContext = createContext<
+  HouseCleaningModalContextType | undefined
+>(undefined);
 
-export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
+export const HouseCleaningModalProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [open, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
   const [orderData] = useState(generateOrderData());
+
   const openModal = ({
     orderId,
     orderStatus,
@@ -96,7 +104,7 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LaundryModalContext.Provider
+    <HouseCleaningModalContext.Provider
       value={{
         open,
         setOpen,
@@ -109,14 +117,16 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
-    </LaundryModalContext.Provider>
+    </HouseCleaningModalContext.Provider>
   );
 };
 
-export const useLaundryModal = () => {
-  const context = useContext(LaundryModalContext);
+export const useHouseCleaningModal = () => {
+  const context = useContext(HouseCleaningModalContext);
   if (!context) {
-    throw new Error("useLaundryModal must be used within LaundryModalProvider");
+    throw new Error(
+      "useHouseCleaningModal must be used within a HouseCleaningModalProvider"
+    );
   }
   return context;
 };

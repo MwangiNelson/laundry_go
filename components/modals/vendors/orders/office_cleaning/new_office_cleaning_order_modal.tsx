@@ -3,14 +3,13 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Check } from "lucide-react";
-import { CustomerProfile } from "./customer_profile";
-import { useLaundryModal } from "./use_laundry_modal";
-import { LaundryOrderOverview } from "./laundry_order_overview";
+import { CustomerProfile } from "../shared/customer_profile";
+import { useOfficeCleaningModal } from "./use_office_cleaning_modal";
+import { OfficeCleaningOrderOverview } from "./office_cleaning_order_overview";
 
-export const NewOrderModal = () => {
-  const { order, open, setOpen } = useLaundryModal();
+export const NewOfficeCleaningOrderModal = () => {
+  const { order, setOpen } = useOfficeCleaningModal();
   const handleAccept = () => {};
-
   const handleReject = () => {};
 
   return (
@@ -18,13 +17,13 @@ export const NewOrderModal = () => {
       showCloseButton={false}
       className="sm:max-w-3xl p-0 rounded-3xl bg-background border border-foreground/10 overflow-hidden"
     >
-      <DialogTitle className="sr-only">New Laundry Order</DialogTitle>
+      <DialogTitle className="sr-only">New Office Cleaning Order</DialogTitle>
 
-      <div className="p-6 space-y-6 ">
+      <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-end gap-2">
             <h2 className="text-xl font-semibold text-foreground font-manrope">
-              Laundry
+              Office Cleaning
             </h2>
             <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
               {order.minutesAgo} mins
@@ -76,9 +75,19 @@ export const NewOrderModal = () => {
             </Button>
           </div>
         </div>
-        <div className=" max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
-          <CustomerProfile />
-          <LaundryOrderOverview />
+        <div className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
+          <CustomerProfile
+            name={order.customerName}
+            email={order.customerEmail}
+            avatar={order.customerAvatar}
+          />
+          <OfficeCleaningOrderOverview
+            rooms={order.rooms}
+            totalAmount={order.totalAmount}
+            serviceType={order.serviceType}
+            location={order.location}
+            timeSlot={order.timeSlot}
+          />
         </div>
       </div>
     </DialogContent>

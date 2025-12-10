@@ -6,6 +6,7 @@ import {
   getOfficeCleaningOrdersData,
   OfficeCleaningOrderTab,
 } from "./office_cleaning_orders.data";
+import { useOfficeCleaningModal } from "@/components/modals/vendors/orders/office_cleaning/use_office_cleaning_modal";
 
 interface OfficeCleaningOrdersTableProps {
   activeTab: OfficeCleaningOrderTab;
@@ -14,14 +15,16 @@ interface OfficeCleaningOrdersTableProps {
 export const OfficeCleaningOrdersTable = ({
   activeTab,
 }: OfficeCleaningOrdersTableProps) => {
+  const { openModal } = useOfficeCleaningModal();
   return (
     <Table_Wrapper
       columns={officeCleaningOrdersColumns}
       data={getOfficeCleaningOrdersData(activeTab)}
       enableRowSelection
       onRowClick={(row) => {
-        console.log("Row clicked:", row);
-        // TODO: Add navigation or modal to view order details
+        if (activeTab === "new" || activeTab === "ongoing") {
+          openModal({ orderId: row.id, orderStatus: activeTab });
+        }
       }}
     />
   );

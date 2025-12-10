@@ -1,26 +1,23 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { faker } from "@faker-js/faker";
+
 const generateOrderData = () => {
-  const items = [
+  const rooms = [
     {
-      name: "Curtains",
-      quantity: faker.number.int({ min: 1, max: 5 }),
-      services: ["Cleaning"],
+      name: "Single Office",
+      quantity: faker.number.int({ min: 2, max: 8 }),
     },
     {
-      name: "Sheets",
+      name: "Kitchen",
+      quantity: faker.number.int({ min: 1, max: 3 }),
+    },
+    {
+      name: "Gym",
+      quantity: faker.number.int({ min: 1, max: 2 }),
+    },
+    {
+      name: "Restrooms",
       quantity: faker.number.int({ min: 2, max: 6 }),
-      services: ["Cleaning", "Ironing"],
-    },
-    {
-      name: "Shoes",
-      quantity: faker.number.int({ min: 1, max: 4 }),
-      services: ["Cleaning"],
-    },
-    {
-      name: "Beddings",
-      quantity: faker.number.int({ min: 2, max: 5 }),
-      services: ["Cleaning", "Ironing"],
     },
   ];
 
@@ -28,18 +25,25 @@ const generateOrderData = () => {
   const customerEmail = faker.internet.email().toLowerCase();
   const customerAvatar = faker.image.avatarGitHub();
   const orderNumber = faker.number.int({ min: 1000, max: 9999 });
-  const totalAmount = faker.number.int({ min: 8000, max: 25000 });
-  const location = `${faker.number.int({
+  const totalAmount = faker.number.int({ min: 60000, max: 120000 });
+
+  const location = `No. ${faker.number.int({
     min: 1,
-    max: 999,
+    max: 99,
   })} ${faker.location.street()}, ${faker.helpers.arrayElement([
     "Westlands",
+    "Upper Hill",
+    "CBD",
     "Kilimani",
-    "Karen",
-    "Lavington",
     "Parklands",
-    "Riverside",
-  ])}`;
+  ])}, Nairobi`;
+
+  const serviceType = faker.helpers.arrayElement([
+    "Regular Cleaning",
+    "Deep Cleaning",
+    "Post-Construction Cleaning",
+  ]);
+
   const timeSlot = faker.helpers.arrayElement([
     "Today 2-4 PM",
     "Tomorrow 10-12 AM",
@@ -53,9 +57,10 @@ const generateOrderData = () => {
     customerName,
     customerEmail,
     customerAvatar,
-    items,
+    rooms,
     totalAmount,
     location,
+    serviceType,
     timeSlot,
     minutesAgo,
   };
@@ -63,7 +68,7 @@ const generateOrderData = () => {
 
 type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
 
-interface LaundryModalContextType {
+interface OfficeCleaningModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
   orderId: string | null;
@@ -74,15 +79,20 @@ interface LaundryModalContextType {
   order: ReturnType<typeof generateOrderData>;
 }
 
-const LaundryModalContext = createContext<LaundryModalContextType | undefined>(
-  undefined
-);
+const OfficeCleaningModalContext = createContext<
+  OfficeCleaningModalContextType | undefined
+>(undefined);
 
-export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
+export const OfficeCleaningModalProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
   const [open, setOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
   const [orderData] = useState(generateOrderData());
+
   const openModal = ({
     orderId,
     orderStatus,
@@ -96,7 +106,7 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <LaundryModalContext.Provider
+    <OfficeCleaningModalContext.Provider
       value={{
         open,
         setOpen,
@@ -109,14 +119,16 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
       }}
     >
       {children}
-    </LaundryModalContext.Provider>
+    </OfficeCleaningModalContext.Provider>
   );
 };
 
-export const useLaundryModal = () => {
-  const context = useContext(LaundryModalContext);
+export const useOfficeCleaningModal = () => {
+  const context = useContext(OfficeCleaningModalContext);
   if (!context) {
-    throw new Error("useLaundryModal must be used within LaundryModalProvider");
+    throw new Error(
+      "useOfficeCleaningModal must be used within an OfficeCleaningModalProvider"
+    );
   }
   return context;
 };
