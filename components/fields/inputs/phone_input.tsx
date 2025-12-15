@@ -94,14 +94,60 @@ const PhoneInputInner = <TFieldValues extends FieldValues>({
   countries,
   ...rest
 }: PhoneInputInnerProps<TFieldValues>) => {
-  const { formItemId, formDescriptionId, formMessageId, error } = useFormField();
+  const { formItemId, formDescriptionId, formMessageId, error } =
+    useFormField();
   const [open, setOpen] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState<CountryData>(() => {
+
+  // Parse initial value to detect country code
+  const parsePhoneNumber = (
+    value: string
+  ): { country: CountryData; localNumber: string } => {
+    if (!value) {
+      const defaultCountry = countries.find(
+        (c) => c.code === defaultCountryCode
+      );
+      return {
+        country:
+          defaultCountry ||
+          countries.find((c) => c.code === "KE") ||
+          countries[0],
+        localNumber: "",
+      };
+    }
+
+    // Check if value starts with + (E.164 format)
+    if (value.startsWith("+")) {
+      // Try to match country code
+      const sortedCountries = [...countries].sort(
+        (a, b) => b.callingCode.length - a.callingCode.length
+      );
+
+      for (const country of sortedCountries) {
+        if (value.startsWith(`+${country.callingCode}`)) {
+          const localNumber = value.slice(country.callingCode.length + 1);
+          return { country, localNumber };
+        }
+      }
+    }
+
+    // If no country code detected, use default
     const defaultCountry = countries.find((c) => c.code === defaultCountryCode);
-    return (
-      defaultCountry || countries.find((c) => c.code === "KE") || countries[0]
-    );
-  });
+    return {
+      country:
+        defaultCountry ||
+        countries.find((c) => c.code === "KE") ||
+        countries[0],
+      localNumber: value.replace(/[^0-9]/g, ""),
+    };
+  };
+
+  const initialParsed = parsePhoneNumber((field.value as string) ?? "");
+  const [selectedCountry, setSelectedCountry] = useState<CountryData>(
+    initialParsed.country
+  );
+  const [localNumber, setLocalNumber] = useState<string>(
+    initialParsed.localNumber
+  );
 
   return (
     <div
@@ -146,6 +192,12 @@ const PhoneInputInner = <TFieldValues extends FieldValues>({
                         onSelect={() => {
                           setSelectedCountry(country);
                           setOpen(false);
+
+                          // Update field with new country code
+                          const e164 = localNumber
+                            ? `+${country.callingCode}${localNumber}`
+                            : "";
+                          field.onChange(e164);
                         }}
                         className="flex items-center justify-between"
                       >
@@ -174,10 +226,16 @@ const PhoneInputInner = <TFieldValues extends FieldValues>({
             }
             aria-invalid={!!error}
             {...rest}
-            value={(field.value as string) ?? ""}
+            value={localNumber}
             onChange={(event) => {
               const value = event.target.value.replace(/[^0-9]/g, "");
-              field.onChange(value);
+              setLocalNumber(value);
+
+              // Update field with E.164 format
+              const e164 = value
+                ? `+${selectedCountry.callingCode}${value}`
+                : "";
+              field.onChange(e164);
               onChange?.(event);
             }}
             onBlur={(event) => {

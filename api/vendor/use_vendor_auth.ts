@@ -1,9 +1,7 @@
 "use client";
-import { useMutation, useQuery, useQueries } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { createSupabaseClient } from "../supabase/client";
 
-// create  a vendor sign up mutation
 export const useVendorSignUpWithEmail = () => {
   return useMutation({
     meta: {
@@ -26,6 +24,10 @@ export const useVendorSignUpWithEmail = () => {
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/vendor/signin`,
+          data: {
+            full_name: full_name,
+            role: "admin", // Changed from "vendor" to "admin" - vendors are admins of their business
+          },
         },
       });
       if (error) {
@@ -34,23 +36,25 @@ export const useVendorSignUpWithEmail = () => {
       if (!data.user?.id) {
         throw new Error("User ID not found after sign up.");
       }
-      const profile = await client.from("profiles").upsert(
-        {
-          id: data.user.id,
-          full_name: full_name,
-          email: email,
-        },
-        {
-          onConflict: "id",
-        }
-      );
 
-      if (profile.error) {
-        throw new Error(profile.error.message);
+      // The trigger will create the profile automatically, so we don't need to upsert
+      // Just create the vendor record
+      const vendor = await client
+        .from("vendors")
+        .insert({
+          admin_id: data.user.id,
+          email: email,
+        })
+        .select()
+        .single();
+
+      if (vendor.error) {
+        throw new Error(vendor.error.message);
       }
+
       return {
         user: data.user,
-        profile: profile.data,
+        vendor: vendor.data,
       };
     },
   });

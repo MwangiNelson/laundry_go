@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { LaundryOrdersTable } from "@/components/tables/vendors/orders/laundry_orders/laundry_orders.table";
-import { LaundryOrderTab } from "@/components/tables/vendors/orders/laundry_orders/laundry_orders.data";
+import { ILaundryOrderTab } from "@/components/tables/vendors/orders/laundry_orders/laundry_orders.data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const LaundryOrdersPageUI = () => {
-  const [activeTab, setActiveTab] = useState<LaundryOrderTab>("all");
+  const [activeTab, setActiveTab] = useState<ILaundryOrderTab>("all");
 
   return (
     <div className="space-y-6">
@@ -17,7 +17,7 @@ export const LaundryOrdersPageUI = () => {
       </div>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as LaundryOrderTab)}
+        onValueChange={(value) => setActiveTab(value as ILaundryOrderTab)}
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

@@ -11,7 +11,11 @@ import { TBusinessProfile } from "./settings_utils";
 import { ArrowRight } from "lucide-react";
 
 export const BusinessProfileSettings = () => {
-  const { business_profile_form, onUpdateBusinessProfile } = useSettings();
+  const {
+    business_profile_form,
+    onUpdateBusinessProfile,
+    isUpdatingBusinessProfile,
+  } = useSettings();
 
   const handleSubmit = business_profile_form.handleSubmit(
     onUpdateBusinessProfile
@@ -70,7 +74,8 @@ export const BusinessProfileSettings = () => {
         <div className="flex justify-end">
           <Button
             type="submit"
-            className="bg-[#f5c555] hover:bg-[#f5c555]/90 text-[#1a1a1a] rounded-lg px-4 py-3 w-[252px]"
+            className="px-24"
+            loading={isUpdatingBusinessProfile}
           >
             Update
             <ArrowRight className="ml-1 h-5 w-5" />

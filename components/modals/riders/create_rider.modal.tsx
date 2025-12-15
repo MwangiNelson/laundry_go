@@ -18,27 +18,12 @@ import { BasicSelect } from "@/components/fields/select/basic_select";
 import { SimpleSelect } from "@/components/fields/select/simple_select";
 import { FileUpload } from "@/components/fields/files/basic_image_input";
 import { X, Save } from "lucide-react";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required"),
-  phone: z.string().min(1, "Phone is required"),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  license: z.string().min(1, "License is required"),
-  vehicle: z.string().min(1, "Vehicle type is required"),
-  vehiclePlate: z.string().min(1, "Vehicle plate is required"),
-  profilePhoto: z
-    .instanceof(File, { message: "Profile photo is required" })
-    .optional(),
-  notes: z.string().optional(),
-  status: z.string().optional(),
-});
-
-type FormData = z.infer<typeof schema>;
+import { ICreateRiderFormData, create_rider_schema } from "./rider_utils";
+import { useCreateRider } from "@/api/vendor/riders/use_manage_rider";
 
 type CreateRiderModalProps = {
   trigger?: React.ReactNode;
-  onSubmit?: (data: FormData) => void;
-  isLoading?: boolean;
+  vendorId: string;
 };
 
 const vehicleOptions = [
@@ -56,13 +41,13 @@ const statusOptions = [
 
 export const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
   trigger,
-  onSubmit,
-  isLoading = false,
+  vendorId,
 }) => {
   const [open, setOpen] = useState<boolean>(false);
+  const { mutateAsync: createRider, isPending } = useCreateRider();
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(schema),
+  const form = useForm<ICreateRiderFormData>({
+    resolver: zodResolver(create_rider_schema),
     defaultValues: {
       name: "",
       phone: "",
@@ -71,12 +56,13 @@ export const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
       vehicle: "",
       vehiclePlate: "",
       notes: "",
-      status: "",
+      status: "active",
     },
   });
 
-  const handleComplete = (data: FormData) => {
-    onSubmit?.(data);
+  const handleComplete = async (data: ICreateRiderFormData) => {
+    await createRider(data);
+    handleClose();
   };
 
   const handleClose = () => {
@@ -111,7 +97,7 @@ export const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
               </div>
 
               {/* Form Fields */}
-              <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="space-y-6 max-h-[70vh] overflow-y-auto p-1">
                 {/* Row 1: Name, Phone, Email */}
                 <div className="grid grid-cols-3 gap-4">
                   <BasicInput
@@ -199,10 +185,10 @@ export const CreateRiderModal: React.FC<CreateRiderModalProps> = ({
                 <Button
                   type="submit"
                   className="bg-primary hover:bg-primary/90 text-foreground gap-1"
-                  disabled={isLoading}
+                  loading={isPending}
                 >
                   <Save size={16} />
-                  Save Rider
+                  {isPending ? "Saving..." : "Save Rider"}
                 </Button>
               </div>
             </div>

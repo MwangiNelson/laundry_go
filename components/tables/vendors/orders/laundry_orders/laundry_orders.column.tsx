@@ -9,7 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ILaundryOrderData, LaundryOrderStatus } from "./laundry_orders.data";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
+import { LaundryOrderStatus } from "./laundry_orders.data";
 
 // Status badge component with dot indicator matching Figma design
 const OrderStatusBadge = ({ status }: { status: LaundryOrderStatus }) => {
@@ -57,17 +58,19 @@ const OrderStatusBadge = ({ status }: { status: LaundryOrderStatus }) => {
 };
 
 // ALL columns for Laundry Orders table
-export const laundryOrdersColumns: ColumnDef<ILaundryOrderData>[] = [
+export const laundryOrdersColumns: ColumnDef<IOrder>[] = [
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customerName",
+    accessorKey: "customer.full_name",
     cell: ({ row }) => {
-      const { customerName, customerAvatar } = row.original;
+      const customerName =
+        row.original.customer.full_name || row.original.customer.email;
+      const customerAvatar = row.original.customer.avatar_url;
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-8 border-2 border-orange-400">
-            <AvatarImage src={customerAvatar} alt={customerName} />
+            <AvatarImage src={customerAvatar || ""} alt={customerName} />
             <AvatarFallback>
               {customerName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -82,33 +85,32 @@ export const laundryOrdersColumns: ColumnDef<ILaundryOrderData>[] = [
   {
     id: "orderItems",
     header: "Order Items",
-    accessorKey: "orderItems",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">
-          {row.original.orderItems}
-        </span>
-      );
+      const itemNames = row.original.order_items
+        .map((item) => item.service_item.name)
+        .join(", ");
+      return <span className="text-sm text-foreground">{itemNames}</span>;
     },
   },
   {
     id: "service",
     header: "Service",
-    accessorKey: "service",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.service}</span>
-      );
+      const serviceOptions = row.original.order_items
+        .map((item) => item.service_option?.name)
+        .filter(Boolean)
+        .join(", ");
+      return <span className="text-sm text-foreground">{serviceOptions}</span>;
     },
   },
   {
     id: "amount",
     header: "Amount (kes)",
-    accessorKey: "amount",
+    accessorKey: "total_price",
     cell: ({ row }) => {
       return (
         <span className="text-sm font-medium text-foreground">
-          {row.original.amount.toLocaleString()}
+          {row.original.total_price.toLocaleString()}
         </span>
       );
     },
@@ -116,23 +118,21 @@ export const laundryOrdersColumns: ColumnDef<ILaundryOrderData>[] = [
   {
     id: "pickupDate",
     header: "Pick up Date",
-    accessorKey: "pickupDate",
+    accessorKey: "created_at",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">
-          {row.original.pickupDate}
-        </span>
-      );
+      const date = new Date(row.original.created_at).toLocaleDateString();
+      return <span className="text-sm text-foreground">{date}</span>;
     },
   },
   {
     id: "location",
     header: "Location",
-    accessorKey: "location",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.location}</span>
-      );
+      const location =
+        row.original.pickup_details?.location ||
+        row.original.delivery_details?.location ||
+        "N/A";
+      return <span className="text-sm text-foreground">{location}</span>;
     },
   },
   {
@@ -140,7 +140,21 @@ export const laundryOrdersColumns: ColumnDef<ILaundryOrderData>[] = [
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      return <OrderStatusBadge status={row.original.status} />;
+      // Map DB status to UI status
+      const statusMap: Record<string, LaundryOrderStatus> = {
+        New: "new",
+        Confirmed: "new",
+        Ongoing: "ongoing",
+        Ready: "ready",
+        Delivered: "delivered",
+        Completed: "delivered",
+        Cancelled: "cancelled",
+        Rated: "delivered",
+        Scheduled: "ongoing",
+        Draft: "new",
+      };
+      const uiStatus = statusMap[row.original.status] || "new";
+      return <OrderStatusBadge status={uiStatus} />;
     },
   },
   {

@@ -22,7 +22,6 @@ export const VendorSidebar = () => {
   const isCollapsed = !sidebar.isOpen;
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
-
   const toggleExpand = (key: string) => {
     setExpandedItems((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]

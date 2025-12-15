@@ -16,6 +16,7 @@ import { useVendorUI } from "./vendor_ui_provider";
 export const VendorNavbar = () => {
   const { sidebar } = useVendorUI();
   const isCollapsed = !sidebar.isOpen;
+
   return (
     <header className=" text-foreground flex h-20 w-full items-center px-4 border-b border-border bg-background ">
       <button

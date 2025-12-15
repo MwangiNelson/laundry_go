@@ -9,12 +9,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IRiderData, RiderStatus } from "./riders.data";
+import { Rider } from "@/api/vendor/riders/use_fetch_rider";
+import { get_profile } from "@/api/supabase/functions";
+
+type RiderStatus = "active" | "inactive";
 
 // Status badge component with dot indicator matching Figma design
-const RiderStatusBadge = ({ status }: { status: RiderStatus }) => {
+const RiderStatusBadge = ({ status }: { status: string }) => {
   const statusConfig: Record<
-    RiderStatus,
+    string,
     { label: string; dotColor: string; textColor: string }
   > = {
     active: {
@@ -29,7 +32,7 @@ const RiderStatusBadge = ({ status }: { status: RiderStatus }) => {
     },
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.inactive;
 
   return (
     <div className="flex items-center gap-1">
@@ -40,17 +43,21 @@ const RiderStatusBadge = ({ status }: { status: RiderStatus }) => {
 };
 
 // ALL columns for Riders table (select column is handled by Table_Wrapper)
-export const ridersColumns: ColumnDef<IRiderData>[] = [
+export const ridersColumns: ColumnDef<Rider>[] = [
   {
     id: "rider",
     header: "Rider",
-    accessorKey: "name",
+    accessorFn: (row) => row.user?.full_name,
     cell: ({ row }) => {
-      const { name, avatar } = row.original;
+      const name = row.original.user?.full_name || "N/A";
+      const avatar = row.original.user?.avatar_url;
       return (
         <div className="flex items-center gap-2">
           <Avatar className="size-8 border border-secondary">
-            <AvatarImage src={avatar} alt={name} />
+            <AvatarImage
+              src={get_profile(row.original.user_id) || undefined}
+              alt={name}
+            />
             <AvatarFallback>{name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="text-base text-foreground">{name}</span>
@@ -61,21 +68,23 @@ export const ridersColumns: ColumnDef<IRiderData>[] = [
   {
     id: "phone",
     header: "Phone",
-    accessorKey: "phone",
+    accessorFn: (row) => row.user?.phone,
     cell: ({ row }) => {
       return (
-        <span className="text-base text-foreground">{row.original.phone}</span>
+        <span className="text-base text-foreground">
+          {row.original.user?.phone || "N/A"}
+        </span>
       );
     },
   },
   {
     id: "inProcessOrders",
     header: "In Process Orders",
-    accessorKey: "inProcessOrders",
+    accessorKey: "in_process_orders",
     cell: ({ row }) => {
       return (
         <span className="text-base text-foreground">
-          {row.original.inProcessOrders}
+          {row.original.in_process_orders}
         </span>
       );
     },
@@ -83,11 +92,11 @@ export const ridersColumns: ColumnDef<IRiderData>[] = [
   {
     id: "totalDeliveries",
     header: "Total Deliveries",
-    accessorKey: "totalDeliveries",
+    accessorKey: "total_deliveries",
     cell: ({ row }) => {
       return (
         <span className="text-base text-foreground">
-          {row.original.totalDeliveries}
+          {row.original.total_deliveries}
         </span>
       );
     },

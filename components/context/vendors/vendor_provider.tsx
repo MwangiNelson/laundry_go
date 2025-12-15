@@ -9,14 +9,14 @@ type Props = {
 };
 
 const useVendorProviders = () => {
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
   // In this context, assuming admin_id is the user's id
   const { data: vendor, isLoading: loading_vendor } = useGetVendor({
-    admin_id: user?.id,
+    admin_id: authUser?.id,
   });
   return {
-    vendor,
-    user,
+    vendor: vendor!,
+    user: authUser, // This is the profile data from auth
     loading_vendor,
   };
 };

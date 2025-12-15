@@ -19,15 +19,22 @@ const saveVendorPrices = async ({
 }: SaveVendorPricesParams) => {
   const supabase = createSupabaseClient();
   const pricesToInsert: TablesInsert<"vendor_prices">[] = [];
+
+  // Handle new laundry structure with multiple options per item
   if (services.laundry.enabled) {
     services.laundry.items.forEach((item) => {
-      pricesToInsert.push({
-        vendor_id: vendorId,
-        service_item_id: item.service_item_id,
-        service_option_id: item.service_option_id,
-        price: item.price,
-        is_available: true,
-      });
+      // Each item now has an options array with enabled/disabled state
+      item.options
+        .filter((option) => option.enabled && option.price > 0)
+        .forEach((option) => {
+          pricesToInsert.push({
+            vendor_id: vendorId,
+            service_item_id: item.service_item_id,
+            service_option_id: option.service_option_id,
+            price: option.price,
+            is_available: true,
+          });
+        });
     });
   }
   if (services.moving.enabled) {

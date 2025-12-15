@@ -1,8 +1,9 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { useOnboarding } from "../onboarding_context";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Plus, Trash2 } from "lucide-react";
 import { useFieldArray, Path } from "react-hook-form";
@@ -11,8 +12,11 @@ import {
   BasicSelect,
   SelectOption,
 } from "@/components/fields/select/basic_select";
-import { useFetchServiceItemsWithOptions } from "@/api/vendor/onboarding/use_fetch_services";
-import { TServiceAndPricing } from "../onboarding_utils";
+import {
+  useFetchServiceItemsWithOptions,
+  ServiceItemWithOptions,
+} from "@/api/vendor/onboarding/use_fetch_services";
+import { TServiceAndPricing, TLaundryItem } from "../onboarding_utils";
 
 // Service ID to main_service_id mapping
 const SERVICE_NAME_TO_ID: Record<string, number> = {
@@ -126,12 +130,257 @@ interface ServiceItemsFormProps {
 }
 
 const ServiceItemsForm = ({ serviceId }: ServiceItemsFormProps) => {
-  const { service_and_pricing_form } = useOnboarding();
   const mainServiceId = SERVICE_NAME_TO_ID[serviceId];
 
   // Fetch service items and options from database
   const { data: serviceItems = [], isLoading } =
     useFetchServiceItemsWithOptions(mainServiceId);
+
+  // Use separate form for laundry with improved UX
+  if (serviceId === "laundry") {
+    return (
+      <LaundryItemsForm serviceItems={serviceItems} isLoading={isLoading} />
+    );
+  }
+
+  return (
+    <GenericServiceItemsForm
+      serviceId={serviceId}
+      serviceItems={serviceItems}
+      isLoading={isLoading}
+    />
+  );
+};
+
+// New Laundry Items Form with improved UX
+interface LaundryItemsFormProps {
+  serviceItems: ServiceItemWithOptions[];
+  isLoading: boolean;
+}
+
+const LaundryItemsForm = ({
+  serviceItems,
+  isLoading,
+}: LaundryItemsFormProps) => {
+  const { service_and_pricing_form } = useOnboarding();
+
+  const { fields, append, remove, update } = useFieldArray({
+    control: service_and_pricing_form.control,
+    name: "laundry.items",
+  });
+
+  // Convert service items to select options, excluding already added items
+  const availableItemOptions: SelectOption[] = useMemo(() => {
+    const addedItemIds = fields.map((f) => (f as TLaundryItem).service_item_id);
+    return serviceItems
+      .filter((item) => !addedItemIds.includes(item.id))
+      .map((item) => ({
+        value: item.id,
+        label: item.name,
+      }));
+  }, [serviceItems, fields]);
+
+  const handleAddItem = useCallback(
+    (itemId: string) => {
+      const selectedItem = serviceItems.find((item) => item.id === itemId);
+      if (!selectedItem) return;
+
+      // Create laundry item with all options pre-populated
+      const newItem: TLaundryItem = {
+        service_item_id: selectedItem.id,
+        item_name: selectedItem.name,
+        options: selectedItem.options.map((opt) => ({
+          service_option_id: opt.id,
+          option_name: opt.name,
+          enabled: true, // Enable all options by default
+          price: 0,
+        })),
+      };
+
+      append(newItem);
+    },
+    [serviceItems, append]
+  );
+
+  const handleToggleOption = useCallback(
+    (itemIndex: number, optionIndex: number, enabled: boolean) => {
+      const currentItem = fields[itemIndex] as TLaundryItem;
+      const updatedOptions = [...currentItem.options];
+      updatedOptions[optionIndex] = {
+        ...updatedOptions[optionIndex],
+        enabled,
+      };
+      update(itemIndex, {
+        ...currentItem,
+        options: updatedOptions,
+      });
+    },
+    [fields, update]
+  );
+
+  const handlePriceChange = useCallback(
+    (itemIndex: number, optionIndex: number, price: number) => {
+      const currentItem = fields[itemIndex] as TLaundryItem;
+      const updatedOptions = [...currentItem.options];
+      updatedOptions[optionIndex] = {
+        ...updatedOptions[optionIndex],
+        price,
+      };
+      update(itemIndex, {
+        ...currentItem,
+        options: updatedOptions,
+      });
+    },
+    [fields, update]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="text-sm text-muted-foreground">Loading services...</div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Added Items List */}
+      {fields.map((field, itemIndex) => {
+        const item = field as TLaundryItem & { id: string };
+        return (
+          <div
+            key={field.id}
+            className="rounded-lg border bg-muted/30 overflow-hidden"
+          >
+            {/* Item Header */}
+            <div className="flex items-center justify-between px-4 py-3 bg-muted/50 border-b">
+              <span className="font-manrope font-semibold text-sm text-foreground">
+                {item.item_name}
+              </span>
+              <button
+                type="button"
+                onClick={() => remove(itemIndex)}
+                className="p-1.5 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+              >
+                <Trash2 size={16} />
+              </button>
+            </div>
+
+            {/* Service Options */}
+            <div className="p-4 flex flex-col gap-3">
+              <span className="font-manrope text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Service Options
+              </span>
+              {item.options.map((option, optionIndex) => (
+                <div
+                  key={option.service_option_id}
+                  className={cn(
+                    "flex items-center gap-4 p-3 rounded-lg border transition-all",
+                    option.enabled
+                      ? "bg-background border-primary-blue/20"
+                      : "bg-muted/20 border-muted opacity-60"
+                  )}
+                >
+                  {/* Toggle Switch */}
+                  <Switch
+                    checked={option.enabled}
+                    onCheckedChange={(checked) =>
+                      handleToggleOption(itemIndex, optionIndex, checked)
+                    }
+                  />
+
+                  {/* Option Name */}
+                  <span
+                    className={cn(
+                      "font-manrope text-sm flex-1",
+                      option.enabled
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {option.option_name}
+                  </span>
+
+                  {/* Price Input */}
+                  <div className="w-32">
+                    <div
+                      className={cn(
+                        "relative rounded-xl border px-3 py-2 transition-colors",
+                        "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
+                        !option.enabled && "opacity-50"
+                      )}
+                    >
+                      <div className="flex flex-col gap-0.5">
+                        <label className="text-[10px] font-medium tracking-wide text-label">
+                          Price (Kes)
+                        </label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          step={1}
+                          value={option.price || ""}
+                          onChange={(e) => {
+                            const value = parseInt(e.target.value, 10) || 0;
+                            handlePriceChange(itemIndex, optionIndex, value);
+                          }}
+                          disabled={!option.enabled}
+                          placeholder="0"
+                          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Add Item Section */}
+      {availableItemOptions.length > 0 && (
+        <div className="flex flex-col gap-2">
+          <BasicSelect
+            control={service_and_pricing_form.control}
+            name={"laundry._tempItemSelect" as Path<TServiceAndPricing>}
+            label="Select Item"
+            placeholder="Choose an item to add"
+            options={availableItemOptions}
+            searchable
+            onChange={(value) => {
+              handleAddItem(value);
+              // Reset the temp select after adding
+              service_and_pricing_form.setValue(
+                "laundry._tempItemSelect" as Path<TServiceAndPricing>,
+                "" as never
+              );
+            }}
+          />
+        </div>
+      )}
+
+      {/* Empty State */}
+      {fields.length === 0 && availableItemOptions.length === 0 && (
+        <div className="text-sm text-muted-foreground text-center py-4">
+          No laundry items available
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Generic Service Items Form for other services (moving, cleaning, fumigation)
+interface GenericServiceItemsFormProps {
+  serviceId: string;
+  serviceItems: ServiceItemWithOptions[];
+  isLoading: boolean;
+}
+
+const GenericServiceItemsForm = ({
+  serviceId,
+  serviceItems,
+  isLoading,
+}: GenericServiceItemsFormProps) => {
+  const { service_and_pricing_form } = useOnboarding();
 
   const { fields, append, remove } = useFieldArray({
     control: service_and_pricing_form.control,
@@ -141,8 +390,6 @@ const ServiceItemsForm = ({ serviceId }: ServiceItemsFormProps) => {
 
   const getEmptyItem = (): Record<string, string | number> => {
     switch (serviceId) {
-      case "laundry":
-        return { service_item_id: "", service_option_id: "", price: 0 };
       case "moving":
       case "fumigation":
         return { service_item_id: "", price: 0 };
@@ -160,39 +407,17 @@ const ServiceItemsForm = ({ serviceId }: ServiceItemsFormProps) => {
     }
   };
 
-  const getAddButtonLabel = () => {
-    switch (serviceId) {
-      case "laundry":
-        return "Add item";
-      default:
-        return "Add Room";
-    }
-  };
-
-  const getSectionLabel = () => {
-    switch (serviceId) {
-      case "laundry":
-        return null;
-      default:
-        return "Add Room/ Place";
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="text-sm text-muted-foreground">Loading services...</div>
     );
   }
 
-  const sectionLabel = getSectionLabel();
-
   return (
     <div className="flex flex-col gap-3">
-      {sectionLabel && (
-        <span className="font-manrope text-sm text-muted-foreground">
-          {sectionLabel}
-        </span>
-      )}
+      <span className="font-manrope text-sm text-muted-foreground">
+        Add Room/ Place
+      </span>
 
       {fields.map((field, index) => (
         <ServiceItemRow
@@ -213,7 +438,7 @@ const ServiceItemsForm = ({ serviceId }: ServiceItemsFormProps) => {
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors self-end"
       >
         <Plus size={16} />
-        <span>{getAddButtonLabel()}</span>
+        <span>Add Room</span>
       </button>
     </div>
   );
@@ -279,55 +504,13 @@ const ServiceItemInputs = ({
     [serviceItems]
   );
 
-  // Get selected item's options
+  // Get selected item's options for cleaning services
   const serviceItemPath =
     `${basePath}.service_item_id` as Path<TServiceAndPricing>;
   const selectedItemId = service_and_pricing_form.watch(serviceItemPath);
   const selectedItem = serviceItems.find((item) => item.id === selectedItemId);
 
-  const optionsList: SelectOption[] = useMemo(
-    () =>
-      (selectedItem?.options || []).map((option) => ({
-        value: option.id,
-        label: option.name,
-      })),
-    [selectedItem]
-  );
-
   switch (serviceId) {
-    case "laundry":
-      return (
-        <div className="grid grid-cols-3 gap-3 flex-1">
-          <BasicSelect
-            control={service_and_pricing_form.control}
-            name={
-              `${basePath}.service_item_id` as `laundry.items.${number}.service_item_id`
-            }
-            label="Item"
-            placeholder="Select item"
-            options={itemOptions}
-            searchable
-          />
-          <BasicSelect
-            control={service_and_pricing_form.control}
-            name={
-              `${basePath}.service_option_id` as `laundry.items.${number}.service_option_id`
-            }
-            label="Service"
-            placeholder="Select service"
-            options={optionsList}
-            disabled={!selectedItemId || optionsList.length === 0}
-          />
-          <NumberInput
-            control={service_and_pricing_form.control}
-            name={`${basePath}.price` as `laundry.items.${number}.price`}
-            label="Price (Kes)"
-            placeholder="0"
-            min={0}
-          />
-        </div>
-      );
-
     case "moving":
     case "fumigation":
       return (

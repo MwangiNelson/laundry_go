@@ -15,7 +15,11 @@ import { cn } from "@/lib/utils";
 import { Plus, X, ArrowRight } from "lucide-react";
 
 export const OperatingHoursSettings = () => {
-  const { operating_hours_form, onUpdateOperatingHours } = useSettings();
+  const {
+    operating_hours_form,
+    onUpdateOperatingHours,
+    isUpdatingOperatingHours,
+  } = useSettings();
 
   const handleSubmit = operating_hours_form.handleSubmit(
     onUpdateOperatingHours
@@ -33,10 +37,7 @@ export const OperatingHoursSettings = () => {
 
         {/* Action Button */}
         <div className="flex justify-end mt-4">
-          <Button
-            type="submit"
-            className="bg-[#f5c555] hover:bg-[#f5c555]/90 text-[#1a1a1a] rounded-lg px-4 py-3 w-[252px]"
-          >
+          <Button type="submit" loading={isUpdatingOperatingHours}>
             Update
             <ArrowRight className="ml-1 h-5 w-5" />
           </Button>
@@ -71,7 +72,7 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-4">
         {/* Day Label */}
-        <span className="font-manrope text-sm text-[#5e5e5e] w-10 shrink-0">
+        <span className="font-manrope text-sm text-muted-foreground w-10 shrink-0">
           {label}
         </span>
 
@@ -90,9 +91,9 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
                         {...field}
                         value={field.value || "09:00"}
                         className={cn(
-                          "px-4 py-3 rounded-2xl border border-black/20 text-sm text-[#c9ccd2] bg-white/80",
+                          "px-4 py-3 rounded-2xl border border-border text-sm text-foreground bg-card/80",
                           "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
-                          "w-[90px]",
+                          "w-[140px]",
                           fieldState.error && "border-destructive"
                         )}
                       />
@@ -100,7 +101,7 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
                   </FormItem>
                 )}
               />
-              <span className="text-[#5e5e5e]">-</span>
+              <span className="text-muted-foreground">-</span>
               <FormField
                 control={operating_hours_form.control}
                 name={`${dayKey}.end_time`}
@@ -112,9 +113,9 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
                         {...field}
                         value={field.value || "17:00"}
                         className={cn(
-                          "px-4 py-3 rounded-2xl border border-black/20 text-sm text-[#c9ccd2] bg-white/80",
+                          "px-4 py-3 rounded-2xl border border-border text-sm text-foreground bg-card/80",
                           "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
-                          "w-[90px]",
+                          "w-[140px]",
                           fieldState.error && "border-destructive"
                         )}
                       />
@@ -137,7 +138,7 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
             <button
               type="button"
               onClick={handleAddHours}
-              className="p-1 text-[#5e5e5e] hover:text-foreground transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <Plus size={16} />
             </button>
@@ -145,11 +146,11 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
         ) : (
           <>
             {/* Unavailable State */}
-            <span className="text-sm text-[#c9ccd2]">Unavailable</span>
+            <span className="text-sm text-muted-foreground">Unavailable</span>
             <button
               type="button"
               onClick={handleAddHours}
-              className="p-1 text-[#5e5e5e] hover:text-foreground transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
             >
               <Plus size={16} />
             </button>

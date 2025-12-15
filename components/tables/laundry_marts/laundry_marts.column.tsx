@@ -48,7 +48,7 @@ export const laundryMartsColumns: ColumnDef<ILaundryMartData>[] = [
     header: "Laundry Mart",
     accessorKey: "name",
     cell: ({ row }) => {
-      const { name, avatar, location } = row.original;
+      const { name, avatar, location, id } = row.original;
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-10">

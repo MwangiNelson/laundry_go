@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode, useEffect } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -13,6 +13,13 @@ import {
   payout_methods_schema,
   security_account_schema,
 } from "./settings_utils";
+import { useVendor } from "@/components/context/vendors/vendor_provider";
+import { useAuth } from "@/components/context/auth_provider";
+import {
+  useUpdateBusinessProfile,
+  useUpdateOperatingHours,
+  useUpdatePassword,
+} from "@/api/vendor/management/use_manage_vendor";
 
 interface SettingsContextType {
   business_profile_form: UseFormReturn<TBusinessProfile>;
@@ -23,6 +30,9 @@ interface SettingsContextType {
   onUpdateOperatingHours: (data: TOperatingHours) => Promise<void>;
   onUpdatePayoutMethods: (data: TPayoutMethods) => Promise<void>;
   onUpdateSecurityAccount: (data: TSecurityAccount) => Promise<void>;
+  isUpdatingBusinessProfile: boolean;
+  isUpdatingOperatingHours: boolean;
+  isUpdatingPassword: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | null>(null);
@@ -49,17 +59,45 @@ export const SettingsProvider = ({
   defaultOperatingHours,
   defaultPayoutMethods,
 }: SettingsProviderProps) => {
+  const { vendor, user: vendorUser } = useVendor();
+  const { user } = useAuth();
+
+  const {
+    mutateAsync: updateBusinessProfile,
+    isPending: isUpdatingBusinessProfile,
+  } = useUpdateBusinessProfile();
+  const {
+    mutateAsync: updateOperatingHours,
+    isPending: isUpdatingOperatingHours,
+  } = useUpdateOperatingHours();
+  const { mutateAsync: updatePassword, isPending: isUpdatingPassword } =
+    useUpdatePassword();
+
   const business_profile_form = useForm<TBusinessProfile>({
     resolver: zodResolver(business_profile_schema),
     defaultValues: {
-      username: "",
-      business_name: "",
-      phone_number: "",
-      email: "",
+      username: vendorUser?.full_name || "",
+      business_name: vendor?.business_name || "",
+      phone_number: vendor?.phone || "",
+      email: vendor?.email || "",
       logo: undefined,
       ...defaultBusinessProfile,
     },
   });
+
+  // Update form when vendor data loads
+  useEffect(() => {
+    if (vendor && vendorUser) {
+      business_profile_form.reset({
+        username: vendorUser?.full_name || "",
+        business_name: vendor?.business_name || "",
+        phone_number: vendor?.phone || "",
+        email: vendor?.email || "",
+        logo: undefined,
+        ...defaultBusinessProfile,
+      });
+    }
+  }, [vendor, vendorUser, defaultBusinessProfile]);
 
   const operating_hours_form = useForm<TOperatingHours>({
     resolver: zodResolver(operating_hours_schema),
@@ -74,6 +112,29 @@ export const SettingsProvider = ({
       ...defaultOperatingHours,
     },
   });
+
+  // Load operation hours from vendor data
+  useEffect(() => {
+    if (vendor?.operation_hours) {
+      const opHours = vendor.operation_hours as unknown as TOperatingHours;
+      operating_hours_form.reset({
+        sunday: opHours?.sunday ?? undefined,
+        monday: opHours?.monday ?? { start_time: "09:00", end_time: "17:00" },
+        tuesday: opHours?.tuesday ?? { start_time: "09:00", end_time: "17:00" },
+        wednesday: opHours?.wednesday ?? {
+          start_time: "09:00",
+          end_time: "17:00",
+        },
+        thursday: opHours?.thursday ?? {
+          start_time: "09:00",
+          end_time: "17:00",
+        },
+        friday: opHours?.friday ?? { start_time: "09:00", end_time: "17:00" },
+        saturday: opHours?.saturday ?? undefined,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendor?.operation_hours]);
 
   const payout_methods_form = useForm<TPayoutMethods>({
     resolver: zodResolver(payout_methods_schema),
@@ -95,13 +156,45 @@ export const SettingsProvider = ({
   });
 
   const onUpdateBusinessProfile = async (data: TBusinessProfile) => {
-    console.log("Updating business profile:", data);
-    // TODO: Implement API call
+    if (!vendor?.id || !user?.id) {
+      throw new Error("Vendor or user not found");
+    }
+
+    await updateBusinessProfile({
+      vendor_id: vendor.id,
+      user_id: user.id,
+      username: data.username,
+      business_name: data.business_name,
+      phone_number: data.phone_number,
+      email: data.email,
+      logo: data.logo,
+      current_logo_url: vendor?.logo_url ?? undefined,
+    });
   };
 
   const onUpdateOperatingHours = async (data: TOperatingHours) => {
-    console.log("Updating operating hours:", data);
-    // TODO: Implement API call
+    if (!vendor?.id) {
+      throw new Error("Vendor not found");
+    }
+
+    // Convert form data to operation_hours format
+    const operation_hours: Record<
+      string,
+      { start_time: string; end_time: string } | null
+    > = {
+      sunday: data.sunday || null,
+      monday: data.monday || null,
+      tuesday: data.tuesday || null,
+      wednesday: data.wednesday || null,
+      thursday: data.thursday || null,
+      friday: data.friday || null,
+      saturday: data.saturday || null,
+    };
+
+    await updateOperatingHours({
+      vendor_id: vendor.id,
+      operation_hours,
+    });
   };
 
   const onUpdatePayoutMethods = async (data: TPayoutMethods) => {
@@ -110,8 +203,22 @@ export const SettingsProvider = ({
   };
 
   const onUpdateSecurityAccount = async (data: TSecurityAccount) => {
-    console.log("Updating security settings:", data);
-    // TODO: Implement API call
+    // Validate that passwords match
+    if (data.new_password !== data.confirm_password) {
+      throw new Error("Passwords do not match");
+    }
+
+    await updatePassword({
+      current_password: data.current_password,
+      new_password: data.new_password,
+    });
+
+    // Reset form after successful update
+    security_account_form.reset({
+      current_password: "",
+      new_password: "",
+      confirm_password: "",
+    });
   };
 
   return (
@@ -125,6 +232,9 @@ export const SettingsProvider = ({
         onUpdateOperatingHours,
         onUpdatePayoutMethods,
         onUpdateSecurityAccount,
+        isUpdatingBusinessProfile,
+        isUpdatingOperatingHours,
+        isUpdatingPassword,
       }}
     >
       {children}

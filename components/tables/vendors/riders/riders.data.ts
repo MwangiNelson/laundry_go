@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 
 export type RiderStatus = "active" | "inactive";
-export type RiderTab = "all" | "new" | "inProcess" | "ready" | "delivered" | "cancelled";
+export type RiderTab = "all" | "active" | "inactive";
 
 export interface IRiderData {
   id: string;
@@ -41,7 +41,7 @@ const riderNames = [
 const generateRider = (index: number): IRiderData => {
   const createdAt = faker.date.recent({ days: 60 });
   const status = faker.helpers.arrayElement(["active", "inactive"] as const);
-  
+
   return {
     id: faker.string.uuid(),
     name: faker.helpers.arrayElement(riderNames),
@@ -67,4 +67,3 @@ export const getRidersData = (tab: RiderTab): IRiderData[] => {
   // You can add filtering logic based on your business needs
   return riders_data;
 };
-

@@ -9,7 +9,8 @@ import { TSecurityAccount } from "./settings_utils";
 import { ArrowRight } from "lucide-react";
 
 export const SecurityAccountSettings = () => {
-  const { security_account_form, onUpdateSecurityAccount } = useSettings();
+  const { security_account_form, onUpdateSecurityAccount, isUpdatingPassword } =
+    useSettings();
 
   const handleSubmit = security_account_form.handleSubmit(
     onUpdateSecurityAccount
@@ -49,10 +50,7 @@ export const SecurityAccountSettings = () => {
 
         {/* Action Button */}
         <div className="flex justify-end mt-4">
-          <Button
-            type="submit"
-            className="bg-[#f5c555] hover:bg-[#f5c555]/90 text-[#1a1a1a] rounded-lg px-4 py-3 w-[252px]"
-          >
+          <Button type="submit" loading={isUpdatingPassword}>
             Update
             <ArrowRight className="ml-1 h-5 w-5" />
           </Button>

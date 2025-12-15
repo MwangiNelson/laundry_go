@@ -80,11 +80,23 @@ export const business_information = z.object({
   logo: z.instanceof(File).optional(),
   business_lincense: z.instanceof(File).optional(),
 });
-const laundry_item = z.object({
-  service_item_id: z.string().min(1, "Item is required"),
-  service_option_id: z.string().min(1, "Service option is required"),
+// Option within a laundry item
+const laundry_option = z.object({
+  service_option_id: z.string(),
+  option_name: z.string(),
+  enabled: z.boolean(),
   price: z.number().min(0, "Price must be a positive number"),
 });
+
+// Laundry item with all its options
+const laundry_item = z.object({
+  service_item_id: z.string().min(1, "Item is required"),
+  item_name: z.string(),
+  options: z.array(laundry_option),
+});
+
+export type TLaundryOption = z.infer<typeof laundry_option>;
+export type TLaundryItem = z.infer<typeof laundry_item>;
 const moving_item = z.object({
   service_item_id: z.string().min(1, "Room/Place is required"),
   price: z.number().min(0, "Price must be a positive number"),
