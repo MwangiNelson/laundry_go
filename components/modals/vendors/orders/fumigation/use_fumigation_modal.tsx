@@ -3,7 +3,7 @@
 import { faker } from "@faker-js/faker";
 import React, { createContext, useContext, useState } from "react";
 
-type OrderStatus = "new" | "ongoing";
+type OrderStatus = "new" | "ongoing" | "complete" | "rated";
 
 type Room = {
   name: string;
@@ -25,7 +25,7 @@ type FumigationOrderData = {
 
 type FumigationModalContextType = {
   isOpen: boolean;
-  openModal: (order: FumigationOrderData, status: OrderStatus) => void;
+  openModal: (params: { orderId: string; orderStatus: OrderStatus }) => void;
   closeModal: () => void;
   order: FumigationOrderData | null;
   orderStatus: OrderStatus;
@@ -89,9 +89,16 @@ export const FumigationModalProvider: React.FC<{
   const [order, setOrder] = useState<FumigationOrderData | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
 
-  const openModal = (order: FumigationOrderData, status: OrderStatus) => {
-    setOrder(order);
-    setOrderStatus(status);
+  const openModal = ({
+    orderId,
+    orderStatus,
+  }: {
+    orderId: string;
+    orderStatus: OrderStatus;
+  }) => {
+    const mockOrder = generateMockFumigationOrder();
+    setOrder({ ...mockOrder, orderId });
+    setOrderStatus(orderStatus);
     setIsOpen(true);
   };
 

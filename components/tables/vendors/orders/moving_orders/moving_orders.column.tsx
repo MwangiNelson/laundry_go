@@ -9,7 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IMovingOrderData, MovingOrderStatus } from "./moving_orders.data";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
+import { MovingOrderStatus } from "./moving_orders.data";
 
 // Status badge component with dot indicator matching Figma design
 const OrderStatusBadge = ({ status }: { status: MovingOrderStatus }) => {
@@ -62,17 +63,19 @@ const OrderStatusBadge = ({ status }: { status: MovingOrderStatus }) => {
 };
 
 // ALL columns for Moving Orders table
-export const movingOrdersColumns: ColumnDef<IMovingOrderData>[] = [
+export const movingOrdersColumns: ColumnDef<IOrder>[] = [
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customerName",
+    accessorKey: "customer.full_name",
     cell: ({ row }) => {
-      const { customerName, customerAvatar } = row.original;
+      const customerName =
+        row.original.customer.full_name || row.original.customer.email;
+      const customerAvatar = row.original.customer.avatar_url;
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-8 border-2 border-orange-400">
-            <AvatarImage src={customerAvatar} alt={customerName} />
+            <AvatarImage src={customerAvatar || ""} alt={customerName} />
             <AvatarFallback>
               {customerName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -85,57 +88,48 @@ export const movingOrdersColumns: ColumnDef<IMovingOrderData>[] = [
     },
   },
   {
-    id: "rooms",
-    header: "Rooms",
-    accessorKey: "rooms",
+    id: "orderItems",
+    header: "Order Items",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.rooms}</span>
-      );
+      const itemNames = row.original.order_items
+        .map((item) => item.service_item.name)
+        .join(", ");
+      return <span className="text-sm text-foreground">{itemNames}</span>;
     },
   },
   {
     id: "movingDate",
     header: "Moving Date",
-    accessorKey: "movingDate",
+    accessorKey: "created_at",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">
-          {row.original.movingDate}
-        </span>
-      );
+      const date = new Date(row.original.created_at).toLocaleDateString();
+      return <span className="text-sm text-foreground">{date}</span>;
     },
   },
   {
     id: "movingFrom",
     header: "Moving from",
-    accessorKey: "movingFrom",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">
-          {row.original.movingFrom}
-        </span>
-      );
+      const location = row.original.pickup_details?.location || "N/A";
+      return <span className="text-sm text-foreground">{location}</span>;
     },
   },
   {
     id: "movingTo",
     header: "Moving to",
-    accessorKey: "movingTo",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.movingTo}</span>
-      );
+      const location = row.original.delivery_details?.location || "N/A";
+      return <span className="text-sm text-foreground">{location}</span>;
     },
   },
   {
     id: "amount",
     header: "Amount (kes)",
-    accessorKey: "amount",
+    accessorKey: "total_price",
     cell: ({ row }) => {
       return (
         <span className="text-sm font-medium text-foreground">
-          {row.original.amount.toLocaleString()}
+          {row.original.total_price.toLocaleString()}
         </span>
       );
     },
@@ -145,7 +139,20 @@ export const movingOrdersColumns: ColumnDef<IMovingOrderData>[] = [
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      return <OrderStatusBadge status={row.original.status} />;
+      // Map DB status to UI status
+      const statusMap: Record<string, MovingOrderStatus> = {
+        New: "new",
+        Confirmed: "new",
+        Ongoing: "ongoing",
+        "In Transit": "in_transit",
+        Completed: "complete",
+        Cancelled: "cancelled",
+        Rated: "complete",
+        Scheduled: "scheduled",
+        Draft: "new",
+      };
+      const uiStatus = statusMap[row.original.status] || "new";
+      return <OrderStatusBadge status={uiStatus} />;
     },
   },
   {

@@ -64,7 +64,14 @@ const generateOrderData = () => {
   };
 };
 
-type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
+type OrderStatus =
+  | "new"
+  | "ongoing"
+  | "ready"
+  | "delivered"
+  | "cancelled"
+  | "complete"
+  | "rated";
 
 interface HouseCleaningModalContextType {
   open: boolean;

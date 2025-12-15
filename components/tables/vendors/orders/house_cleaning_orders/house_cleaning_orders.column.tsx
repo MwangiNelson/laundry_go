@@ -9,10 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  IHouseCleaningOrderData,
-  HouseCleaningOrderStatus,
-} from "./house_cleaning_orders.data";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
+import { HouseCleaningOrderStatus } from "./house_cleaning_orders.data";
 
 // Status badge component with dot indicator matching Figma design
 const OrderStatusBadge = ({ status }: { status: HouseCleaningOrderStatus }) => {
@@ -60,126 +58,134 @@ const OrderStatusBadge = ({ status }: { status: HouseCleaningOrderStatus }) => {
 };
 
 // ALL columns for House Cleaning Orders table
-export const houseCleaningOrdersColumns: ColumnDef<IHouseCleaningOrderData>[] =
-  [
-    {
-      id: "customer",
-      header: "Customer",
-      accessorKey: "customerName",
-      cell: ({ row }) => {
-        const { customerName, customerAvatar } = row.original;
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar className="size-8 border-2 border-orange-400">
-              <AvatarImage src={customerAvatar} alt={customerName} />
-              <AvatarFallback>
-                {customerName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium text-foreground">
-              {customerName}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      id: "rooms",
-      header: "Rooms",
-      accessorKey: "rooms",
-      cell: ({ row }) => {
-        return (
-          <span className="text-sm text-foreground">{row.original.rooms}</span>
-        );
-      },
-    },
-    {
-      id: "service",
-      header: "Service",
-      accessorKey: "service",
-      cell: ({ row }) => {
-        return (
-          <span className="text-sm text-foreground">
-            {row.original.service}
-          </span>
-        );
-      },
-    },
-    {
-      id: "cleaningDate",
-      header: "Cleaning Date",
-      accessorKey: "cleaningDate",
-      cell: ({ row }) => {
-        return (
-          <span className="text-sm text-foreground">
-            {row.original.cleaningDate}
-          </span>
-        );
-      },
-    },
-    {
-      id: "houseLocations",
-      header: "House locations",
-      accessorKey: "houseLocations",
-      cell: ({ row }) => {
-        return (
-          <span className="text-sm text-foreground">
-            {row.original.houseLocations}
-          </span>
-        );
-      },
-    },
-    {
-      id: "amount",
-      header: "Amount (kes)",
-      accessorKey: "amount",
-      cell: ({ row }) => {
-        return (
+export const houseCleaningOrdersColumns: ColumnDef<IOrder>[] = [
+  {
+    id: "customer",
+    header: "Customer",
+    accessorKey: "customer.full_name",
+    cell: ({ row }) => {
+      const customerName =
+        row.original.customer.full_name || row.original.customer.email;
+      const customerAvatar = row.original.customer.avatar_url;
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="size-8 border-2 border-orange-400">
+            <AvatarImage src={customerAvatar || ""} alt={customerName} />
+            <AvatarFallback>
+              {customerName.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <span className="text-sm font-medium text-foreground">
-            {row.original.amount.toLocaleString()}
+            {customerName}
           </span>
-        );
-      },
+        </div>
+      );
     },
-    {
-      id: "status",
-      header: "Status",
-      accessorKey: "status",
-      cell: ({ row }) => {
-        return <OrderStatusBadge status={row.original.status} />;
-      },
+  },
+  {
+    id: "orderItems",
+    header: "Order Items",
+    cell: ({ row }) => {
+      const itemNames = row.original.order_items
+        .map((item) => item.service_item.name)
+        .join(", ");
+      return <span className="text-sm text-foreground">{itemNames}</span>;
     },
-    {
-      id: "actions",
-      header: "Actions",
-      cell: ({ row }) => {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => console.log("View order:", row.original.id)}
-              >
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => console.log("Edit order:", row.original.id)}
-              >
-                Edit Order
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => console.log("Cancel order:", row.original.id)}
-                className="text-destructive"
-              >
-                Cancel Order
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
+  },
+  {
+    id: "service",
+    header: "Service",
+    cell: ({ row }) => {
+      const serviceOptions = row.original.order_items
+        .map((item) => item.service_option?.name)
+        .filter(Boolean)
+        .join(", ");
+      return <span className="text-sm text-foreground">{serviceOptions}</span>;
     },
-  ];
+  },
+  {
+    id: "amount",
+    header: "Amount (kes)",
+    accessorKey: "total_price",
+    cell: ({ row }) => {
+      return (
+        <span className="text-sm font-medium text-foreground">
+          {row.original.total_price.toLocaleString()}
+        </span>
+      );
+    },
+  },
+  {
+    id: "cleaningDate",
+    header: "Cleaning Date",
+    accessorKey: "created_at",
+    cell: ({ row }) => {
+      const date = new Date(row.original.created_at).toLocaleDateString();
+      return <span className="text-sm text-foreground">{date}</span>;
+    },
+  },
+  {
+    id: "location",
+    header: "Location",
+    cell: ({ row }) => {
+      const location =
+        row.original.pickup_details?.location ||
+        row.original.delivery_details?.location ||
+        "N/A";
+      return <span className="text-sm text-foreground">{location}</span>;
+    },
+  },
+  {
+    id: "status",
+    header: "Status",
+    accessorKey: "status",
+    cell: ({ row }) => {
+      // Map DB status to UI status
+      const statusMap: Record<string, HouseCleaningOrderStatus> = {
+        New: "new",
+        Confirmed: "new",
+        Ongoing: "ongoing",
+        Completed: "complete",
+        Cancelled: "cancelled",
+        Rated: "complete",
+        Scheduled: "scheduled",
+        Draft: "new",
+      };
+      const uiStatus = statusMap[row.original.status] || "new";
+      return <OrderStatusBadge status={uiStatus} />;
+    },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => console.log("View order:", row.original.id)}
+            >
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => console.log("Edit order:", row.original.id)}
+            >
+              Edit Order
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => console.log("Cancel order:", row.original.id)}
+              className="text-destructive"
+            >
+              Cancel Order
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];

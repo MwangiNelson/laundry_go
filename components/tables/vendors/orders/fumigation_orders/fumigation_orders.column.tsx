@@ -9,10 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  IFumigationOrderData,
-  FumigationOrderStatus,
-} from "./fumigation_orders.data";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
+import { FumigationOrderStatus } from "./fumigation_orders.data";
 
 // Status badge component with dot indicator matching Figma design
 const OrderStatusBadge = ({ status }: { status: FumigationOrderStatus }) => {
@@ -20,8 +18,8 @@ const OrderStatusBadge = ({ status }: { status: FumigationOrderStatus }) => {
     FumigationOrderStatus,
     { label: string; dotColor: string; textColor: string }
   > = {
-    in_progress: {
-      label: "In progress",
+    ongoing: {
+      label: "Ongoing",
       dotColor: "bg-blue-500",
       textColor: "text-blue-500",
     },
@@ -60,17 +58,19 @@ const OrderStatusBadge = ({ status }: { status: FumigationOrderStatus }) => {
 };
 
 // ALL columns for Fumigation Orders table
-export const fumigationOrdersColumns: ColumnDef<IFumigationOrderData>[] = [
+export const fumigationOrdersColumns: ColumnDef<IOrder>[] = [
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customerName",
+    accessorKey: "customer.full_name",
     cell: ({ row }) => {
-      const { customerName, customerAvatar } = row.original;
+      const customerName =
+        row.original.customer.full_name || row.original.customer.email;
+      const customerAvatar = row.original.customer.avatar_url;
       return (
         <div className="flex items-center gap-3">
           <Avatar className="size-8 border-2 border-orange-400">
-            <AvatarImage src={customerAvatar} alt={customerName} />
+            <AvatarImage src={customerAvatar || ""} alt={customerName} />
             <AvatarFallback>
               {customerName.slice(0, 2).toUpperCase()}
             </AvatarFallback>
@@ -83,57 +83,56 @@ export const fumigationOrdersColumns: ColumnDef<IFumigationOrderData>[] = [
     },
   },
   {
-    id: "rooms",
-    header: "Rooms",
-    accessorKey: "rooms",
+    id: "orderItems",
+    header: "Order Items",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.rooms}</span>
-      );
+      const itemNames = row.original.order_items
+        .map((item) => item.service_item.name)
+        .join(", ");
+      return <span className="text-sm text-foreground">{itemNames}</span>;
     },
   },
   {
     id: "service",
     header: "Service",
-    accessorKey: "service",
     cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.service}</span>
-      );
-    },
-  },
-  {
-    id: "fumigationDate",
-    header: "Fumigation Date",
-    accessorKey: "fumigationDate",
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">
-          {row.original.fumigationDate}
-        </span>
-      );
-    },
-  },
-  {
-    id: "location",
-    header: "Location",
-    accessorKey: "location",
-    cell: ({ row }) => {
-      return (
-        <span className="text-sm text-foreground">{row.original.location}</span>
-      );
+      const serviceOptions = row.original.order_items
+        .map((item) => item.service_option?.name)
+        .filter(Boolean)
+        .join(", ");
+      return <span className="text-sm text-foreground">{serviceOptions}</span>;
     },
   },
   {
     id: "amount",
     header: "Amount (kes)",
-    accessorKey: "amount",
+    accessorKey: "total_price",
     cell: ({ row }) => {
       return (
         <span className="text-sm font-medium text-foreground">
-          {row.original.amount.toLocaleString()}
+          {row.original.total_price.toLocaleString()}
         </span>
       );
+    },
+  },
+  {
+    id: "pickupDate",
+    header: "Pick up Date",
+    accessorKey: "created_at",
+    cell: ({ row }) => {
+      const date = new Date(row.original.created_at).toLocaleDateString();
+      return <span className="text-sm text-foreground">{date}</span>;
+    },
+  },
+  {
+    id: "location",
+    header: "Location",
+    cell: ({ row }) => {
+      const location =
+        row.original.pickup_details?.location ||
+        row.original.delivery_details?.location ||
+        "N/A";
+      return <span className="text-sm text-foreground">{location}</span>;
     },
   },
   {
@@ -141,7 +140,21 @@ export const fumigationOrdersColumns: ColumnDef<IFumigationOrderData>[] = [
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      return <OrderStatusBadge status={row.original.status} />;
+      const statusMap: Record<string, FumigationOrderStatus> = {
+        New: "new",
+        Confirmed: "new",
+        Ongoing: "ongoing",
+        Ready: "complete",
+        Delivered: "complete",
+        Completed: "complete",
+        Rated: "complete",
+        Cancelled: "cancelled",
+        Scheduled: "scheduled",
+        Draft: "new",
+      };
+      const mappedStatus =
+        statusMap[row.original.status] || ("new" as FumigationOrderStatus);
+      return <OrderStatusBadge status={mappedStatus} />;
     },
   },
   {
