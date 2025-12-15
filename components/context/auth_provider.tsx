@@ -2,14 +2,14 @@
 
 import { User } from "@supabase/supabase-js";
 import React, { Dispatch, useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
-
 import { createSupabaseClient } from "@/api/supabase/client";
 import { IUser, useGetUser } from "@/api/auth/use_auth";
 
 export interface IAuthContext {
   auth_user: User | null;
   setAuthUser: Dispatch<User | null>;
+  vendor_id: string | undefined;
+  setVendorId: Dispatch<string | undefined>;
   user: IUser | undefined;
   loading: boolean;
   logout: () => Promise<void>;
@@ -26,6 +26,7 @@ export const AuthContextProvider = ({
   children: React.ReactNode;
 }) => {
   const [auth_user, setAuthUser] = useState<User | null>(null);
+  const [vendor_id, setVendorId] = useState<string | undefined>(undefined);
   const [authInitialized, setAuthInitialized] = useState(false);
   const { data: user, isPending, refetch } = useGetUser(auth_user?.id);
   const supabase = createSupabaseClient();
@@ -107,6 +108,8 @@ export const AuthContextProvider = ({
         fetchUser: refetch,
         clearState,
         loggedIn,
+        vendor_id,
+        setVendorId,
       }}
     >
       {children}

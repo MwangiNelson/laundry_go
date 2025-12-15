@@ -16,7 +16,7 @@ import { useFetchOrders } from "@/api/vendor/order/use_fetch_orders";
 import { useFetchRiders } from "@/api/vendor/riders/use_fetch_rider";
 import { useFetchServiceItems } from "@/api/vendor/order/use_fetch_service_items";
 import { useFetchServiceOptions } from "@/api/vendor/order/use_fetch_service_options";
-import { useVendor } from "@/components/context/vendors/vendor_provider";
+import { useAuth } from "@/components/context/auth_provider";
 import {
   DataTableMultiFilter,
   FilterItem,
@@ -30,7 +30,7 @@ export const FumigationOrdersTable = ({
   activeTab,
 }: FumigationOrdersTableProps) => {
   const { openModal } = useFumigationModal();
-  const { vendor } = useVendor();
+  const { vendor_id } = useAuth();
 
   const {
     handleSearchChange,
@@ -64,7 +64,7 @@ export const FumigationOrdersTable = ({
   }, [activeTab, updateParams]);
 
   const { data: ordersData, isLoading } = useFetchOrders({
-    vendor_id: vendor?.id,
+    vendor_id: vendor_id || "",
     main_service_slug: "fumigation",
     status: queryParams.status,
     search: searchTerm,
@@ -78,7 +78,7 @@ export const FumigationOrdersTable = ({
   });
 
   const { data: ridersData } = useFetchRiders({
-    vendor_id: vendor?.id || "",
+    vendor_id: vendor_id || "",
     status: "active",
   });
 

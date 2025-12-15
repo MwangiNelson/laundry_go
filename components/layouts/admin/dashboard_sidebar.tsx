@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { IoLogOutOutline } from "react-icons/io5";
@@ -16,15 +16,25 @@ import { useDashboardUI } from "../../context/dashboard_ui_provider";
 import { TIcon } from "@/types/ui.types";
 import { PiChartPieSliceFill } from "react-icons/pi";
 import { RiProfileLine } from "react-icons/ri";
-type NavItem = {
+import {
+  CaretRightIcon,
+  PackageIcon,
+  SignOutIcon,
+} from "@phosphor-icons/react";
+export type TVendorNavItemChild = {
+  key: string;
+  label: string;
+  link: string;
+};
+export type TVendorNavItem = {
   key: string;
   label: string;
   icon: TIcon;
   active?: boolean;
   link?: string;
+  children?: TVendorNavItemChild[];
 };
-
-const NAV_ITEMS: NavItem[] = [
+export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
   {
     key: "overview",
     label: "Overview",
@@ -32,16 +42,44 @@ const NAV_ITEMS: NavItem[] = [
     link: "/dashboard",
   },
   {
-    key: "laundry-marts",
-    label: "Laundry Marts",
+    key: "vendors",
+    label: "Vendors",
     icon: RiProfileLine,
-    link: "/dashboard/laundry-marts",
+    link: "/dashboard/vendors",
   },
   {
     key: "orders",
     label: "Orders",
-    icon: TbTruckDelivery,
+    icon: PackageIcon,
     link: "/dashboard/orders",
+    children: [
+      {
+        key: "laundry_orders",
+        label: "Laundry Orders",
+        link: "/dashboard/orders/laundry_orders",
+      },
+
+      {
+        key: "moving_orders",
+        label: "Moving Orders",
+        link: "/dashboard/orders/moving_orders",
+      },
+      {
+        key: "house_cleaning_orders",
+        label: "House Cleaning Orders",
+        link: "/dashboard/orders/house_cleaning_orders",
+      },
+      {
+        key: "office_cleaning_orders",
+        label: "Office Cleaning Orders",
+        link: "/dashboard/orders/office_cleaning_orders",
+      },
+      {
+        key: "fumigation_orders",
+        label: "Fumigation Orders",
+        link: "/dashboard/orders/fumigation_orders",
+      },
+    ],
   },
   {
     key: "transactions",
@@ -55,57 +93,83 @@ export const DashboardSidebar = () => {
   const { sidebar } = useDashboardUI();
   const isCollapsed = !sidebar.isOpen;
   const pathname = usePathname();
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const toggleExpand = (key: string) => {
+    setExpandedItems((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const isItemActive = (item: TVendorNavItem) => {
+    const link = item.link ?? "";
+
+    if (link === "/dashboard") {
+      return pathname === "/dashboard" || pathname === "/dashboard/";
+    }
+
+    // For items with children, only mark as active if it's an exact match
+    // This prevents parent items from being marked active when a child is active
+    if (item.children && item.children.length > 0) {
+      return pathname === link;
+    }
+
+    // For other paths without children, use startsWith to handle nested routes like /vendor/riders/123
+    return pathname.startsWith(link);
+  };
 
   return (
     <motion.aside
       className={cn(
-        "flex h-full w-68 flex-col gap-4 md:w-[16rem] bg-background border-r border-border ",
+        "flex h-full w-68 flex-col gap-4 md:w-[16rem] bg-background border-r border-border",
         !isCollapsed ? "px-4" : "px-2"
       )}
       initial={false}
       animate={{ width: isCollapsed ? 60 : 272 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
     >
-      <div className={cn(" pb-1 relative", !isCollapsed ? "pt-6 " : "")}>
+      <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
         <div className="flex items-center gap-3">
-          {!isCollapsed && (
-            <h1 className="text-2xl font-semibold text-foreground font-marck ">
-              Admin
-            </h1>
-          )}
+          <h1 className="text-2xl font-semibold text-foreground font-marck">
+            Admin
+          </h1>
         </div>
       </div>
 
-      <div className="">
-        <ul className="flex w-full flex-col gap-0">
-          {NAV_ITEMS.map((item) => (
+      <nav className="flex-1">
+        <ul className="flex w-full flex-col gap-1">
+          {VENDOR_NAV_ITEMS.map((item) => (
             <li key={item.key}>
-              <SidebarItem
-                as="a"
-                href={item.link ?? "#"}
-                label={item.label}
-                icon={item.icon}
-                isActive={
-                  item.link
-                    ? item.link === "/dashboard"
-                      ? pathname === "/dashboard"
-                      : pathname.startsWith(item.link)
-                    : false
-                }
-                collapsed={isCollapsed}
-              />
+              {item.children && item.children.length > 0 ? (
+                <SidebarItemWithChildren
+                  item={item}
+                  isActive={isItemActive(item)}
+                  collapsed={isCollapsed}
+                  isExpanded={expandedItems.includes(item.key)}
+                  onToggle={() => toggleExpand(item.key)}
+                  pathname={pathname}
+                />
+              ) : (
+                <SidebarItem
+                  as="a"
+                  href={item.link ?? "#"}
+                  label={item.label}
+                  icon={item.icon}
+                  isActive={isItemActive(item)}
+                  collapsed={isCollapsed}
+                />
+              )}
             </li>
           ))}
         </ul>
-      </div>
+      </nav>
 
-      <div className="mt-auto px-2 pb-4 font-inter">
+      <div className="mt-auto px-2 pb-4">
         <ul>
           <li>
             <SidebarItem
               as="button"
               label="Logout"
-              icon={IoLogOutOutline}
+              icon={SignOutIcon}
               collapsed={isCollapsed}
               onClick={() => {}}
             />
@@ -116,7 +180,105 @@ export const DashboardSidebar = () => {
   );
 };
 
-// Reusable sidebar item (polymorphic: anchor or button) kept in this file as requested
+// Sidebar item with children (dropdown)
+interface SidebarItemWithChildrenProps {
+  item: TVendorNavItem;
+  isActive: boolean;
+  collapsed: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  pathname: string;
+}
+
+const SidebarItemWithChildren = ({
+  item,
+  isActive,
+  collapsed,
+  isExpanded,
+  onToggle,
+  pathname,
+}: SidebarItemWithChildrenProps) => {
+  const Icon = item.icon;
+
+  const buttonContent = (
+    <button
+      onClick={onToggle}
+      className={cn(
+        "py-3 flex w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-muted transition-colors",
+        isActive && "bg-foreground/5"
+      )}
+    >
+      {Icon && <Icon className="size-5 text-foreground" />}
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.span
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.15 }}
+            className="flex-1 text-left text-foreground"
+          >
+            {item.label}
+          </motion.span>
+        )}
+      </AnimatePresence>
+      {!collapsed && (
+        <motion.div
+          animate={{ rotate: isExpanded ? 90 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <CaretRightIcon className="size-4 text-muted-foreground" />
+        </motion.div>
+      )}
+    </button>
+  );
+
+  return (
+    <div>
+      {collapsed ? (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
+            <TooltipContent side="right">{item.label}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        buttonContent
+      )}
+
+      {/* Children dropdown */}
+      <AnimatePresence initial={false}>
+        {isExpanded && !collapsed && item.children && (
+          <motion.ul
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden ml-4 border-l border-border"
+          >
+            {item.children.map((child) => (
+              <li key={child.key}>
+                <Link
+                  href={child.link}
+                  className={cn(
+                    "block py-2 pl-4 pr-3 text-sm hover:bg-muted rounded-r-lg transition-colors",
+                    pathname === child.link
+                      ? "text-foreground font-medium bg-foreground/5"
+                      : "text-foreground/90"
+                  )}
+                >
+                  {child.label}
+                </Link>
+              </li>
+            ))}
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Reusable sidebar item (polymorphic: anchor or button)
 type SidebarItemBaseProps = {
   label: string;
   icon?: TIcon;
@@ -156,9 +318,9 @@ const SidebarItem = React.forwardRef<
   } = props;
   const Icon = icon;
   const common = cn(
-    "py-4",
+    "py-3",
     isActive && "bg-foreground/5",
-    "flex w-full items-center gap-2 rounded-lg px-3 text-sm hover:bg-muted transition-colors text-foreground",
+    "flex w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-muted transition-colors text-foreground",
     className
   );
 
@@ -171,7 +333,6 @@ const SidebarItem = React.forwardRef<
       SidebarItemAnchorProps,
       keyof SidebarItemBaseProps
     >;
-    const Icon = icon;
     const linkNode = (
       <Link
         ref={ref as React.Ref<HTMLAnchorElement>}
@@ -179,15 +340,7 @@ const SidebarItem = React.forwardRef<
         className={common}
         {...anchorRest}
       >
-        {Icon ? (
-          <Icon
-            className={cn(
-              "size-6",
-
-              collapsed && "size-6"
-            )}
-          />
-        ) : null}
+        {Icon && <Icon className="size-5" />}
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.span
@@ -195,7 +348,7 @@ const SidebarItem = React.forwardRef<
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.15 }}
-              className={cn("text-foreground")}
+              className="text-foreground"
             >
               {label}
             </motion.span>
@@ -226,14 +379,7 @@ const SidebarItem = React.forwardRef<
       aria-pressed={isActive}
       {...(rest as SidebarItemButtonProps)}
     >
-      {Icon ? (
-        <Icon
-          className={cn(
-            "size-5",
-            isActive ? "text-foreground" : "text-muted-foreground"
-          )}
-        />
-      ) : null}
+      {Icon && <Icon className="size-5" />}
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span

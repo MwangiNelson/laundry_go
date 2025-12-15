@@ -3,6 +3,7 @@ import { useAuth } from "@/components/context/auth_provider";
 import { DashboardUIProvider } from "@/components/context/dashboard_ui_provider";
 import { DashboardNavbar } from "@/components/layouts/admin/dashboard_nav";
 import { DashboardSidebar } from "@/components/layouts/admin/dashboard_sidebar";
+import { VendorUIProvider } from "@/components/layouts/vendor/vendor_ui_provider";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -32,17 +33,19 @@ const Layout = (props: Props) => {
   }
   return (
     <DashboardUIProvider>
-      <div className="bg-background text-foreground flex min-h-svh w-full font-poppins">
-        <aside className=" text-muted-foreground flex h-svh sticky top-0">
-          <DashboardSidebar />
-        </aside>
-        <main className="flex-1 min-w-0">
-          <div className="sticky top-0 z-10">
-            <DashboardNavbar />
-          </div>
-          <div className="">{props.children}</div>
-        </main>
-      </div>
+      <VendorUIProvider>
+        <div className="bg-background text-foreground flex min-h-svh w-full font-poppins">
+          <aside className=" text-muted-foreground flex h-svh sticky top-0">
+            <DashboardSidebar />
+          </aside>
+          <main className="flex-1 min-w-0">
+            <div className="sticky top-0 z-10">
+              <DashboardNavbar />
+            </div>
+            <div className="">{props.children}</div>
+          </main>
+        </div>
+      </VendorUIProvider>
     </DashboardUIProvider>
   );
 };

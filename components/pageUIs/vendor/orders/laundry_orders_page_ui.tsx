@@ -21,6 +21,7 @@ export const LaundryOrdersPageUI = () => {
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
           <TabsTrigger value="new">New</TabsTrigger>
           <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
           <TabsTrigger value="ready">Ready</TabsTrigger>

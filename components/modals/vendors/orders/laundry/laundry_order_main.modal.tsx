@@ -17,6 +17,7 @@ export const NewLaundryOrderModal = () => {
     >
       {(orderStatus === "New" ||
         orderStatus === "Ongoing" ||
+        orderStatus === "Scheduled" ||
         orderStatus === "Ready") && <NewOrderModal />}
       {orderStatus === "Completed" && <LaundryOrderInProgressModal />}
       {orderStatus === "Delivered" && <LaundryOrderDetailsModal />}

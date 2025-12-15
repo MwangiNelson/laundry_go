@@ -82,7 +82,7 @@ export const NewOrderModal = () => {
             </Badge>
           </div>
 
-          {order.status === "New" ? (
+          {order.status === "New" || order.status === "Scheduled" ? (
             <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"

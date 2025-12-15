@@ -7,6 +7,7 @@ export type LaundryOrderStatus =
 
 export type ILaundryOrderTab =
   | "all"
+  | "scheduled"
   | "new"
   | "ongoing"
   | "ready"
@@ -18,6 +19,7 @@ export const convertTabToDbStatus = (
 ): string | undefined => {
   const statusMap: Record<Exclude<ILaundryOrderTab, "all">, string> = {
     new: "New",
+    scheduled: "Scheduled",
     ongoing: "Ongoing",
     ready: "Ready",
     delivered: "Delivered",

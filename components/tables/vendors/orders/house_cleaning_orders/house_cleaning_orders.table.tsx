@@ -21,6 +21,7 @@ import {
   DataTableMultiFilter,
   FilterItem,
 } from "@/components/tables/table_components/data_table_multi_filters";
+import { useAuth } from "@/components/context/auth_provider";
 
 interface HouseCleaningOrdersTableProps {
   activeTab: IHouseCleaningOrderTab;
@@ -30,7 +31,7 @@ export const HouseCleaningOrdersTable = ({
   activeTab,
 }: HouseCleaningOrdersTableProps) => {
   const { openModal } = useHouseCleaningModal();
-  const { vendor } = useVendor();
+  const { vendor_id } = useAuth();
 
   const {
     handleSearchChange,
@@ -64,7 +65,7 @@ export const HouseCleaningOrdersTable = ({
   }, [activeTab, updateParams]);
 
   const { data: ordersData, isLoading } = useFetchOrders({
-    vendor_id: vendor?.id,
+    vendor_id: vendor_id || "",
     main_service_slug: "house_cleaning",
     status: queryParams.status,
     search: searchTerm,
@@ -78,7 +79,7 @@ export const HouseCleaningOrdersTable = ({
   });
 
   const { data: ridersData } = useFetchRiders({
-    vendor_id: vendor?.id || "",
+    vendor_id: vendor_id || "",
     status: "active",
   });
 

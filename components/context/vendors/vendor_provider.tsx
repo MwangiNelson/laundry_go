@@ -27,7 +27,7 @@ const VendorProviderContext = React.createContext<
 
 export const VendorProvider = (props: Props) => {
   const vendorProviders = useVendorProviders();
-  const { loggedIn, loading } = useAuth();
+  const { loggedIn, loading, setVendorId } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -42,6 +42,9 @@ export const VendorProvider = (props: Props) => {
     ) {
       router.push("/vendor/onboarding");
       return;
+    }
+    if (vendorProviders.vendor) {
+      setVendorId(vendorProviders.vendor.id);
     }
   }, [
     loggedIn,

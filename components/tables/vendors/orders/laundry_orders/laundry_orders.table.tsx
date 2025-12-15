@@ -18,6 +18,7 @@ import {
   DataTableMultiFilter,
   FilterItem,
 } from "@/components/tables/table_components/data_table_multi_filters";
+import { useAuth } from "@/components/context/auth_provider";
 
 interface LaundryOrdersTableProps {
   activeTab: ILaundryOrderTab;
@@ -25,7 +26,7 @@ interface LaundryOrdersTableProps {
 
 export const LaundryOrdersTable = ({ activeTab }: LaundryOrdersTableProps) => {
   const { openModal } = useLaundryModal();
-  const { vendor } = useVendor();
+  const { vendor_id } = useAuth();
 
   const {
     handleSearchChange,
@@ -61,7 +62,7 @@ export const LaundryOrdersTable = ({ activeTab }: LaundryOrdersTableProps) => {
 
   // Fetch orders with filters
   const { data: ordersData, isLoading } = useFetchOrders({
-    vendor_id: vendor?.id,
+    vendor_id: vendor_id,
     main_service_slug: "laundry",
     status: queryParams.status,
     search: searchTerm,
@@ -76,7 +77,7 @@ export const LaundryOrdersTable = ({ activeTab }: LaundryOrdersTableProps) => {
 
   // Fetch riders for filter
   const { data: ridersData } = useFetchRiders({
-    vendor_id: vendor?.id || "",
+    vendor_id: vendor_id || "",
     status: "active",
   });
 
