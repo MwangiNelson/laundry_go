@@ -37,24 +37,8 @@ export const useVendorSignUpWithEmail = () => {
         throw new Error("User ID not found after sign up.");
       }
 
-      // The trigger will create the profile automatically, so we don't need to upsert
-      // Just create the vendor record
-      const vendor = await client
-        .from("vendors")
-        .insert({
-          admin_id: data.user.id,
-          email: email,
-        })
-        .select()
-        .single();
-
-      if (vendor.error) {
-        throw new Error(vendor.error.message);
-      }
-
       return {
         user: data.user,
-        vendor: vendor.data,
       };
     },
   });
