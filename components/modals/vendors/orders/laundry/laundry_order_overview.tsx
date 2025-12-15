@@ -27,11 +27,11 @@ export const LaundryOrderOverview = () => {
             </div>
 
             <div className="divide-y divide-foreground/5">
-              {orderData.items.map((item, index) => (
+              {orderData?.order_items.map((item, index) => (
                 <div key={index} className="grid grid-cols-12 gap-3 py-2">
                   <div className="col-span-5 px-3 py-2">
                     <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
-                      {item.name}
+                      {item.service_item.name}
                     </p>
                   </div>
                   <div className="col-span-2 px-3 py-2">
@@ -41,7 +41,7 @@ export const LaundryOrderOverview = () => {
                   </div>
                   <div className="col-span-5 px-3 py-2">
                     <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
-                      {item.services.join(", ")}
+                      {item.service_option?.name}
                     </p>
                   </div>
                 </div>
@@ -51,13 +51,14 @@ export const LaundryOrderOverview = () => {
 
           <div className="flex items-center justify-end">
             <p className="text-base font-bold text-card-foreground font-manrope leading-[1.6]">
-              kes {orderData.totalAmount.toLocaleString()}
+              kes {orderData?.total_price.toFixed(2)}
             </p>
           </div>
         </div>
         <div className="flex items-end">
           <p className="text-base text-muted-foreground font-normal font-manrope leading-[1.6]">
-            Location: {orderData.location} Time: {orderData.timeSlot}
+            Location: {orderData?.delivery_details?.location}
+            Time: {orderData?.delivery_details?.time}
           </p>
         </div>
       </div>

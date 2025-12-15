@@ -85,10 +85,21 @@ export interface IMainService {
   service: string;
   slug: string;
 }
+export type IOrderStatus =
+  | "New"
+  | "Confirmed"
+  | "Ongoing"
+  | "Ready"
+  | "Delivered"
+  | "Completed"
+  | "Rated"
+  | "Cancelled"
+  | "Scheduled"
+  | "Draft";
 
 export interface IOrder {
   id: string;
-  status: string;
+  status: IOrderStatus;
   total_price: number;
   payment_status: string;
   payment_method: string | null;

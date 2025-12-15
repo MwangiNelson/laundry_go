@@ -241,8 +241,7 @@ export const LaundryOrdersTable = ({ activeTab }: LaundryOrdersTableProps) => {
         onRowClick={(row) => {
           if (!(activeTab == "all")) {
             openModal({
-              orderId: (row as { id: string }).id,
-              orderStatus: activeTab,
+              order: row,
             });
           }
         }}

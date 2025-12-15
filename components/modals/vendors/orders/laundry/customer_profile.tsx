@@ -5,9 +5,9 @@ export const CustomerProfile = () => {
   const { order } = useLaundryModal();
   return (
     <SharedCustomerProfile
-      name={order.customerName}
-      email={order.customerEmail}
-      avatar={order.customerAvatar}
+      name={order?.customer.full_name || "N/A"}
+      email={order?.customer.email || "N/A"}
+      avatar={order?.customer.avatar_url || ""}
     />
   );
 };

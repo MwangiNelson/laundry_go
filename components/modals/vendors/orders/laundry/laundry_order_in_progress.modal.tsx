@@ -18,7 +18,7 @@ export const LaundryOrderInProgressModal = () => {
       showCloseButton={false}
       className="sm:max-w-3xl p-0 rounded-3xl bg-background border border-foreground/10 overflow-hidden"
     >
-      <DialogTitle className="sr-only">New Laundry Order</DialogTitle>
+      <DialogTitle className="sr-only">Ongoing Order</DialogTitle>
 
       <div className="p-6 space-y-6 ">
         <div className="flex items-center justify-between">
@@ -26,9 +26,9 @@ export const LaundryOrderInProgressModal = () => {
             <h2 className="text-xl font-semibold text-foreground font-manrope">
               Laundry
             </h2>
-            <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
-              {order.minutesAgo} mins
-            </p>
+            <h3 className="text-lg font-medium text-foreground font-manrope">
+              Order #{order!.id.split("-")[0].toUpperCase()}
+            </h3>
           </div>
           <Button
             variant="ghost"
@@ -42,7 +42,7 @@ export const LaundryOrderInProgressModal = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h3 className="text-lg font-medium text-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order #{order?.id}
             </h3>
             <Badge className="bg-transparent border-none px-0 py-0 gap-0 h-auto">
               <div className="size-4 flex items-center justify-center">

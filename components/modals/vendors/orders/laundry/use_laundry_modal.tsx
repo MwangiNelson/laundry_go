@@ -1,77 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { faker } from "@faker-js/faker";
-const generateOrderData = () => {
-  const items = [
-    {
-      name: "Curtains",
-      quantity: faker.number.int({ min: 1, max: 5 }),
-      services: ["Cleaning"],
-    },
-    {
-      name: "Sheets",
-      quantity: faker.number.int({ min: 2, max: 6 }),
-      services: ["Cleaning", "Ironing"],
-    },
-    {
-      name: "Shoes",
-      quantity: faker.number.int({ min: 1, max: 4 }),
-      services: ["Cleaning"],
-    },
-    {
-      name: "Beddings",
-      quantity: faker.number.int({ min: 2, max: 5 }),
-      services: ["Cleaning", "Ironing"],
-    },
-  ];
-
-  const customerName = faker.person.fullName();
-  const customerEmail = faker.internet.email().toLowerCase();
-  const customerAvatar = faker.image.avatarGitHub();
-  const orderNumber = faker.number.int({ min: 1000, max: 9999 });
-  const totalAmount = faker.number.int({ min: 8000, max: 25000 });
-  const location = `${faker.number.int({
-    min: 1,
-    max: 999,
-  })} ${faker.location.street()}, ${faker.helpers.arrayElement([
-    "Westlands",
-    "Kilimani",
-    "Karen",
-    "Lavington",
-    "Parklands",
-    "Riverside",
-  ])}`;
-  const timeSlot = faker.helpers.arrayElement([
-    "Today 2-4 PM",
-    "Tomorrow 10-12 AM",
-    "Tomorrow 2-4 PM",
-    "Today 4-6 PM",
-  ]);
-  const minutesAgo = faker.number.int({ min: 1, max: 30 });
-
-  return {
-    orderNumber,
-    customerName,
-    customerEmail,
-    customerAvatar,
-    items,
-    totalAmount,
-    location,
-    timeSlot,
-    minutesAgo,
-  };
-};
-
-type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
 
 interface LaundryModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
-  orderId: string | null;
-  setOrderId: (id: string | null) => void;
-  orderStatus: OrderStatus;
-  setOrderStatus: (status: OrderStatus) => void;
-  openModal: (params: { orderId: string; orderStatus: OrderStatus }) => void;
-  order: ReturnType<typeof generateOrderData>;
+  order: IOrder;
+  openModal: (params: { order: IOrder }) => void;
+  setOrder: (order: IOrder | null) => void;
 }
 
 const LaundryModalContext = createContext<LaundryModalContextType | undefined>(
@@ -80,18 +15,9 @@ const LaundryModalContext = createContext<LaundryModalContextType | undefined>(
 
 export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
-  const [orderData] = useState(generateOrderData());
-  const openModal = ({
-    orderId,
-    orderStatus,
-  }: {
-    orderId: string;
-    orderStatus: OrderStatus;
-  }) => {
-    setOrderId(orderId);
-    setOrderStatus(orderStatus);
+  const [order, setOrder] = useState<IOrder | null>(null);
+  const openModal = ({ order }: { order: IOrder }) => {
+    setOrder(order);
     setOpen(true);
   };
 
@@ -100,12 +26,10 @@ export const LaundryModalProvider = ({ children }: { children: ReactNode }) => {
       value={{
         open,
         setOpen,
-        orderId,
-        setOrderId,
-        orderStatus,
-        setOrderStatus,
+        order: order!,
+        setOrder,
+
         openModal,
-        order: orderData,
       }}
     >
       {children}

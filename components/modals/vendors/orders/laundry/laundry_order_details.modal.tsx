@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useLaundryModal } from "./use_laundry_modal";
-import { faker } from "@faker-js/faker";
 import {
   ProfileCard,
   StarRating,
@@ -16,22 +15,6 @@ import { LaundryOrderOverview } from "./laundry_order_overview";
 
 export const LaundryOrderDetailsModal = () => {
   const { order, setOpen } = useLaundryModal();
-
-  // Generate rider data
-  const riderData = {
-    name: faker.person.fullName(),
-    phone: faker.phone.number(),
-    vehicle: `Motorbike ${faker.vehicle.vrm()}`,
-    avatar: faker.image.avatarGitHub(),
-  };
-
-  const customerData = {
-    name: order.customerName,
-    email: order.customerEmail,
-    phone: faker.phone.number(),
-    address: order.location,
-    avatar: order.customerAvatar,
-  };
 
   return (
     <DialogContent
@@ -57,7 +40,7 @@ export const LaundryOrderDetailsModal = () => {
         <div className="max-h-[70vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium text-card-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order #{order?.id.split("-")[0].toUpperCase()}
             </h2>
             <Badge className="bg-card border border-border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.1)] px-2.5 h-8 rounded-md gap-1.5">
               <div className="size-4 flex items-center justify-center">
@@ -81,19 +64,19 @@ export const LaundryOrderDetailsModal = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <ProfileCard
                         title="Customer Info"
-                        name={customerData.name}
-                        email={customerData.email}
-                        phone={customerData.phone}
-                        address={customerData.address}
-                        avatar={customerData.avatar}
+                        name={order?.customer.full_name ?? "N/A"}
+                        email={order?.customer.email || undefined}
+                        phone={order?.customer.phone || undefined}
+                        address={order?.delivery_details?.location || undefined}
+                        avatar={order?.customer.avatar_url || ""}
                         avatarBorderColor="accent"
                       />
 
                       <ProfileCard
                         title="Rider Info"
-                        name={riderData.name}
-                        phone={riderData.phone}
-                        avatar={riderData.avatar}
+                        name={order?.rider?.full_name ?? "N/A"}
+                        phone={order?.rider?.phone || undefined}
+                        avatar={order?.rider?.avatar_url || ""}
                         avatarBorderColor="secondary"
                       />
                     </div>
@@ -149,7 +132,7 @@ export const LaundryOrderDetailsModal = () => {
                         },
                         {
                           icon: "package",
-                          text: `Order placed by ${order.customerName}`,
+                          text: `Order placed by ${order?.customer.full_name}`,
                           time: "9:15 AM",
                         },
                         {
@@ -169,7 +152,7 @@ export const LaundryOrderDetailsModal = () => {
                         },
                         {
                           icon: "package",
-                          text: `Order placed by ${order.customerName}`,
+                          text: `Order placed by ${order?.customer.full_name}`,
                           time: "9:15 AM",
                         },
                       ]}

@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+
 export const NewOrderModal = () => {
   const { order, setOpen } = useLaundryModal();
   const { mutateAsync: accept_orders, isPending } = useAcceptOrder();
@@ -34,13 +35,14 @@ export const NewOrderModal = () => {
 
   const handleReject = async () => {
     await reject_orders({ order_id: order!.id });
-
     setOpen(false);
   };
+
   const handleStatusChange = async (newStatus: "Ready" | "Delivered") => {
     await update_order_status({ order_id: order!.id, status: newStatus });
     setOpen(false);
   };
+
   return (
     <DialogContent
       showCloseButton={false}
@@ -106,7 +108,7 @@ export const NewOrderModal = () => {
                 </span>
               </Button>
             </div>
-          ) : (
+          ) : order.status === "Ongoing" ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2">
@@ -132,6 +134,8 @@ export const NewOrderModal = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          ) : (
+            <div></div>
           )}
         </div>
         <div className=" max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
