@@ -1,12 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { OfficeCleaningOrdersTable } from "@/components/tables/vendors/orders/office_cleaning_orders/office_cleaning_orders.table";
-import { OfficeCleaningOrderTab } from "@/components/tables/vendors/orders/office_cleaning_orders/office_cleaning_orders.data";
+import { IOfficeCleaningOrderTab } from "@/components/tables/vendors/orders/office_cleaning_orders/office_cleaning_orders.data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const OfficeCleaningOrdersPageUI = () => {
-  const [activeTab, setActiveTab] = useState<OfficeCleaningOrderTab>("all");
-
+  const [activeTab, setActiveTab] = useState<IOfficeCleaningOrderTab>("all");
   return (
     <div className="space-y-6">
       <div>
@@ -19,7 +18,9 @@ export const OfficeCleaningOrdersPageUI = () => {
       </div>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as OfficeCleaningOrderTab)}
+        onValueChange={(value) =>
+          setActiveTab(value as IOfficeCleaningOrderTab)
+        }
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

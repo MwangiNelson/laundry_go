@@ -1,11 +1,12 @@
 "use client";
 import React, { useState } from "react";
 import { FumigationOrdersTable } from "@/components/tables/vendors/orders/fumigation_orders/fumigation_orders.table";
-import { FumigationOrderTab } from "@/components/tables/vendors/orders/fumigation_orders/fumigation_orders.data";
+import { IFumigationOrderTab } from "@/components/tables/vendors/orders/fumigation_orders/fumigation_orders.data";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const FumigationOrdersPageUI = () => {
-  const [activeTab, setActiveTab] = useState<FumigationOrderTab>("all");
+  const [activeTab, setActiveTab] = useState<IFumigationOrderTab>("all");
 
   return (
     <div className="space-y-6">
@@ -17,7 +18,7 @@ export const FumigationOrdersPageUI = () => {
       </div>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as FumigationOrderTab)}
+        onValueChange={(value) => setActiveTab(value as IFumigationOrderTab)}
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

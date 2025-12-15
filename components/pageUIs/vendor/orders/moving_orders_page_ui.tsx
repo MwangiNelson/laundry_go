@@ -1,12 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { MovingOrdersTable } from "@/components/tables/vendors/orders/moving_orders/moving_orders.table";
-import { MovingOrderTab } from "@/components/tables/vendors/orders/moving_orders/moving_orders.data";
+import { IMovingOrderTab } from "@/components/tables/vendors/orders/moving_orders/moving_orders.data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const MovingOrdersPageUI = () => {
-  const [activeTab, setActiveTab] = useState<MovingOrderTab>("all");
-
+  const [activeTab, setActiveTab] = useState<IMovingOrderTab>("all");
   return (
     <div className="space-y-6">
       <div>
@@ -17,7 +16,7 @@ export const MovingOrdersPageUI = () => {
       </div>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as MovingOrderTab)}
+        onValueChange={(value) => setActiveTab(value as IMovingOrderTab)}
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>

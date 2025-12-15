@@ -240,6 +240,7 @@ export const OfficeCleaningOrdersTable = ({
           if (!(activeTab == "all")) {
             openModal({
               orderId: (row as { id: string }).id,
+              //@ts-expect-error ignore
               orderStatus: activeTab,
             });
           }

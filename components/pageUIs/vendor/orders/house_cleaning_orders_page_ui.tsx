@@ -1,12 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { HouseCleaningOrdersTable } from "@/components/tables/vendors/orders/house_cleaning_orders/house_cleaning_orders.table";
-import { HouseCleaningOrderTab } from "@/components/tables/vendors/orders/house_cleaning_orders/house_cleaning_orders.data";
+import { IHouseCleaningOrderTab } from "@/components/tables/vendors/orders/house_cleaning_orders/house_cleaning_orders.data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const HouseCleaningOrdersPageUI = () => {
-  const [activeTab, setActiveTab] = useState<HouseCleaningOrderTab>("all");
-
+  const [activeTab, setActiveTab] = useState<IHouseCleaningOrderTab>("all");
   return (
     <div className="space-y-6">
       <div>
@@ -19,7 +18,7 @@ export const HouseCleaningOrdersPageUI = () => {
       </div>
       <Tabs
         value={activeTab}
-        onValueChange={(value) => setActiveTab(value as HouseCleaningOrderTab)}
+        onValueChange={(value) => setActiveTab(value as IHouseCleaningOrderTab)}
       >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
