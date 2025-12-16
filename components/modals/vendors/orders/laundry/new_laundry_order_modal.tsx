@@ -1,8 +1,9 @@
 "use client";
+import { useState } from "react";
 import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Check, ChevronDown } from "lucide-react";
+import { X, Check, ChevronDown, Truck } from "lucide-react";
 import { CustomerProfile } from "./customer_profile";
 import { useLaundryModal } from "./use_laundry_modal";
 import { LaundryOrderOverview } from "./laundry_order_overview";
@@ -19,8 +20,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { AssignRiderModal } from "./assign_rider_modal";
+
 export const NewOrderModal = () => {
   const { order, setOpen } = useLaundryModal();
+  const [assignRiderOpen, setAssignRiderOpen] = useState(false);
   const { mutateAsync: accept_orders, isPending } = useAcceptOrder();
   const { mutateAsync: reject_orders, isPending: isRejecting } =
     useRejectOrder();
@@ -107,31 +111,44 @@ export const NewOrderModal = () => {
               </Button>
             </div>
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2">
+            <div className="flex items-center gap-3">
+              {(order.status === "Ongoing" || order.status === "Ready") && (
+                <Button
+                  className="bg-primary/90 border border-primary text-foreground hover:bg-primary rounded-xl px-4 py-2 h-auto gap-2"
+                  onClick={() => setAssignRiderOpen(true)}
+                >
+                  <Truck className="size-5" />
                   <span className="text-sm font-normal font-manrope">
-                    Update Status
+                    Assign Rider
                   </span>
-                  <ChevronDown className="size-4" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => handleStatusChange("Ready")}
-                  disabled={isUpdatingStatus}
-                >
-                  <span className="font-manrope">Mark as Ready</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleStatusChange("Delivered")}
-                  disabled={isUpdatingStatus}
-                >
-                  <span className="font-manrope">Mark as Delivered</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2">
+                    <span className="text-sm font-normal font-manrope">
+                      Update Status
+                    </span>
+                    <ChevronDown className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("Ready")}
+                    disabled={isUpdatingStatus}
+                  >
+                    <span className="font-manrope">Mark as Ready</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("Delivered")}
+                    disabled={isUpdatingStatus}
+                  >
+                    <span className="font-manrope">Mark as Delivered</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           )}
         </div>
         <div className=" max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
@@ -139,6 +156,13 @@ export const NewOrderModal = () => {
           <LaundryOrderOverview />
         </div>
       </div>
+
+      {/* Assign Rider Modal */}
+      <AssignRiderModal
+        open={assignRiderOpen}
+        onOpenChange={setAssignRiderOpen}
+        orderId={order!.id}
+      />
     </DialogContent>
   );
 };
