@@ -5,6 +5,7 @@ import { X, Dot, ChevronDown } from "lucide-react";
 import { CustomerProfile } from "../shared/customer_profile";
 import { useOfficeCleaningModal } from "./use_office_cleaning_modal";
 import { OfficeCleaningOrderOverview } from "./office_cleaning_order_overview";
+import { format } from "date-fns";
 
 export const OfficeCleaningOrderInProgressModal = () => {
   const { order, setOpen } = useOfficeCleaningModal();
@@ -25,7 +26,7 @@ export const OfficeCleaningOrderInProgressModal = () => {
               Office Cleaning
             </h2>
             <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
-              {order.minutesAgo} mins
+              {format(new Date(order!.created_at), "MMM dd, yyyy 'at' hh:mm a")}
             </p>
           </div>
           <Button
@@ -40,7 +41,7 @@ export const OfficeCleaningOrderInProgressModal = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h3 className="text-lg font-medium text-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order {order!.id.split("-")[0].toUpperCase()}
             </h3>
           </div>
 
@@ -57,17 +58,11 @@ export const OfficeCleaningOrderInProgressModal = () => {
         </div>
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
           <CustomerProfile
-            name={order.customerName}
-            email={order.customerEmail}
-            avatar={order.customerAvatar}
+            avatar={order!.customer.avatar_url || ""}
+            name={order!.customer.full_name || "N/A"}
+            email={order!.customer.email}
           />
-          <OfficeCleaningOrderOverview
-            rooms={order.rooms}
-            totalAmount={order.totalAmount}
-            serviceType={order.serviceType}
-            location={order.location}
-            timeSlot={order.timeSlot}
-          />
+          <OfficeCleaningOrderOverview />
         </div>
       </div>
     </DialogContent>

@@ -4,7 +4,7 @@ import { IOrder } from "@/api/vendor/order/use_fetch_orders";
 interface MovingModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
-  order: IOrder | null;
+  order: IOrder;
   openModal: (params: { order: IOrder }) => void;
   setOrder: (order: IOrder | null) => void;
 }
@@ -27,7 +27,7 @@ export const MovingModalProvider = ({ children }: { children: ReactNode }) => {
       value={{
         open,
         setOpen,
-        order,
+        order: order!,
         setOrder,
         openModal,
       }}

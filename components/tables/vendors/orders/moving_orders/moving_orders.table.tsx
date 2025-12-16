@@ -168,7 +168,7 @@ export const MovingOrdersTable = ({ activeTab }: MovingOrdersTableProps) => {
 
   return (
     <div className="space-y-4 flex flex-col w-full">
-      <div className="flex items-center justify-end gap-4 px-1 self-end md:self-center w-full ">
+      <div className="flex items-center justify-end gap-4 px-1 self-end md:self-center w-full flex-wrap ">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary" />
           <Input
@@ -232,11 +232,9 @@ export const MovingOrdersTable = ({ activeTab }: MovingOrdersTableProps) => {
           onPaginationChange: setPagination,
         }}
         onRowClick={(row) => {
-          if (!(activeTab == "all")) {
-            openModal({
-              order: row,
-            });
-          }
+          openModal({
+            order: row,
+          });
         }}
       />
     </div>

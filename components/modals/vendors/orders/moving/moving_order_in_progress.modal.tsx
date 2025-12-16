@@ -5,7 +5,7 @@ import { X, Dot, ChevronDown } from "lucide-react";
 import { CustomerProfile } from "../shared/customer_profile";
 import { useMovingModal } from "./use_moving_modal";
 import { MovingOrderOverview } from "./moving_order_overview";
-
+import { format } from "date-fns";
 export const MovingOrderInProgressModal = () => {
   const { order, setOpen } = useMovingModal();
 
@@ -23,7 +23,7 @@ export const MovingOrderInProgressModal = () => {
               Moving
             </h2>
             <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
-              {order.minutesAgo} mins
+              {format(new Date(order!.created_at), "hh:mm a")} mins
             </p>
           </div>
           <Button
@@ -38,7 +38,7 @@ export const MovingOrderInProgressModal = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h3 className="text-lg font-medium text-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order #{order.id.split("-")[0].toUpperCase()}
             </h3>
           </div>
 
@@ -48,26 +48,20 @@ export const MovingOrderInProgressModal = () => {
               className="border-secondary text-foreground bg-transparent hover:bg-primary/10 rounded-xl px-4 py-2 h-auto gap-2"
             >
               <Dot className="size-4 text-secondary" />
-              <span className="text-sm font-normal font-manrope">Ongoing</span>
-              <ChevronDown className="size-4" />
+              <span className="text-sm font-normal font-manrope">
+                {order.status}
+              </span>
+              {/* <ChevronDown className="size-4" /> */}
             </Button>
           </div>
         </div>
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
           <CustomerProfile
-            name={order.customerName}
-            email={order.customerEmail}
-            avatar={order.customerAvatar}
+            name={order.customer?.full_name ?? ""}
+            email={order.customer?.email ?? ""}
+            avatar={order.customer?.avatar_url ?? ""}
           />
-          <MovingOrderOverview
-            rooms={order.rooms}
-            totalAmount={order.totalAmount}
-            pickupLocation={order.pickupLocation}
-            destinationLocation={order.destinationLocation}
-            pickupFloor={order.pickupFloor}
-            destinationFloor={order.destinationFloor}
-            timeSlot={order.timeSlot}
-          />
+          <MovingOrderOverview />
         </div>
       </div>
     </DialogContent>

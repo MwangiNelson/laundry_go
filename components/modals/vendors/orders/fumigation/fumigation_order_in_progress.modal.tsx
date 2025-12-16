@@ -18,7 +18,7 @@ export const FumigationOrderInProgressModal = () => {
       <div className="flex items-start justify-between w-full">
         <div className="flex items-center">
           <p className="text-lg text-foreground font-manrope font-medium">
-            Order {order.orderId}
+            Order #{order?.id.split("-")[0].toUpperCase()}
           </p>
         </div>
 
@@ -44,9 +44,9 @@ export const FumigationOrderInProgressModal = () => {
           Customer Info
         </p>
         <CustomerProfile
-          name={order.customerName}
-          email={order.customerEmail}
-          avatar={order.customerAvatar}
+          name={order.customer.full_name ?? ""}
+          email={order.customer.email ?? ""}
+          avatar={order.customer.avatar_url ?? ""}
         />
       </div>
 

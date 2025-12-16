@@ -5,7 +5,7 @@ import { X, Dot, ChevronDown } from "lucide-react";
 import { CustomerProfile } from "../shared/customer_profile";
 import { useHouseCleaningModal } from "./use_house_cleaning_modal";
 import { HouseCleaningOrderOverview } from "./house_cleaning_order_overview";
-
+import { format } from "date-fns";
 export const HouseCleaningOrderInProgressModal = () => {
   const { order, setOpen } = useHouseCleaningModal();
 
@@ -25,7 +25,7 @@ export const HouseCleaningOrderInProgressModal = () => {
               House Cleaning
             </h2>
             <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
-              {order.minutesAgo} mins
+              {format(new Date(order!.created_at), "hh:mm a")} mins
             </p>
           </div>
           <Button
@@ -40,7 +40,7 @@ export const HouseCleaningOrderInProgressModal = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <h3 className="text-lg font-medium text-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order #{order?.id.split("-")[0].toUpperCase()}
             </h3>
           </div>
 
@@ -57,16 +57,11 @@ export const HouseCleaningOrderInProgressModal = () => {
         </div>
         <div className="max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
           <CustomerProfile
-            name={order.customerName}
-            email={order.customerEmail}
-            avatar={order.customerAvatar}
+            name={order?.customer.full_name ?? ""}
+            email={order?.customer.email ?? ""}
+            avatar={order?.customer.avatar_url ?? ""}
           />
-          <HouseCleaningOrderOverview
-            services={order.services}
-            totalAmount={order.totalAmount}
-            location={order.location}
-            timeSlot={order.timeSlot}
-          />
+          <HouseCleaningOrderOverview />
         </div>
       </div>
     </DialogContent>

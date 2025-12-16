@@ -17,22 +17,6 @@ import { MovingOrderOverview } from "./moving_order_overview";
 export const MovingOrderDetailsModal = () => {
   const { order, setOpen } = useMovingModal();
 
-  // Generate rider data
-  const riderData = {
-    name: faker.person.fullName(),
-    phone: faker.phone.number(),
-    vehicle: `Truck ${faker.vehicle.vrm()}`,
-    avatar: faker.image.avatarGitHub(),
-  };
-
-  const customerData = {
-    name: order.customerName,
-    email: order.customerEmail,
-    phone: faker.phone.number(),
-    address: order.pickupLocation,
-    avatar: order.customerAvatar,
-  };
-
   return (
     <DialogContent
       showCloseButton={false}
@@ -57,7 +41,7 @@ export const MovingOrderDetailsModal = () => {
         <div className="max-h-[70vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-medium text-card-foreground font-manrope">
-              Order #{order.orderNumber}
+              Order #{order?.id.split("-")[0].toUpperCase()}
             </h2>
             <Badge className="bg-card border border-border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.1)] px-2.5 h-8 rounded-md gap-1.5">
               <div className="size-4 flex items-center justify-center">
@@ -81,34 +65,26 @@ export const MovingOrderDetailsModal = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <ProfileCard
                         title="Customer Info"
-                        name={customerData.name}
-                        email={customerData.email}
-                        phone={customerData.phone}
-                        address={customerData.address}
-                        avatar={customerData.avatar}
+                        name={order?.customer?.full_name ?? ""}
+                        email={order?.customer.email}
+                        phone={order?.customer.phone ?? ""}
+                        // address={order?.customer.}
+                        avatar={order?.customer.avatar_url ?? ""}
                         avatarBorderColor="accent"
                       />
 
                       <ProfileCard
                         title="Rider Info"
-                        name={riderData.name}
-                        phone={riderData.phone}
-                        avatar={riderData.avatar}
+                        name={order?.rider?.full_name ?? ""}
+                        phone={order?.rider?.phone ?? ""}
+                        avatar={order?.rider?.avatar_url ?? ""}
                         avatarBorderColor="secondary"
                       />
                     </div>
 
                     {/* Moving Order Overview */}
                     <div className="bg-card rounded-2xl p-6">
-                      <MovingOrderOverview
-                        rooms={order.rooms}
-                        totalAmount={order.totalAmount}
-                        pickupLocation={order.pickupLocation}
-                        destinationLocation={order.destinationLocation}
-                        pickupFloor={order.pickupFloor}
-                        destinationFloor={order.destinationFloor}
-                        timeSlot={order.timeSlot}
-                      />
+                      <MovingOrderOverview />
                     </div>
 
                     {/* Reviews */}
@@ -152,7 +128,7 @@ export const MovingOrderDetailsModal = () => {
                         },
                         {
                           icon: "package",
-                          text: `Order placed by ${order.customerName}`,
+                          text: `Order placed by `,
                           time: "9:15 AM",
                         },
                       ]}

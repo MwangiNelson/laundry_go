@@ -38,7 +38,7 @@ export const NewMovingOrderModal = () => {
     setOpen(false);
   };
 
-  const handleStatusChange = async (newStatus: "Ready" | "Delivered") => {
+  const handleStatusChange = async (newStatus: "Completed" | "Cancelled") => {
     await update_order_status({ order_id: order!.id, status: newStatus });
     setOpen(false);
   };
@@ -121,17 +121,18 @@ export const NewMovingOrderModal = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={() => handleStatusChange("Ready")}
+                  onClick={() => handleStatusChange("Completed")}
                   disabled={isUpdatingStatus}
                 >
-                  <span className="font-manrope">Mark as Ready</span>
+                  <span className="font-manrope">Mark As Comple</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => handleStatusChange("Delivered")}
+                  onClick={() => handleStatusChange("Cancelled")}
                   disabled={isUpdatingStatus}
+                  variant="destructive"
                 >
-                  <span className="font-manrope">Mark as Delivered</span>
+                  <span className="font-manrope">Mark as Cancelled</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
