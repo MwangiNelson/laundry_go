@@ -18,7 +18,7 @@ const VendorAuthPageUI = ({
   totalSlides = 3,
 }: Props) => {
   return (
-    <div className="w-screen min-h-screen relative overflow-x-hidden">
+    <div className="min-h-screen relative   max-w-screen overflow-x-hidden">
       <div className="absolute inset-0 -z-10">
         <Image
           src={`/vendors/auth/bg.png`}

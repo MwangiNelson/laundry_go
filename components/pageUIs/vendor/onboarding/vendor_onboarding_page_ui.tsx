@@ -31,7 +31,7 @@ export const VendorOboardingPageUI = () => {
     }
   };
   return (
-    <div className="h-screen w-screen overflow-hidden relative flex items-center justify-center">
+    <div className="h-screen max-w-screen overflow-hidden relative flex items-center justify-center">
       <Image
         src={`/vendors/auth/bg.png`}
         alt="Background Image"
