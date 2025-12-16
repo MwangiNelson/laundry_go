@@ -5,7 +5,8 @@ import { NewHouseCleaningOrderModal } from "./new_house_cleaning_order_modal";
 import { HouseCleaningOrderInProgressModal } from "./house_cleaning_order_in_progress.modal";
 
 export const HouseCleaningOrderMainModal = () => {
-  const { open, setOpen, orderStatus } = useHouseCleaningModal();
+  const { open, setOpen, order } = useHouseCleaningModal();
+  const orderStatus = order?.status;
   return (
     <Dialog
       open={open}
@@ -13,8 +14,11 @@ export const HouseCleaningOrderMainModal = () => {
         setOpen(newOpen);
       }}
     >
-      {orderStatus === "new" && <NewHouseCleaningOrderModal />}
-      {orderStatus === "ongoing" && <HouseCleaningOrderInProgressModal />}
+      {(orderStatus === "New" ||
+        orderStatus === "Ongoing" ||
+        orderStatus === "Scheduled" ||
+        orderStatus === "Ready") && <NewHouseCleaningOrderModal />}
+      {orderStatus === "Completed" && <HouseCleaningOrderInProgressModal />}
     </Dialog>
   );
 };

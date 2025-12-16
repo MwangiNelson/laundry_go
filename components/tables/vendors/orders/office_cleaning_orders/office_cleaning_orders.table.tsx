@@ -239,9 +239,7 @@ export const OfficeCleaningOrdersTable = ({
         onRowClick={(row) => {
           if (!(activeTab == "all")) {
             openModal({
-              orderId: (row as { id: string }).id,
-              //@ts-expect-error ignore
-              orderStatus: activeTab,
+              order: row,
             });
           }
         }}

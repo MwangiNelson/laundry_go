@@ -1,82 +1,12 @@
 import { createContext, useContext, useState, ReactNode } from "react";
-import { faker } from "@faker-js/faker";
-
-const generateOrderData = () => {
-  const rooms = [
-    {
-      name: "Single Office",
-      quantity: faker.number.int({ min: 2, max: 8 }),
-    },
-    {
-      name: "Kitchen",
-      quantity: faker.number.int({ min: 1, max: 3 }),
-    },
-    {
-      name: "Gym",
-      quantity: faker.number.int({ min: 1, max: 2 }),
-    },
-    {
-      name: "Restrooms",
-      quantity: faker.number.int({ min: 2, max: 6 }),
-    },
-  ];
-
-  const customerName = faker.person.fullName();
-  const customerEmail = faker.internet.email().toLowerCase();
-  const customerAvatar = faker.image.avatarGitHub();
-  const orderNumber = faker.number.int({ min: 1000, max: 9999 });
-  const totalAmount = faker.number.int({ min: 60000, max: 120000 });
-
-  const location = `No. ${faker.number.int({
-    min: 1,
-    max: 99,
-  })} ${faker.location.street()}, ${faker.helpers.arrayElement([
-    "Westlands",
-    "Upper Hill",
-    "CBD",
-    "Kilimani",
-    "Parklands",
-  ])}, Nairobi`;
-
-  const serviceType = faker.helpers.arrayElement([
-    "Regular Cleaning",
-    "Deep Cleaning",
-    "Post-Construction Cleaning",
-  ]);
-
-  const timeSlot = faker.helpers.arrayElement([
-    "Today 2-4 PM",
-    "Tomorrow 10-12 AM",
-    "Tomorrow 2-4 PM",
-    "Today 4-6 PM",
-  ]);
-  const minutesAgo = faker.number.int({ min: 1, max: 30 });
-
-  return {
-    orderNumber,
-    customerName,
-    customerEmail,
-    customerAvatar,
-    rooms,
-    totalAmount,
-    location,
-    serviceType,
-    timeSlot,
-    minutesAgo,
-  };
-};
-
-type OrderStatus = "new" | "ongoing" | "ready" | "delivered" | "cancelled";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
 
 interface OfficeCleaningModalContextType {
   open: boolean;
   setOpen: (open: boolean) => void;
-  orderId: string | null;
-  setOrderId: (id: string | null) => void;
-  orderStatus: OrderStatus;
-  setOrderStatus: (status: OrderStatus) => void;
-  openModal: (params: { orderId: string; orderStatus: OrderStatus }) => void;
-  order: ReturnType<typeof generateOrderData>;
+  order: IOrder | null;
+  openModal: (params: { order: IOrder }) => void;
+  setOrder: (order: IOrder | null) => void;
 }
 
 const OfficeCleaningModalContext = createContext<
@@ -89,19 +19,10 @@ export const OfficeCleaningModalProvider = ({
   children: ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>("new");
-  const [orderData] = useState(generateOrderData());
+  const [order, setOrder] = useState<IOrder | null>(null);
 
-  const openModal = ({
-    orderId,
-    orderStatus,
-  }: {
-    orderId: string;
-    orderStatus: OrderStatus;
-  }) => {
-    setOrderId(orderId);
-    setOrderStatus(orderStatus);
+  const openModal = ({ order }: { order: IOrder }) => {
+    setOrder(order);
     setOpen(true);
   };
 
@@ -110,12 +31,9 @@ export const OfficeCleaningModalProvider = ({
       value={{
         open,
         setOpen,
-        orderId,
-        setOrderId,
-        orderStatus,
-        setOrderStatus,
+        order,
+        setOrder,
         openModal,
-        order: orderData,
       }}
     >
       {children}

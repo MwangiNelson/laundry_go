@@ -1,41 +1,28 @@
-interface MovingOrderOverviewProps {
-  rooms: Array<{ name: string; quantity: number }>;
-  totalAmount: number;
-  pickupLocation: string;
-  destinationLocation: string;
-  pickupFloor: number;
-  destinationFloor: number;
-  timeSlot: string;
-}
+import React from "react";
+import { useMovingModal } from "./use_moving_modal";
 
-export const MovingOrderOverview = ({
-  rooms,
-  totalAmount,
-  pickupLocation,
-  destinationLocation,
-  pickupFloor,
-  destinationFloor,
-  timeSlot,
-}: MovingOrderOverviewProps) => {
+export const MovingOrderOverview = () => {
+  const { order: orderData } = useMovingModal();
+
   return (
-    <div className="space-y-6">
-      {/* Rooms Table */}
+    <div className="bg-card rounded-2xl p-6 space-y-6">
+      {/* Order Items */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4 pb-2 border-b border-border">
           <p className="text-sm text-muted-foreground font-normal font-manrope">
-            Room
+            Item
           </p>
           <p className="text-sm text-muted-foreground font-normal font-manrope">
-            No.
+            Qty
           </p>
         </div>
-        {rooms.map((room, index) => (
+        {orderData?.order_items.map((item, index) => (
           <div key={index} className="grid grid-cols-2 gap-4">
             <p className="text-base text-foreground font-normal font-manrope">
-              {room.name}
+              {item.service_item.name}
             </p>
             <p className="text-base text-foreground font-normal font-manrope">
-              {room.quantity}
+              {item.quantity}
             </p>
           </div>
         ))}
@@ -44,30 +31,24 @@ export const MovingOrderOverview = ({
       {/* Total Amount */}
       <div className="flex justify-end">
         <p className="text-lg font-medium text-foreground font-manrope">
-          kes {totalAmount.toLocaleString()}
+          kes {orderData?.total_price.toFixed(2)}
         </p>
       </div>
 
       {/* Location Details */}
       <div className="space-y-4 text-sm">
-        <div className="flex justify-between">
+        <div>
           <p className="text-muted-foreground font-normal font-manrope">
-            Pickup: {pickupLocation}
-          </p>
-          <p className="text-foreground font-normal font-manrope">
-            Floor: {pickupFloor}
+            Pickup Location: {orderData?.pickup_details?.location}
           </p>
         </div>
-        <div className="flex justify-between">
+        <div>
           <p className="text-muted-foreground font-normal font-manrope">
-            Destination: {destinationLocation}
-          </p>
-          <p className="text-foreground font-normal font-manrope">
-            Floor: {destinationFloor}
+            Delivery Location: {orderData?.delivery_details?.location}
           </p>
         </div>
         <p className="text-muted-foreground font-normal font-manrope">
-          Moving time: {timeSlot}
+          Time: {orderData?.delivery_details?.time}
         </p>
       </div>
     </div>

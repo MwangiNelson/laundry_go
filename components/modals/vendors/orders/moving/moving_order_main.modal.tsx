@@ -6,7 +6,8 @@ import { MovingOrderInProgressModal } from "./moving_order_in_progress.modal";
 import { MovingOrderDetailsModal } from "./moving_order_details.modal";
 
 export const MovingOrderMainModal = () => {
-  const { open, setOpen, orderStatus } = useMovingModal();
+  const { open, setOpen, order } = useMovingModal();
+  const orderStatus = order?.status;
   return (
     <Dialog
       open={open}
@@ -14,9 +15,12 @@ export const MovingOrderMainModal = () => {
         setOpen(newOpen);
       }}
     >
-      {orderStatus === "new" && <NewMovingOrderModal />}
-      {orderStatus === "ongoing" && <MovingOrderInProgressModal />}
-      {orderStatus === "delivered" && <MovingOrderDetailsModal />}
+      {(orderStatus === "New" ||
+        orderStatus === "Ongoing" ||
+        orderStatus === "Scheduled" ||
+        orderStatus === "Ready") && <NewMovingOrderModal />}
+      {orderStatus === "Completed" && <MovingOrderInProgressModal />}
+      {orderStatus === "Delivered" && <MovingOrderDetailsModal />}
     </Dialog>
   );
 };

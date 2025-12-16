@@ -1,60 +1,68 @@
-interface HouseCleaningOrderOverviewProps {
-  services: Array<{ name: string; rooms: number; price: number }>;
-  totalAmount: number;
-  location: string;
-  timeSlot: string;
-}
+import React from "react";
+import { useHouseCleaningModal } from "./use_house_cleaning_modal";
 
-export const HouseCleaningOrderOverview = ({
-  services,
-  totalAmount,
-  location,
-  timeSlot,
-}: HouseCleaningOrderOverviewProps) => {
+export const HouseCleaningOrderOverview = () => {
+  const { order: orderData } = useHouseCleaningModal();
+
   return (
-    <div className="space-y-6">
-      {/* Services Table */}
+    <div className="bg-card rounded-2xl p-6 space-y-6">
+      {/* Order Items */}
       <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-4 pb-2 border-b border-border">
-          <p className="text-sm text-muted-foreground font-normal font-manrope">
-            Service
-          </p>
-          <p className="text-sm text-muted-foreground font-normal font-manrope">
-            Rooms
-          </p>
-          <p className="text-sm text-muted-foreground font-normal font-manrope text-right">
-            Price
-          </p>
-        </div>
-        {services.map((service, index) => (
-          <div key={index} className="grid grid-cols-3 gap-4">
-            <p className="text-base text-foreground font-normal font-manrope">
-              {service.name}
-            </p>
-            <p className="text-base text-foreground font-normal font-manrope">
-              {service.rooms}
-            </p>
-            <p className="text-base text-foreground font-normal font-manrope text-right">
-              kes {service.price.toLocaleString()}
+        <div className="grid grid-cols-12 gap-3 border-b border-foreground/20 pb-2">
+          <div className="col-span-5 px-3 py-2">
+            <p className="text-sm text-muted-foreground font-normal font-manrope">
+              Service Item
             </p>
           </div>
-        ))}
+          <div className="col-span-4 px-3 py-2">
+            <p className="text-sm text-muted-foreground font-normal font-manrope">
+              Type
+            </p>
+          </div>
+          <div className="col-span-3 px-3 py-2">
+            <p className="text-sm text-muted-foreground font-normal font-manrope">
+              Qty
+            </p>
+          </div>
+        </div>
+
+        <div className="divide-y divide-foreground/5">
+          {orderData?.order_items.map((item, index) => (
+            <div key={index} className="grid grid-cols-12 gap-3 py-2">
+              <div className="col-span-5 px-3 py-2">
+                <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
+                  {item.service_item.name}
+                </p>
+              </div>
+              <div className="col-span-4 px-3 py-2">
+                <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
+                  {item.service_option?.name}
+                </p>
+              </div>
+              <div className="col-span-3 px-3 py-2">
+                <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
+                  {item.quantity}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Total Amount */}
-      <div className="flex justify-end">
-        <p className="text-lg font-medium text-foreground font-manrope">
-          Total: kes {totalAmount.toLocaleString()}
+      <div className="flex items-center justify-end">
+        <p className="text-base font-bold text-card-foreground font-manrope leading-[1.6]">
+          kes {orderData?.total_price.toFixed(2)}
         </p>
       </div>
 
       {/* Location and Time Details */}
       <div className="space-y-2 text-sm">
         <p className="text-muted-foreground font-normal font-manrope">
-          Location: {location}
+          Location: {orderData?.delivery_details?.location}
         </p>
         <p className="text-muted-foreground font-normal font-manrope">
-          Service time: {timeSlot}
+          Time: {orderData?.delivery_details?.time}
         </p>
       </div>
     </div>

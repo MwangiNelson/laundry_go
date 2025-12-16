@@ -234,9 +234,7 @@ export const MovingOrdersTable = ({ activeTab }: MovingOrdersTableProps) => {
         onRowClick={(row) => {
           if (!(activeTab == "all")) {
             openModal({
-              orderId: (row as { id: string }).id,
-              //@ts-expect-error activeTab is a string literal type but openModal expects a different type
-              orderStatus: activeTab,
+              order: row,
             });
           }
         }}

@@ -240,11 +240,9 @@ export const LaundryOrdersTable = ({ activeTab }: LaundryOrdersTableProps) => {
           onPaginationChange: setPagination,
         }}
         onRowClick={(row) => {
-          if (!(activeTab == "all")) {
-            openModal({
-              order: row,
-            });
-          }
+          openModal({
+            order: row,
+          });
         }}
       />
     </div>

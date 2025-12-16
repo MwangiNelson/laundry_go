@@ -5,7 +5,8 @@ import { NewOfficeCleaningOrderModal } from "./new_office_cleaning_order_modal";
 import { OfficeCleaningOrderInProgressModal } from "./office_cleaning_order_in_progress.modal";
 
 export const OfficeCleaningOrderMainModal = () => {
-  const { open, setOpen, orderStatus } = useOfficeCleaningModal();
+  const { open, setOpen, order } = useOfficeCleaningModal();
+  const orderStatus = order?.status;
   return (
     <Dialog
       open={open}
@@ -13,8 +14,11 @@ export const OfficeCleaningOrderMainModal = () => {
         setOpen(newOpen);
       }}
     >
-      {orderStatus === "new" && <NewOfficeCleaningOrderModal />}
-      {orderStatus === "ongoing" && <OfficeCleaningOrderInProgressModal />}
+      {(orderStatus === "New" ||
+        orderStatus === "Ongoing" ||
+        orderStatus === "Scheduled" ||
+        orderStatus === "Ready") && <NewOfficeCleaningOrderModal />}
+      {orderStatus === "Completed" && <OfficeCleaningOrderInProgressModal />}
     </Dialog>
   );
 };

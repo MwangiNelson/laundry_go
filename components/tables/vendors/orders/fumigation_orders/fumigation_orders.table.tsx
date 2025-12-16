@@ -239,8 +239,7 @@ export const FumigationOrdersTable = ({
         onRowClick={(row) => {
           if (!(activeTab == "all")) {
             openModal({
-              orderId: (row as { id: string }).id,
-              orderStatus: activeTab,
+              order: row,
             });
           }
         }}
