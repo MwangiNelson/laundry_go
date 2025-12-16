@@ -119,7 +119,7 @@ export const NewOrderModal = () => {
                 >
                   <Truck className="size-5" />
                   <span className="text-sm font-normal font-manrope">
-                    Assign Rider
+                    {order.rider ? "  Assign Rider" : "Reassign Rider"}
                   </span>
                 </Button>
               )}
@@ -133,13 +133,18 @@ export const NewOrderModal = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem
-                    onClick={() => handleStatusChange("Ready")}
-                    disabled={isUpdatingStatus}
-                  >
-                    <span className="font-manrope">Mark as Ready</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  {order.status !== "Ready" && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => handleStatusChange("Ready")}
+                        disabled={isUpdatingStatus}
+                      >
+                        <span className="font-manrope">Mark as Ready</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
                   <DropdownMenuItem
                     onClick={() => handleStatusChange("Delivered")}
                     disabled={isUpdatingStatus}
