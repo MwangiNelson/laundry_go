@@ -21,8 +21,10 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { AssignRiderModal } from "./assign_rider_modal";
+import { useAuth } from "@/components/context/auth_provider";
 
 export const NewOrderModal = () => {
+  const { vendor_id } = useAuth();
   const { order, setOpen } = useLaundryModal();
   const [assignRiderOpen, setAssignRiderOpen] = useState(false);
   const { mutateAsync: accept_orders, isPending } = useAcceptOrder();
@@ -93,6 +95,7 @@ export const NewOrderModal = () => {
                 className="border-primary text-foreground bg-transparent hover:bg-primary/10 rounded-xl px-4 py-2 h-auto gap-2"
                 onClick={handleReject}
                 loading={isRejecting}
+                disabled={!vendor_id}
               >
                 <X className="size-4" />
                 <span className="text-sm font-normal font-manrope">
@@ -103,6 +106,7 @@ export const NewOrderModal = () => {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2"
                 onClick={handleAccept}
                 loading={isPending}
+                disabled={!vendor_id}
               >
                 <Check className="size-4" />
                 <span className="text-sm font-normal font-manrope">
@@ -116,6 +120,7 @@ export const NewOrderModal = () => {
                 <Button
                   className="bg-primary/90 border border-primary text-foreground hover:bg-primary rounded-xl px-4 py-2 h-auto gap-2"
                   onClick={() => setAssignRiderOpen(true)}
+                  disabled={!vendor_id}
                 >
                   <Truck className="size-5" />
                   <span className="text-sm font-normal font-manrope">
@@ -137,7 +142,7 @@ export const NewOrderModal = () => {
                     <>
                       <DropdownMenuItem
                         onClick={() => handleStatusChange("Ready")}
-                        disabled={isUpdatingStatus}
+                        disabled={isUpdatingStatus || !vendor_id}
                       >
                         <span className="font-manrope">Mark as Ready</span>
                       </DropdownMenuItem>
@@ -147,7 +152,7 @@ export const NewOrderModal = () => {
 
                   <DropdownMenuItem
                     onClick={() => handleStatusChange("Delivered")}
-                    disabled={isUpdatingStatus}
+                    disabled={isUpdatingStatus || !vendor_id}
                   >
                     <span className="font-manrope">Mark as Delivered</span>
                   </DropdownMenuItem>

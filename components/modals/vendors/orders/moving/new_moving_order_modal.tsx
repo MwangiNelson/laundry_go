@@ -19,9 +19,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/components/context/auth_provider";
 
 export const NewMovingOrderModal = () => {
   const { order, setOpen } = useMovingModal();
+  const { vendor_id } = useAuth();
   const { mutateAsync: accept_orders, isPending } = useAcceptOrder();
   const { mutateAsync: reject_orders, isPending: isRejecting } =
     useRejectOrder();
@@ -92,6 +94,7 @@ export const NewMovingOrderModal = () => {
                 className="border-primary text-foreground bg-transparent hover:bg-primary/10 rounded-xl px-4 py-2 h-auto gap-2"
                 onClick={handleReject}
                 loading={isRejecting}
+                disabled={!vendor_id}
               >
                 <X className="size-4" />
                 <span className="text-sm font-normal font-manrope">
@@ -102,6 +105,7 @@ export const NewMovingOrderModal = () => {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2"
                 onClick={handleAccept}
                 loading={isPending}
+                disabled={!vendor_id}
               >
                 <Check className="size-4" />
                 <span className="text-sm font-normal font-manrope">
@@ -112,7 +116,10 @@ export const NewMovingOrderModal = () => {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2">
+                <Button
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 h-auto gap-2"
+                  disabled={!vendor_id}
+                >
                   <span className="text-sm font-normal font-manrope">
                     Update Status
                   </span>

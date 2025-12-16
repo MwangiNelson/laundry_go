@@ -57,7 +57,8 @@ export const LaundryOrderOverview = () => {
         </div>
         <div className="flex items-end">
           <p className="text-base text-muted-foreground font-normal font-manrope leading-[1.6]">
-            Location: {orderData?.delivery_details?.location}
+            Pickup Location: {orderData?.delivery_details?.location}
+            Delivery Location: {orderData?.pickup_details?.location}
             Time: {orderData?.delivery_details?.time}
           </p>
         </div>
