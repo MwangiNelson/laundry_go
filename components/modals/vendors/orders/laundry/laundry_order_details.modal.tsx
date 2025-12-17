@@ -81,7 +81,7 @@ export const LaundryOrderDetailsModal = () => {
                       />
                     </div>
                     <LaundryOrderOverview />
-                    <div className="flex gap-6">
+                    {/* <div className="flex gap-6">
                       <div className="flex-1 bg-card rounded-2xl p-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground font-normal font-manrope">
@@ -104,7 +104,7 @@ export const LaundryOrderDetailsModal = () => {
                           Was polite and paid on time.
                         </p>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 ),
               },

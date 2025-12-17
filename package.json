@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=--max-http-header-size=32768  next dev --turbo",
+    "fuck": "cross-env NODE_OPTIONS=--max-http-header-size=32768  next dev --turbo",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
