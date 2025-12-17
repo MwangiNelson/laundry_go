@@ -56,7 +56,7 @@ export const useFetchServices = (params: IParams) => {
     queryKey: ["vendor_services", params],
     queryFn: async (): Promise<FetchServicesResponse> => {
       const supabase = createSupabaseClient();
-      //@ts-expect-error Supabase RPC method types are not fully typed in the client library
+
       const { data, error } = await supabase.rpc("fetch_vendor_services", {
         p_vendor_id: params.vendor_id,
         p_search: params.search,
