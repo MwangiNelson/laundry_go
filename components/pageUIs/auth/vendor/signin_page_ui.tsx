@@ -127,6 +127,7 @@ const SignInPageUI = () => {
                   <Button
                     type="button"
                     variant="outline"
+                    disabled={true}
                     className="flex-1 h-12 border-primary text-foreground font-manrope text-[14px] rounded-lg hover:bg-primary/10"
                   >
                     Sign In with Phone Number
@@ -134,6 +135,7 @@ const SignInPageUI = () => {
                   <Button
                     type="button"
                     variant="outline"
+                    disabled={true}
                     className="flex-1 h-12 border-primary text-foreground font-manrope text-[14px] rounded-lg hover:bg-primary/10 gap-2"
                   >
                     <Image

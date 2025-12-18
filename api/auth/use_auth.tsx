@@ -57,29 +57,6 @@ export const useGetUser = (user_id: string | undefined) => {
 };
 export type IUser = ReturnType<typeof useGetUser>["data"];
 
-//send recovery email
-export const useSendRecoveryEmail = () => {
-  const router = useRouter();
-  return useMutation({
-    meta: {
-      successMessage: "Recovery email sent",
-      showErrorMessage: true,
-    },
-    mutationFn: async ({ email }: { email: string }) => {
-      const client = createSupabaseClient();
-      localStorage.setItem("recovery_email", email);
-      const { data, error } = await client.auth.resetPasswordForEmail(email);
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
-    onSuccess: () => {
-      router.push("/auth/otp-verification");
-    },
-  });
-};
-
 //verfiy otp code
 export const useVerifyOTPCode = () => {
   const router = useRouter();
@@ -151,6 +128,32 @@ export const useSetNewPassword = () => {
     },
     onSuccess: () => {
       router.push("/auth/password-success");
+    },
+  });
+};
+
+/// confirm email using otp
+export const useConfirmEmailOtp = () => {
+  const router = useRouter();
+  return useMutation({
+    meta: {
+      successMessage: "Email confirmed successfully",
+      showErrorMessage: true,
+    },
+    mutationFn: async ({ email, token }: { email: string; token: string }) => {
+      const client = createSupabaseClient();
+      const { data, error } = await client.auth.verifyOtp({
+        email,
+        token,
+        type: "email",
+      });
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
+    },
+    onSuccess: () => {
+      router.push("/vendor/onboarding");
     },
   });
 };
