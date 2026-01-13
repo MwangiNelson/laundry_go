@@ -9,13 +9,13 @@ import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
-  InputOTP,
+    InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useVerifyOtp, useSendRecoveryEmail } from "@/api/auth/use_auth";
+import { useVerifyOtp } from "@/api/auth/use_auth";
 
-const otpSchema = z.object({
+const otpSchema = z.object({.l
   otp: z.string().min(6, "Please enter the complete OTP"),
 });
 

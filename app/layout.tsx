@@ -5,6 +5,7 @@ import "./globals.css";
 import { AuthContextProvider } from "@/components/context/auth_provider";
 import TanstackProvider from "@/lib/tanstack";
 import { Toaster } from "sonner";
+import { GeoProvider } from "@/components/context/geo_provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,8 +53,10 @@ export default function RootLayout({
         <TanstackProvider>
           <AuthContextProvider>
             <TanstackProvider>
-              {children}
-              <Toaster />
+              <GeoProvider>
+                {children}
+                <Toaster />
+              </GeoProvider>
             </TanstackProvider>
           </AuthContextProvider>
         </TanstackProvider>

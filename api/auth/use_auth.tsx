@@ -131,29 +131,3 @@ export const useSetNewPassword = () => {
     },
   });
 };
-
-/// confirm email using otp
-export const useConfirmEmailOtp = () => {
-  const router = useRouter();
-  return useMutation({
-    meta: {
-      successMessage: "Email confirmed successfully",
-      showErrorMessage: true,
-    },
-    mutationFn: async ({ email, token }: { email: string; token: string }) => {
-      const client = createSupabaseClient();
-      const { data, error } = await client.auth.verifyOtp({
-        email,
-        token,
-        type: "email",
-      });
-      if (error) {
-        throw new Error(error.message);
-      }
-      return data;
-    },
-    onSuccess: () => {
-      router.push("/vendor/onboarding");
-    },
-  });
-};

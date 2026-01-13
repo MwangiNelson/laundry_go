@@ -34,7 +34,7 @@ export type TVendorNavItem = {
   link?: string;
   children?: TVendorNavItemChild[];
 };
-export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
+export const ADMIN_NAV_ITEMS: TVendorNavItem[] = [
   {
     key: "overview",
     label: "Overview",
@@ -80,6 +80,12 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
         link: "/dashboard/orders/fumigation_orders",
       },
     ],
+  },
+  {
+    key: "services",
+    label: "Services",
+    link: "/dashboard/services",
+    icon: TbTruckDelivery,
   },
   {
     key: "transactions",
@@ -137,7 +143,7 @@ export const DashboardSidebar = () => {
 
       <nav className="flex-1">
         <ul className="flex w-full flex-col gap-1">
-          {VENDOR_NAV_ITEMS.map((item) => (
+          {ADMIN_NAV_ITEMS.map((item) => (
             <li key={item.key}>
               {item.children && item.children.length > 0 ? (
                 <SidebarItemWithChildren

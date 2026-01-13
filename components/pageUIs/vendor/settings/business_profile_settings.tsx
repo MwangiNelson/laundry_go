@@ -27,7 +27,7 @@ export const BusinessProfileSettings = () => {
         {/* Form Fields */}
         <div className="flex flex-col gap-4">
           {/* Row 1: Username, Business Name, Phone Number, Email */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  2xl:grid-cols-4 gap-4">
             <BasicInput<TBusinessProfile>
               control={business_profile_form.control}
               name="username"
