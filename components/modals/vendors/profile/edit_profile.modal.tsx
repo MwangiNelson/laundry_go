@@ -19,6 +19,7 @@ import { Form, FormField } from "@/components/ui/form";
 import { GoogleMapsAutocomplete } from "@/components/fields/google_maps/google_auto_complete";
 import { MapPicker } from "@/components/fields/google_maps/map_piker";
 import { locationSchema } from "@/components/schema/shared.schema";
+import { ProfilePhotoUpload } from "@/components/fields/files/profile_photo_upload";
 
 type EditProfileModalProps = {
   trigger?: React.ReactNode;
@@ -146,13 +147,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <h3 className="text-base font-semibold text-title">
                     Edit Profile
                   </h3>
-                  <FileUpload
+                  <ProfilePhotoUpload
                     name="profile_photo"
-                    accept="image/png,image/jpeg,image/gif"
-                    multiple={false}
-                    placeholder="Browse Photo"
                     description="PNG, JPG or GIF (max 3MB)"
-                    className="max-w-[280px]"
                     control={form.control}
                   />
                 </div>

@@ -13,7 +13,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
-import { useVerifyOtp, useSendRecoveryEmail } from "@/api/auth/use_auth";
+import { useVerifyOtp } from "@/api/auth/use_auth";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete OTP"),
@@ -24,8 +24,8 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 export const VendorOtpVerificationPageUI = () => {
   const [countdown, setCountdown] = useState(59);
   const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
-  const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
-    useSendRecoveryEmail();
+  // const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
+  //   useSendRecoveryEmail();
 
   useEffect(() => {
     if (countdown > 0) {
@@ -47,9 +47,9 @@ export const VendorOtpVerificationPageUI = () => {
 
   const handleResend = () => {
     setCountdown(59);
-    resendRecoveryEmail({
-      email: localStorage.getItem("recovery_email") || "",
-    });
+    // resendRecoveryEmail({
+    //   email: localStorage.getItem("recovery_email") || "",
+    // });
   };
 
   const formatTime = (seconds: number) => {
@@ -125,10 +125,10 @@ export const VendorOtpVerificationPageUI = () => {
                   <button
                     type="button"
                     onClick={handleResend}
-                    disabled={isResending}
+                    // disabled={isResending}
                     className="font-medium text-primary-blue hover:underline disabled:opacity-50"
                   >
-                    {isResending ? "Sending..." : "Resend"}
+                    {/* {isResending ? "Sending..." : "Resend"} */}
                   </button>
                 )}
               </div>

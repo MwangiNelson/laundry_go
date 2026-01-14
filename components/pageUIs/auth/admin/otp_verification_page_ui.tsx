@@ -9,13 +9,13 @@ import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
-    InputOTP,
+  InputOTP,
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useVerifyOtp } from "@/api/auth/use_auth";
 
-const otpSchema = z.object({.l
+const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete OTP"),
 });
 
@@ -24,8 +24,8 @@ type OtpFormValues = z.infer<typeof otpSchema>;
 export const OtpVerificationPageUI = () => {
   const [countdown, setCountdown] = useState(59);
   const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
-  const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
-    useSendRecoveryEmail();
+  // const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
+  // useSendRecoveryEmail();
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -46,9 +46,9 @@ export const OtpVerificationPageUI = () => {
 
   const handleResend = () => {
     setCountdown(59);
-    resendRecoveryEmail({
-      email: localStorage.getItem("recovery_email") || "",
-    });
+    // resendRecoveryEmail({
+    //   email: localStorage.getItem("recovery_email") || "",
+    // });
   };
 
   const formatTime = (seconds: number) => {

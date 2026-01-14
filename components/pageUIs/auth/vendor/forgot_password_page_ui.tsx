@@ -5,12 +5,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-
 import VendorAuthPageUI from "./vendor_auth_page_ui";
 import { Form } from "@/components/ui/form";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { Button } from "@/components/ui/button";
-import { useSendRecoveryEmail } from "@/api/auth/use_auth";
+// import { useSendRecoveryEmail } from "@/api/auth/use_auth";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,7 +18,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const VendorForgotPasswordPageUI = () => {
-  const sendRecoveryEmailMutation = useSendRecoveryEmail();
+  // const sendRecoveryEmailMutation = useSendRecoveryEmail();
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -28,7 +27,7 @@ export const VendorForgotPasswordPageUI = () => {
   });
 
   const onSubmit = (data: ForgotPasswordFormValues) => {
-    sendRecoveryEmailMutation.mutateAsync({ email: data.email });
+    // sendRecoveryEmailMutation.mutateAsync({ email: data.email });
   };
 
   return (
@@ -62,7 +61,7 @@ export const VendorForgotPasswordPageUI = () => {
             <div className="flex flex-col gap-4">
               <Button
                 type="submit"
-                loading={sendRecoveryEmailMutation.isPending}
+                // loading={sendRecoveryEmailMutation.isPending}
                 className="w-full h-12 bg-primary hover:bg-primary/90 text-foreground font-manrope text-[14px] rounded-lg"
               >
                 Submit

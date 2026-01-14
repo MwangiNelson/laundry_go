@@ -13,11 +13,18 @@ import { OperatingHoursSettings } from "./operating_hours_settings";
 import { PayoutMethodsSettings } from "./payout_methods_settings";
 import { SecurityAccountSettings } from "./security_account_settings";
 import { BusinessProfileCard } from "./business_profile_card";
+import { ServicesCatalogSettings } from "./services_settings/services_catalog_settings";
+
 const SETTINGS_SECTIONS = [
   {
     id: "business-profile",
     title: "Business Profile",
     component: BusinessProfileSettings,
+  },
+  {
+    id: "service-catalog",
+    title: "Service Catalog",
+    component: ServicesCatalogSettings,
   },
   {
     id: "operating-hours",
@@ -41,16 +48,16 @@ export const SettingsPageUI = () => {
     <SettingsProvider>
       <div className="flex  flex-col lg:flex-row gap-8 p-6 ">
         <BusinessProfileCard />
-        <div className="flex flex-col gap-7 w-full p-4 flex-1 w-full">
+        <div className="flex flex-col gap-7  p-4 flex-1 w-full">
           <Accordion type="single" collapsible defaultValue="business-profile">
             {SETTINGS_SECTIONS.map((section) => (
               <AccordionItem
                 key={section.id}
                 value={section.id}
-                className="bg-background rounded-2xl p-6 mb-4 border-none"
+                className="bg-card rounded-2xl p-6 mb-4 border-none"
               >
                 <AccordionTrigger className="py-1 hover:no-underline">
-                  <span className="font-manrope font-medium text-lg text-[#1c1c1c]">
+                  <span className="font-manrope font-medium text-lg text-foreground">
                     {section.title}
                   </span>
                 </AccordionTrigger>

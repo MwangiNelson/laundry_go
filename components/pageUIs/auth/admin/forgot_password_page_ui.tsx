@@ -10,7 +10,7 @@ import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form } from "@/components/ui/form";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { Button } from "@/components/ui/button";
-import { useSendRecoveryEmail } from "@/api/auth/use_auth";
+// import { useSendRecoveryEmail } from "@/api/auth/use_auth";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -19,7 +19,7 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const ForgotPasswordPageUI = () => {
-  const sendRecoveryEmailMutation = useSendRecoveryEmail();
+  // const sendRecoveryEmailMutation = useSendRecoveryEmail();
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -28,7 +28,7 @@ export const ForgotPasswordPageUI = () => {
   });
 
   const onSubmit = (data: ForgotPasswordFormValues) => {
-    sendRecoveryEmailMutation.mutateAsync({ email: data.email });
+    // sendRecoveryEmailMutation.mutateAsync({ email: data.email });
   };
 
   return (
@@ -62,7 +62,7 @@ export const ForgotPasswordPageUI = () => {
 
               <Button
                 type="submit"
-                loading={sendRecoveryEmailMutation.isPending}
+                // loading={sendRecoveryEmailMutation.isPending}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 h-auto text-sm font-normal"
               >
                 Submit

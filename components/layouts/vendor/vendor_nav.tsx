@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftOpen } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "../../context/auth_provider";
 import { PanelLeft } from "lucide-react";
-import { SquaresFourIcon, BellIcon } from "@phosphor-icons/react";
+import { BellIcon, ChatCenteredDotsIcon } from "@phosphor-icons/react";
 import { useVendorUI } from "./vendor_ui_provider";
+import { Button } from "@/components/ui/button";
+import { MessagesPopup } from "./messages_popup";
+
 export const VendorNavbar = () => {
   const { sidebar } = useVendorUI();
   const isCollapsed = !sidebar.isOpen;
@@ -43,11 +46,10 @@ export const VendorNavbar = () => {
 const UserDropdown = () => {
   const { user, logout } = useAuth();
   const userName = user?.full_name || "User";
-  const userEmail = user?.email || "";
-
   return (
     <div className="ml-auto flex items-center gap-3">
       <BellIcon className="h-5 w-5" />
+      <MessagesPopup />
       <DropdownMenu>
         <DropdownMenuTrigger className="text-foreground/90 hover:text-foreground inline-flex items-center gap-2  px-2 py-1  bg-background">
           <Avatar className="h-8 w-8">

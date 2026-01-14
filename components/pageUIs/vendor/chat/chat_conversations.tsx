@@ -44,9 +44,16 @@ const dummyConversations: Conversation[] = [
   },
 ];
 
-const ChatConversations = () => {
+interface ChatConversationsProps {
+  onConversationSelect?: (id: string) => void;
+}
+
+const ChatConversations = ({
+  onConversationSelect,
+}: ChatConversationsProps) => {
   const handleConversationClick = (id: string) => {
     console.log("Conversation clicked:", id);
+    onConversationSelect?.(id);
   };
 
   const handleSearch = (query: string) => {
@@ -54,7 +61,7 @@ const ChatConversations = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-[calc(100vh-20rem)] rounded-md border  bg-card">
       <ConversationHeader onSearch={handleSearch} />
       <div className="flex-1 overflow-y-auto">
         {dummyConversations.map((conversation) => (
@@ -82,7 +89,7 @@ const ConversationHeader = ({ onSearch }: ConversationHeaderProps) => {
           <Input
             placeholder="Search"
             onChange={(e) => onSearch?.(e.target.value)}
-            className="pl-10 bg-background border-border focus:border-ring"
+            className="pl-10 border-border focus:border-ring"
           />
         </div>
         <button className="p-2 hover:bg-accent rounded-lg transition-colors">
