@@ -1,5 +1,4 @@
 "use client";
-
 import { createSupabaseClient } from "@/api/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 

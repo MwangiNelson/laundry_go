@@ -11,69 +11,38 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MainServicesModal } from "@/components/modals/admin/services/main_services.modal";
+import { EditMainServicesModal } from "@/components/modals/admin/services/edit_main_services.modal";
+import { Database } from "@/database.types";
 
-export interface IService {
-  id: string;
-  name: string;
-  total_vendors: number;
-  no_of_order_items: number;
-  ongoing_orders: number;
-}
-
-export const servicesColumns: ColumnDef<IService>[] = [
+export const servicesColumns: ColumnDef<
+  Database["public"]["Functions"]["get_service_analytics"]["Returns"][0]
+>[] = [
   {
-    id: "service_name",
-    header: "Service",
-    accessorKey: "name",
+    accessorKey: "service_name",
+    header: "Service Name",
     cell: ({ row }) => {
-      const { name } = row.original;
-      return (
-        <div className="flex items-center gap-3">
-          <span className="font-medium text-title text-sm">
-            {name || "Unnamed Service"}
-          </span>
-        </div>
-      );
+      return <span>{row.original.service_name}</span>;
     },
   },
   {
-    id: "total_vendors",
-    header: "Total Vendors",
     accessorKey: "total_vendors",
+    header: "Total Vendors",
     cell: ({ row }) => {
-      const { total_vendors } = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="text-sm font-medium text-title">
-            {total_vendors || 0}
-          </span>
-        </div>
-      );
+      return <span>{row.original.total_vendors}</span>;
     },
   },
   {
-    id: "no_of_order_items",
-    header: "No. of order items",
     accessorKey: "no_of_order_items",
+    header: "No. of Order Items",
     cell: ({ row }) => {
-      const { no_of_order_items } = row.original;
-      return (
-        <div className="flex flex-col">
-          <span className="text-sm text-title font-medium">
-            {no_of_order_items || 0}
-          </span>
-        </div>
-      );
+      return <span>{row.original.no_of_order_items}</span>;
     },
   },
   {
-    id: "ongoing_orders",
-    header: "Ongoing orders",
     accessorKey: "ongoing_orders",
+    header: "Ongoing Orders",
     cell: ({ row }) => {
-      const { ongoing_orders } = row.original;
-      return <span className="text-xs font-medium">{ongoing_orders || 0}</span>;
+      return <span>{row.original.ongoing_orders}</span>;
     },
   },
   {
@@ -90,7 +59,8 @@ export const servicesColumns: ColumnDef<IService>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuSeparator />
-              <MainServicesModal
+              <EditMainServicesModal
+                service_id={row.original.id}
                 trigger={
                   <DropdownMenuItem
                     onSelect={(e) => {
