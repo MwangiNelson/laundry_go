@@ -26,12 +26,11 @@ interface ServiceOptionRowProps {
   onAddingPriceChange: (price: number) => void;
   onEditingPriceChange: (price: number) => void;
   isUpdating: boolean;
-  isAdding: boolean;
+  isAddingMutation: boolean;
 }
 
 export const ServiceOptionRow = ({
   option,
-  itemName,
   isEditing,
   isAdding,
   editingPrice,
@@ -47,7 +46,7 @@ export const ServiceOptionRow = ({
   onAddingPriceChange,
   onEditingPriceChange,
   isUpdating,
-  isAdding: isAddingMutation,
+  isAddingMutation,
 }: ServiceOptionRowProps) => {
   // Not added state - show add button
   if (!option.has_vendor_price && !isAdding) {

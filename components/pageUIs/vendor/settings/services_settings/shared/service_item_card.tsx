@@ -94,7 +94,7 @@ export const ServiceItemCard = ({
               onAddingPriceChange={onAddingPriceChange}
               onEditingPriceChange={onEditingPriceChange}
               isUpdating={isUpdating}
-              isAdding={isAdding}
+              isAddingMutation={isAdding}
             />
           ))}
         </div>
@@ -126,7 +126,7 @@ export const ServiceItemCard = ({
         onAddingPriceChange={onAddingPriceChange}
         onEditingPriceChange={onEditingPriceChange}
         isUpdating={isUpdating}
-        isAdding={isAdding}
+        isAddingMutation={isAdding}
       />
     );
   }

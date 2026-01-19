@@ -25,7 +25,7 @@ interface ServiceItemRowProps {
   onAddingPriceChange: (price: number) => void;
   onEditingPriceChange: (price: number) => void;
   isUpdating: boolean;
-  isAdding: boolean;
+  isAddingMutation: boolean;
 }
 
 export const ServiceItemRow = ({
@@ -45,7 +45,7 @@ export const ServiceItemRow = ({
   onAddingPriceChange,
   onEditingPriceChange,
   isUpdating,
-  isAdding: isAddingMutation,
+  isAddingMutation,
 }: ServiceItemRowProps) => {
   const hasVendorPrice = item.has_vendor_price || false;
   const isAvailable = item.is_available || false;

@@ -35,7 +35,32 @@ export const useServiceMergedData = (
   allServiceItems: AllServiceData | null | undefined
 ): MergedItem[] => {
   return useMemo(() => {
-    if (!allServiceItems) return service.service_items as MergedItem[];
+    if (!allServiceItems) {
+      // Return service items with proper type casting
+      return service.service_items.map((item) => {
+        if (item.options.length > 0) {
+          return {
+            ...item,
+            options: item.options.map((opt) => ({
+              ...opt,
+              price: opt.price || 0,
+              is_available: opt.is_available || false,
+              vendor_price_id: opt.vendor_price_id,
+              has_vendor_price: !!opt.vendor_price_id,
+            })),
+          } as MergedItem;
+        } else {
+          return {
+            ...item,
+            options: [],
+            price: item.price || 0,
+            is_available: item.is_available || false,
+            vendor_price_id: item.vendor_price_id,
+            has_vendor_price: !!item.vendor_price_id,
+          } as MergedItem;
+        }
+      });
+    }
 
     return allServiceItems.service_items.map((allItem) => {
       // Find vendor's existing item

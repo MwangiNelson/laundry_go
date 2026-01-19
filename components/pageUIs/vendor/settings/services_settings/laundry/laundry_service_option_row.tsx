@@ -34,7 +34,7 @@ interface LaundryServiceOptionRowProps {
   onAddingPriceChange: (price: number) => void;
   onEditingPriceChange: (price: number) => void;
   isUpdating: boolean;
-  isAdding: boolean;
+  isAddingMutation: boolean;
 }
 
 export const LaundryServiceOptionRow = ({
@@ -55,7 +55,7 @@ export const LaundryServiceOptionRow = ({
   onAddingPriceChange,
   onEditingPriceChange,
   isUpdating,
-  isAdding: isAddingMutation,
+  isAddingMutation,
 }: LaundryServiceOptionRowProps) => {
   // Not added state - show add button
   if (!option.has_vendor_price && !isAdding) {

@@ -89,7 +89,7 @@ export const LaundryServiceItemCard = ({
             onAddingPriceChange={onAddingPriceChange}
             onEditingPriceChange={onEditingPriceChange}
             isUpdating={isUpdating}
-            isAdding={isAdding}
+            isAddingMutation={isAdding}
           />
         ))}
       </div>

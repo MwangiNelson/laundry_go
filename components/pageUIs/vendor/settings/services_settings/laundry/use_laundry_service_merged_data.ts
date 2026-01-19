@@ -28,7 +28,19 @@ export const useLaundryServiceMergedData = (
   allServiceItems: AllServiceData | null | undefined
 ): MergedItem[] => {
   return useMemo(() => {
-    if (!allServiceItems) return service.service_items as MergedItem[];
+    if (!allServiceItems) {
+      // Transform service items to MergedItem format
+      return service.service_items.map((item) => ({
+        ...item,
+        options: item.options.map((opt) => ({
+          ...opt,
+          price: opt.price || 0,
+          is_available: opt.is_available || false,
+          vendor_price_id: opt.vendor_price_id,
+          has_vendor_price: !!opt.vendor_price_id,
+        })),
+      }));
+    }
 
     return allServiceItems.service_items.map((allItem) => {
       // Find vendor's existing item
