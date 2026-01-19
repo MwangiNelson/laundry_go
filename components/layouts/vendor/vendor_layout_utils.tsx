@@ -8,6 +8,7 @@ import {
   GearIcon,
   SignOutIcon,
   CaretRightIcon,
+  ChartDonutIcon,
 } from "@phosphor-icons/react";
 import { MessageCircle } from "lucide-react";
 
@@ -84,6 +85,13 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
     label: "Chat",
     icon: MessageCircle,
     link: "/vendor/chat",
+  },
+  //reports
+  {
+    key: "reports",
+    label: "Reports",
+    icon: ChartDonutIcon,
+    link: "/vendor/reports",
   },
   {
     key: "transactions",

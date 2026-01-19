@@ -1,5 +1,7 @@
-import React from "react";
+"use client";
+import React, { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useChat } from "./chat_provider";
 
 interface Message {
   id: string;
@@ -8,29 +10,14 @@ interface Message {
   isOwn: boolean;
 }
 
-interface ChatMessagesContainerProps {
-  messages?: Message[];
-}
+export const ChatMessagesContainer = () => {
+  const { messages = [] } = useChat();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-// Dummy messages
-const dummyMessages: Message[] = [
-  {
-    id: "1",
-    text: "Hello there,,",
-    time: "10:12am",
-    isOwn: false,
-  },
-  {
-    id: "2",
-    text: "Hello too",
-    time: "10:15am",
-    isOwn: true,
-  },
-];
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-export const ChatMessagesContainer = ({
-  messages = dummyMessages,
-}: ChatMessagesContainerProps) => {
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-background">
       <div className="flex flex-col gap-4">
@@ -43,6 +30,9 @@ export const ChatMessagesContainer = ({
         {messages.map((message) => (
           <MessageBubble key={message.id} message={message} />
         ))}
+
+        {/* Auto-scroll anchor */}
+        <div ref={messagesEndRef} />
       </div>
     </div>
   );

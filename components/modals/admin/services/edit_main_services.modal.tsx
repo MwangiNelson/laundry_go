@@ -7,6 +7,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -15,6 +16,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   PlusIcon,
@@ -23,34 +39,13 @@ import {
   CaretUpIcon,
   CaretDownIcon,
 } from "@phosphor-icons/react";
-import { useDeleteServiceItem, useFetchServicesAdmin } from "@/api/admin/services/use_services.admin";
+import {
+  useDeleteServiceItem,
+  useFetchServicesAdmin,
+} from "@/api/admin/services/use_services.admin";
 import { AddMainServiceItem } from "./add_services_items.modal";
 import { EditServiceItemModal } from "./edit_service_items.modal";
 import { DeleteServiceItemAlert } from "./delete_service_item_alert";
-
-type ServiceOption = {
-  created_at: string | null;
-  description: string | null;
-  display_order: number | null;
-  id: string;
-  is_active: boolean | null;
-  name: string;
-  service_item_id: string;
-  updated_at: string | null;
-};
-
-type ServiceItem = {
-  created_at: string | null;
-  display_order: number | null;
-  icon_path: string | null;
-  id: string;
-  is_active: boolean | null;
-  main_service_id: number;
-  name: string;
-  type: string;
-  updated_at: string | null;
-  service_options: ServiceOption[];
-};
 
 interface EditMainServicesModalProps {
   trigger?: React.ReactNode;
@@ -66,6 +61,12 @@ export const EditMainServicesModal = ({
     useDeleteServiceItem();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "inactive"
+  >("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const { data: services } = useFetchServicesAdmin();
 
   const currentService = useMemo(() => {
@@ -73,6 +74,55 @@ export const EditMainServicesModal = ({
       return service.id == service_id;
     });
   }, [services, service_id]);
+
+  const filteredServiceItems = useMemo(() => {
+    if (!currentService?.service_items) return [];
+
+    const search = searchTerm.trim().toLowerCase();
+
+    return currentService.service_items.filter((item) => {
+      if (statusFilter === "active" && !item.is_active) return false;
+      if (statusFilter === "inactive" && item.is_active) return false;
+
+      if (!search) return true;
+
+      const itemMatches = item.name.toLowerCase().includes(search);
+      const optionMatches = item.service_options?.some((option) => {
+        return (
+          option.name.toLowerCase().includes(search) ||
+          option.description?.toLowerCase().includes(search)
+        );
+      });
+
+      return itemMatches || optionMatches;
+    });
+  }, [currentService, searchTerm, statusFilter]);
+
+  const totalPages = useMemo(() => {
+    if (filteredServiceItems.length === 0) return 1;
+    return Math.ceil(filteredServiceItems.length / pageSize);
+  }, [filteredServiceItems.length, pageSize]);
+
+  const safePage = Math.min(page, totalPages || 1);
+
+  const paginatedItems = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filteredServiceItems.slice(start, start + pageSize);
+  }, [filteredServiceItems, safePage, pageSize]);
+
+  const pageStart =
+    filteredServiceItems.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const pageEnd = Math.min(filteredServiceItems.length, safePage * pageSize);
+
+  React.useEffect(() => {
+    if (page !== safePage) {
+      setPage(safePage);
+    }
+  }, [page, safePage]);
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter]);
 
   const toggleExpand = (itemId: string) => {
     setExpandedItems((prev) => {
@@ -103,39 +153,64 @@ export const EditMainServicesModal = ({
         </DialogTrigger>
       ) : null}
 
-      <DialogContent className="sm:max-w-6xl space-y-4 rounded-3xl bg-background border-none overflow-hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-6xl space-y-4 rounded-3xl bg-background border-none overflow-hidden max-h-[90vh]">
         <DialogTitle>Edit Services - {currentService?.service}</DialogTitle>
 
         <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Service Items</h2>
-            <AddMainServiceItem
-              trigger={
-                <Button variant="outline" size="sm">
-                  <PlusIcon size={16} />
-                  <span className="ml-2">
-                    Add {currentService?.service} Item
-                  </span>
-                </Button>
-              }
-              service_slug={
-                currentService?.slug as
-                  | "laundry"
-                  | "moving"
-                  | "office_cleaning"
-                  | "fumigation"
-                  | "house_cleaning"
-              }
-            />
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <h2 className="text-lg font-semibold">Service Items</h2>
+              <AddMainServiceItem
+                trigger={
+                  <Button variant="outline" size="sm">
+                    <PlusIcon size={16} />
+                    <span className="ml-2">
+                      Add {currentService?.service} Item
+                    </span>
+                  </Button>
+                }
+                service_slug={
+                  currentService?.slug as
+                    | "laundry"
+                    | "moving"
+                    | "office_cleaning"
+                    | "fumigation"
+                    | "house_cleaning"
+                }
+              />
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <Input
+                placeholder="Search by name or option"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+              />
+
+              <Select
+                value={statusFilter}
+                onValueChange={(value: "all" | "active" | "inactive") =>
+                  setStatusFilter(value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Services Table */}
-          <div className="rounded-lg border">
+          <div className="rounded-lg border max-h-[55vh] overflow-y-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item Name</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Options</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -145,14 +220,23 @@ export const EditMainServicesModal = ({
                 {currentService?.service_items?.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={5}
+                      colSpan={4}
                       className="text-center text-muted-foreground py-8"
                     >
                       No service items available
                     </TableCell>
                   </TableRow>
+                ) : filteredServiceItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      No service items match the current filters
+                    </TableCell>
+                  </TableRow>
                 ) : (
-                  currentService?.service_items?.map((item) => {
+                  paginatedItems.map((item) => {
                     const hasOptions = item.service_options?.length > 0;
                     const isExpanded = expandedItems.has(item.id);
                     return (
@@ -174,14 +258,6 @@ export const EditMainServicesModal = ({
                               )}
                               <span className="font-medium">{item.name}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="secondary"
-                              className="capitalize text-background"
-                            >
-                              {item.type}
-                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -233,7 +309,7 @@ export const EditMainServicesModal = ({
 
                         {hasOptions && isExpanded && (
                           <TableRow className="bg-muted/30">
-                            <TableCell colSpan={5} className="p-0">
+                            <TableCell colSpan={4} className="p-0">
                               <div className="px-12 py-4">
                                 <h4 className="text-sm font-semibold mb-3">
                                   Service Options
@@ -266,7 +342,6 @@ export const EditMainServicesModal = ({
                                             : "Inactive"}
                                         </Badge>
                                       </div>
-                                    
                                     </div>
                                   ))}
                                 </div>
@@ -281,6 +356,70 @@ export const EditMainServicesModal = ({
               </TableBody>
             </Table>
           </div>
+
+          {filteredServiceItems.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <div className="text-sm text-muted-foreground">
+                Showing {pageStart}-{pageEnd} of {filteredServiceItems.length}
+              </div>
+              {filteredServiceItems.length > pageSize && (
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          if (safePage > 1) {
+                            setPage(safePage - 1);
+                          }
+                        }}
+                        className={
+                          safePage === 1
+                            ? "pointer-events-none opacity-50"
+                            : undefined
+                        }
+                      />
+                    </PaginationItem>
+                    {Array.from(
+                      { length: totalPages },
+                      (_, index) => index + 1
+                    ).map((pageNumber) => (
+                      <PaginationItem key={pageNumber}>
+                        <PaginationLink
+                          href="#"
+                          isActive={pageNumber === safePage}
+                          size="default"
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setPage(pageNumber);
+                          }}
+                        >
+                          {pageNumber}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        href="#"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          if (safePage < totalPages) {
+                            setPage(safePage + 1);
+                          }
+                        }}
+                        className={
+                          safePage === totalPages
+                            ? "pointer-events-none opacity-50"
+                            : undefined
+                        }
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </div>
+          )}
         </div>
 
         <DialogFooter>

@@ -4,7 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Menu } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useChat } from "./chat_provider";
 
 interface Conversation {
   id: string;
@@ -15,45 +15,10 @@ interface Conversation {
   unreadCount?: number;
 }
 
-// Dummy data
-const dummyConversations: Conversation[] = [
-  {
-    id: "1",
-    name: "Michael Ndegwa",
-    message: "Yes, I will be available",
-    time: "09:43",
-    unreadCount: 2,
-  },
-  {
-    id: "2",
-    name: "Michael Ndegwa",
-    message: "Yes, I will be available",
-    time: "09:43",
-  },
-  {
-    id: "3",
-    name: "Michael Ndegwa",
-    message: "Yes, I will be available",
-    time: "09:43",
-  },
-  {
-    id: "4",
-    name: "Michael Ndegwa",
-    message: "Yes, I will be available",
-    time: "09:43",
-  },
-];
-
-interface ChatConversationsProps {
-  onConversationSelect?: (id: string) => void;
-}
-
-const ChatConversations = ({
-  onConversationSelect,
-}: ChatConversationsProps) => {
+const ChatConversations = () => {
+  const { conversations, selectChat } = useChat();
   const handleConversationClick = (id: string) => {
-    console.log("Conversation clicked:", id);
-    onConversationSelect?.(id);
+    selectChat(id);
   };
 
   const handleSearch = (query: string) => {
@@ -64,11 +29,18 @@ const ChatConversations = ({
     <div className="flex flex-col h-[calc(100vh-20rem)] rounded-md border  bg-card">
       <ConversationHeader onSearch={handleSearch} />
       <div className="flex-1 overflow-y-auto">
-        {dummyConversations.map((conversation) => (
+        {conversations?.map((conversation) => (
           <ConversationCard
-            key={conversation.id}
-            conversation={conversation}
-            onClick={() => handleConversationClick(conversation.id)}
+            key={conversation.chat_id}
+            conversation={{
+              id: conversation.chat_id,
+              name: conversation.customer_full_name || "Customer",
+              message: conversation.latest_message || "",
+              time: conversation.latest_message_time || "",
+              avatar: conversation.customer_profile_picture || undefined,
+              unreadCount: conversation.unread_count,
+            }}
+            onClick={() => handleConversationClick(conversation.chat_id)}
           />
         ))}
       </div>
@@ -117,7 +89,7 @@ const ConversationCard = ({ conversation, onClick }: ConversationCardProps) => {
       onClick={onClick}
       className="w-full flex items-center gap-3 p-4 hover:bg-accent/50 transition-colors border-b border-border last:border-b-0 text-left"
     >
-      <Avatar className="h-10 w-10 flex-shrink-0">
+      <Avatar className="h-10 w-10 shrink-0">
         <AvatarImage src={conversation.avatar} alt={conversation.name} />
         <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
           {initials}
@@ -141,7 +113,7 @@ const ConversationCard = ({ conversation, onClick }: ConversationCardProps) => {
       {conversation.unreadCount && conversation.unreadCount > 0 && (
         <Badge
           variant="default"
-          className="bg-primary text-primary-foreground h-5 min-w-[20px] rounded-full flex items-center justify-center text-xs px-1.5"
+          className="bg-primary text-primary-foreground h-5 min-w-5 rounded-full flex items-center justify-center text-xs px-1.5"
         >
           {conversation.unreadCount}
         </Badge>
