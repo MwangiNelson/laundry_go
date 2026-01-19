@@ -9,61 +9,67 @@ import {
 } from "@/api/vendor/services/use_vendor_price_mutations";
 import { useGetAllServiceItems } from "@/api/vendor/services/use_get_all_service_items";
 import { useVendor } from "@/components/context/vendors/vendor_provider";
-import { LaundryServiceItemCard } from "./laundry/laundry_service_item_card";
-import { DeleteServiceOptionDialog } from "./laundry/delete_service_option_dialog";
-import { useLaundryServiceMergedData } from "./laundry/use_laundry_service_merged_data";
+import { ServiceItemCard } from "./shared/service_item_card";
+import { DeleteServiceDialog } from "./shared/delete_service_dialog";
+import { useServiceMergedData } from "./shared/use_service_merged_data";
 
-interface LaundryServiceFormProps {
+interface ServiceFormProps {
   service: VendorServiceData;
 }
 
-interface EditingOption {
+interface EditingItem {
   itemId: string;
-  optionId: string;
+  optionId: string | null;
   price: number;
 }
 
-interface AddingOption {
+interface AddingItem {
   itemId: string;
-  optionId: string;
+  optionId: string | null;
   price: number;
 }
 
-export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
+/**
+ * Unified service form component that works for ALL service types:
+ * - Laundry (always has options)
+ * - House Cleaning (has options)
+ * - Office Cleaning (has options)
+ * - Moving (no options)
+ * - Fumigation (no options)
+ */
+export const ServiceForm = ({ service }: ServiceFormProps) => {
   const { vendor } = useVendor();
-  const [editingOption, setEditingOption] = useState<EditingOption | null>(
-    null
-  );
+  const [editingItem, setEditingItem] = useState<EditingItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
-  const [addingOption, setAddingOption] = useState<AddingOption | null>(null);
+  const [addingItem, setAddingItem] = useState<AddingItem | null>(null);
 
   // Fetch all available service items/options
   const { data: allServiceItems } = useGetAllServiceItems(
     service.main_service_id
   );
 
-  // Merge data
-  const mergedItems = useLaundryServiceMergedData(service, allServiceItems);
+  // Merge data - handles both with and without options
+  const mergedItems = useServiceMergedData(service, allServiceItems);
 
   const addMutation = useAddVendorPrice();
   const updateMutation = useUpdateVendorPrice();
   const deleteMutation = useDeleteVendorPrice();
 
   const handleSaveEdit = (vendorPriceId: string, isAvailable: boolean) => {
-    if (!editingOption) return;
+    if (!editingItem) return;
 
     updateMutation.mutate(
       {
         id: vendorPriceId,
-        price: editingOption.price,
+        price: editingItem.price,
         is_available: isAvailable,
       },
       {
         onSuccess: () => {
-          setEditingOption(null);
+          setEditingItem(null);
         },
       }
     );
@@ -82,8 +88,8 @@ export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
     );
   };
 
-  const handleAddOption = (itemId: string, optionId: string) => {
-    setAddingOption({
+  const handleAddItem = (itemId: string, optionId: string | null) => {
+    setAddingItem({
       itemId,
       optionId,
       price: 0,
@@ -91,19 +97,19 @@ export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
   };
 
   const handleSaveAdd = () => {
-    if (!addingOption || !vendor?.id) return;
+    if (!addingItem || !vendor?.id) return;
 
     addMutation.mutate(
       {
         vendor_id: vendor.id,
-        service_item_id: addingOption.itemId,
-        service_option_id: addingOption.optionId,
-        price: addingOption.price,
+        service_item_id: addingItem.itemId,
+        service_option_id: addingItem.optionId,
+        price: addingItem.price,
         is_available: true,
       },
       {
         onSuccess: () => {
-          setAddingOption(null);
+          setAddingItem(null);
         },
       }
     );
@@ -114,7 +120,7 @@ export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
     price: number,
     checked: boolean
   ) => {
-    if (editingOption) {
+    if (editingItem) {
       handleSaveEdit(vendorPriceId, checked);
     } else {
       updateMutation.mutate({
@@ -128,33 +134,33 @@ export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
   return (
     <div className="flex flex-col gap-4 pt-4">
       {mergedItems.map((item) => (
-        <LaundryServiceItemCard
+        <ServiceItemCard
           key={item.id}
           item={item}
-          editingOption={editingOption}
-          addingOption={addingOption}
+          editingItem={editingItem}
+          addingItem={addingItem}
           onEditStart={(itemId, optionId, price) =>
-            setEditingOption({ itemId, optionId, price })
+            setEditingItem({ itemId, optionId, price })
           }
-          onEditCancel={() => setEditingOption(null)}
+          onEditCancel={() => setEditingItem(null)}
           onEditSave={handleSaveEdit}
-          onAddStart={handleAddOption}
-          onAddCancel={() => setAddingOption(null)}
+          onAddStart={handleAddItem}
+          onAddCancel={() => setAddingItem(null)}
           onAddSave={handleSaveAdd}
           onDelete={(id, name) => setDeleteTarget({ id, name })}
           onAvailabilityChange={handleAvailabilityChange}
           onAddingPriceChange={(price) =>
-            setAddingOption((prev) => (prev ? { ...prev, price } : null))
+            setAddingItem((prev) => (prev ? { ...prev, price } : null))
           }
           onEditingPriceChange={(price) =>
-            setEditingOption((prev) => (prev ? { ...prev, price } : null))
+            setEditingItem((prev) => (prev ? { ...prev, price } : null))
           }
           isUpdating={updateMutation.isPending}
           isAdding={addMutation.isPending}
         />
       ))}
 
-      <DeleteServiceOptionDialog
+      <DeleteServiceDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
         name={deleteTarget?.name || ""}
@@ -164,3 +170,4 @@ export const LaundryServiceForm = ({ service }: LaundryServiceFormProps) => {
     </div>
   );
 };
+

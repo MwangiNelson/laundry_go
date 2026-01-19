@@ -23,9 +23,10 @@ import {
   CaretUpIcon,
   CaretDownIcon,
 } from "@phosphor-icons/react";
-import { useFetchServicesAdmin } from "@/api/admin/services/use_fetch_services.admin";
-import { Database } from "@/database.types";
+import { useDeleteServiceItem, useFetchServicesAdmin } from "@/api/admin/services/use_services.admin";
 import { AddMainServiceItem } from "./add_services_items.modal";
+import { EditServiceItemModal } from "./edit_service_items.modal";
+import { DeleteServiceItemAlert } from "./delete_service_item_alert";
 
 type ServiceOption = {
   created_at: string | null;
@@ -61,7 +62,10 @@ export const EditMainServicesModal = ({
   service_id,
 }: EditMainServicesModalProps) => {
   const [open, setOpen] = useState(false);
+  const { mutateAsync: deleteService, isPending: isDeletingService } =
+    useDeleteServiceItem();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const { data: services } = useFetchServicesAdmin();
 
   const currentService = useMemo(() => {
@@ -80,6 +84,16 @@ export const EditMainServicesModal = ({
       }
       return next;
     });
+  };
+
+  const handleDeleteServiceItem = async () => {
+    if (!deleteItemId) return;
+    try {
+      await deleteService(deleteItemId);
+      setDeleteItemId(null);
+    } catch (error) {
+      console.error("Failed to delete service item:", error);
+    }
   };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -186,10 +200,28 @@ export const EditMainServicesModal = ({
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <Button size="sm" variant="ghost">
-                                <PencilIcon size={16} />
-                              </Button>
-                              <Button size="sm" variant="ghost">
+                              <EditServiceItemModal
+                                trigger={
+                                  <Button size="sm" variant="ghost">
+                                    <PencilIcon size={16} />
+                                  </Button>
+                                }
+                                serviceItem={item}
+                                serviceSlug={
+                                  currentService?.slug as
+                                    | "laundry"
+                                    | "moving"
+                                    | "office_cleaning"
+                                    | "fumigation"
+                                    | "house_cleaning"
+                                }
+                              />
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setDeleteItemId(item.id)}
+                                disabled={isDeletingService}
+                              >
                                 <TrashIcon
                                   size={16}
                                   className="text-destructive"
@@ -234,14 +266,7 @@ export const EditMainServicesModal = ({
                                             : "Inactive"}
                                         </Badge>
                                       </div>
-                                      <div className="flex items-center gap-1">
-                                        <Button size="sm" variant="ghost">
-                                          <TrashIcon
-                                            size={16}
-                                            className="text-destructive"
-                                          />
-                                        </Button>
-                                      </div>
+                                    
                                     </div>
                                   ))}
                                 </div>
@@ -264,6 +289,18 @@ export const EditMainServicesModal = ({
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <DeleteServiceItemAlert
+        open={!!deleteItemId}
+        onOpenChange={(open) => !open && setDeleteItemId(null)}
+        itemName={
+          currentService?.service_items?.find(
+            (item) => item.id === deleteItemId
+          )?.name || ""
+        }
+        onConfirm={handleDeleteServiceItem}
+        isDeleting={isDeletingService}
+      />
     </Dialog>
   );
 };

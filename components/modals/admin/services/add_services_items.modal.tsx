@@ -15,18 +15,13 @@ import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { ProfilePhotoUpload } from "@/components/fields/files/profile_photo_upload";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { useAddServiceItem, useGetMainServiceBySlug } from "../../../../api/admin/services/use_services.admin";
+import BasicSelect from "@/components/fields/select/basic_select";
 
 const schema = z.object({
   image: z.instanceof(File).optional(),
   service_item: z.string().min(1, "Service item name is required"),
   type: z.enum(["item", "area"]),
-  main_service_slug: z.enum([
-    "laundry",
-    "moving",
-    "office_cleaning",
-    "fumigation",
-    "house_cleaning",
-  ]),
   service_options: z.array(
     z.object({
       name: z.string(),
@@ -36,9 +31,10 @@ const schema = z.object({
     })
   ),
   status: z.enum(["active", "inactive"]),
+  main_service_id: z.number().min(1, "Main service is required"),
 });
 
-export type IAddServiceItemModal = z.infer<typeof schema>;
+export type IAddServiceItemModalSchema = z.infer<typeof schema>;
 
 const STANDARD_OPTIONS: Record<
   string,
@@ -58,6 +54,7 @@ const STANDARD_OPTIONS: Record<
   ],
   moving: [],
   fumigation: [],
+
 };
 
 interface AddMainServiceItemProps {
@@ -75,8 +72,11 @@ export const AddMainServiceItem = ({
   service_slug,
 }: AddMainServiceItemProps) => {
   const [open, setOpen] = useState(false);
+  const {data:mainService}=useGetMainServiceBySlug(service_slug)
+const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceItem()
 
   const defaultType = service_slug === "laundry" ? "item" : "area";
+
 
   const standardOptions = useMemo(
     () => STANDARD_OPTIONS[service_slug] || [],
@@ -84,7 +84,7 @@ export const AddMainServiceItem = ({
   );
   const hasOptions = standardOptions.length > 0;
 
-  const form = useForm<IAddServiceItemModal>({
+  const form = useForm<IAddServiceItemModalSchema>({
     resolver: zodResolver(schema),
     defaultValues: {
       service_item: "",
@@ -94,14 +94,12 @@ export const AddMainServiceItem = ({
         enabled: true,
       })),
       status: "active",
+      main_service_id: mainService?.id ? Number(mainService.id) : 0,
     },
   });
-  useEffect(() => {
-    form.setValue("main_service_slug", service_slug);
-  }, [service_slug]);
 
   useEffect(() => {
-    if (open) {
+    if (open && mainService) {
       form.reset({
         service_item: "",
         type: defaultType,
@@ -110,15 +108,33 @@ export const AddMainServiceItem = ({
           enabled: true,
         })),
         status: "active",
+        main_service_id: Number(mainService.id),
       });
     }
-  }, [open, form, defaultType, standardOptions]);
+  }, [open, form, defaultType, standardOptions, mainService]);
 
-  const handleSubmit = (data: IAddServiceItemModal) => {
-    const enabledOptions = data.service_options.filter((opt) => opt.enabled);
-    console.log("Submitting:", { ...data, service_options: enabledOptions });
-    setOpen(false);
+  const handleSubmit = async (data: IAddServiceItemModalSchema) => {
+    if (!mainService?.id) {
+      console.error("Main service not loaded yet");
+      return;
+    }
+    // Ensure main_service_id is set
+    const submitData = {
+      ...data,
+      main_service_id: data.main_service_id || Number(mainService.id),
+    };
+    console.log("submitting", submitData);
+    await addServiceItem(submitData).then(() => {
+      setOpen(false);
+    });
   };
+
+  useEffect(() => {
+    if (mainService) {
+      form.setValue("main_service_id", Number(mainService.id));
+    }
+  }, [mainService, form]);
+  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -130,7 +146,7 @@ export const AddMainServiceItem = ({
 
       <DialogContent className="sm:max-w-2xl space-y-4 rounded-3xl bg-background border-none overflow-hidden max-h-[90vh] overflow-y-auto">
         <DialogTitle>
-          Add Service Item - {service_slug.replace(/_/g, " ").toUpperCase()}
+          Add Service Item - {mainService?.service}
         </DialogTitle>
 
         <Form {...form}>
@@ -156,6 +172,14 @@ export const AddMainServiceItem = ({
                     ? "e.g., Shirts, Trousers, Dresses"
                     : "e.g., Kitchen, Living Room, Bedroom"
                 }
+              />
+              <BasicSelect
+              control={form.control}
+              name="status"
+              options={[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}]}
+              label="Status"
+              description="The status of the service item"
+
               />
             </div>
 
@@ -230,11 +254,21 @@ export const AddMainServiceItem = ({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+               
+                disabled={isAddingServiceItem}
               >
                 Cancel
               </Button>
-              <Button type="submit">Add Service Item</Button>
+              <Button type="submit"
+               onClick={()=>{
+                  console.log({
+                    formData: form.getValues(), 
+                    formErrors: form.formState.errors,
+                  });
+                }}
+              loading={isAddingServiceItem}
+              
+              >Add Service Item</Button>
             </DialogFooter>
           </form>
         </Form>

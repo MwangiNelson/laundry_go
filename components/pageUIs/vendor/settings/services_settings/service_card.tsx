@@ -4,8 +4,7 @@ import React, { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VendorServiceData } from "@/api/vendor/services/use_get_vendor_services";
-import { LaundryServiceForm } from "./laundry_service_form";
-import { GenericServiceForm } from "./generic_service_form";
+import { ServiceForm } from "./service_form";
 
 interface ServiceCardProps {
   service: VendorServiceData;
@@ -13,7 +12,6 @@ interface ServiceCardProps {
 
 export const ServiceCard = ({ service }: ServiceCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isLaundry = service.main_service_slug === "laundry";
 
   return (
     <div className="rounded-xl border bg-card transition-all">
@@ -45,11 +43,7 @@ export const ServiceCard = ({ service }: ServiceCardProps) => {
       {/* Service Content */}
       {isExpanded && (
         <div className="px-4 pb-4 pt-0 border-t">
-          {isLaundry ? (
-            <LaundryServiceForm service={service} />
-          ) : (
-            <GenericServiceForm service={service} />
-          )}
+          <ServiceForm service={service} />
         </div>
       )}
     </div>
