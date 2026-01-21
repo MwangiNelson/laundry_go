@@ -19,7 +19,15 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useGenerateOrdersReports } from "@/api/vendor/reports/use_generate_reports";
-import { downloadOrdersReportCsv } from "@/components/utils/exel_orders_generator";
+import { useGenerateFinancialReports } from "@/api/vendor/reports/use_generate_financial_reports";
+import { useGeneratePaymentsReport } from "@/api/vendor/reports/use_generate_payments_report";
+import {
+  downloadNominalFinancialReportCsv,
+  downloadOrdersReportCsv,
+} from "@/components/utils/exel_orders_generator";
+import { PDFDownloadButton } from "@/components/utils/order_pdf_generator";
+import { useVendor } from "@/components/context/vendors/vendor_provider";
+import { VendorFinancialPDFDownloadButton } from "@/components/utils/vendor_financial_report";
 
 const StatSection = () => (
   <StatCard>
@@ -60,6 +68,7 @@ interface ReportCardProps {
   onDownloadXls?: () => void;
   onDownloadPdf?: () => void;
   disableDownload?: boolean;
+  pdfDownloadButton?: React.ReactNode;
 }
 
 const ReportCard = ({
@@ -72,6 +81,7 @@ const ReportCard = ({
   onDownloadXls,
   onDownloadPdf,
   disableDownload,
+  pdfDownloadButton,
 }: ReportCardProps) => {
   const renderDatePicker = (
     label: string,
@@ -127,21 +137,23 @@ const ReportCard = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Button
-          variant="secondary"
-          className="h-11"
-          onClick={onDownloadPdf}
-          disabled={disableDownload}
-        >
-          Download PDF
-        </Button>
+        {pdfDownloadButton || (
+          <Button
+            variant="secondary"
+            className="h-11"
+            onClick={onDownloadPdf}
+            disabled={disableDownload}
+          >
+            Download PDF
+          </Button>
+        )}
         <Button
           variant="outline"
           className="h-11"
           onClick={onDownloadXls}
           disabled={disableDownload}
         >
-          Download Xls
+          Download CSV
         </Button>
       </div>
     </div>
@@ -153,16 +165,38 @@ export const ReportsPageUI = () => {
     Date | undefined
   >();
   const [ordersEndDate, setOrdersEndDate] = React.useState<Date | undefined>();
+  const [financialStartDate, setFinancialStartDate] = React.useState<
+    Date | undefined
+  >();
+  const [financialEndDate, setFinancialEndDate] =
+    React.useState<Date | undefined>();
 
+  const { vendor } = useVendor();
   const { data: orders } = useGenerateOrdersReports({
     startDate: ordersStartDate,
     endDate: ordersEndDate,
   });
+  const { data: financialReport } = useGenerateFinancialReports({
+    vendorId: vendor?.id,
+    startDate: financialStartDate,
+    endDate: financialEndDate,
+  });
+  const { data: paymentsReport } = useGeneratePaymentsReport({
+    vendorId: vendor?.id,
+    startDate: financialStartDate,
+    endDate: financialEndDate,
+  });
 
   const handleDownloadOrdersXls = () => {
-    console.log("Downloading orders XLS");
-    downloadOrdersReportCsv(orders, "orders-report.csv");
+    const today = format(new Date(), "yyyy-MM-dd");
+    const filename = `orders-report-${today}.csv`;
+    downloadOrdersReportCsv(orders, filename);
   };
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const pdfFilename = `orders-report-${today}.pdf`;
+  const financialCsvFilename = `financial-report-${today}.csv`;
+  const financialPdfFilename = `financial-report-${today}.pdf`;
 
   return (
     <div className="p-6 space-y-6">
@@ -178,11 +212,66 @@ export const ReportsPageUI = () => {
           onChangeEndDate={setOrdersEndDate}
           onDownloadXls={handleDownloadOrdersXls}
           disableDownload={!orders || orders.length === 0}
+          pdfDownloadButton={
+            orders && orders.length > 0 ? (
+              <PDFDownloadButton
+                orders={orders}
+                vendorName={vendor?.business_name || undefined}
+                startDate={ordersStartDate}
+                endDate={ordersEndDate}
+                filename={pdfFilename}
+                className="h-11 w-full inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium text-sm px-4 py-2"
+              >
+                Download PDF
+              </PDFDownloadButton>
+            ) : (
+              <Button
+                variant="secondary"
+                className="h-11"
+                disabled
+              >
+                Download PDF
+              </Button>
+            )
+          }
         />
         <ReportCard
           title="Financial Report"
-          description="Generate a financial report with your total incomes from servicing orders to internally handled deliveries for the duration you select in PDF or Excel format."
-          disableDownload
+          description="Generate a nominal payments report (customer-by-customer) for the duration you select, plus a summary totals CSV."
+          startDate={financialStartDate}
+          endDate={financialEndDate}
+          onChangeStartDate={setFinancialStartDate}
+          onChangeEndDate={setFinancialEndDate}
+          pdfDownloadButton={
+            (paymentsReport && paymentsReport.length > 0) || financialReport ? (
+              <VendorFinancialPDFDownloadButton
+                vendorName={vendor?.business_name || undefined}
+                startDate={financialStartDate}
+                endDate={financialEndDate}
+                summary={financialReport}
+                payments={paymentsReport}
+                filename={financialPdfFilename}
+                className="h-11 w-full inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium text-sm px-4 py-2"
+              >
+                Download PDF
+              </VendorFinancialPDFDownloadButton>
+            ) : (
+              <Button variant="secondary" className="h-11" disabled>
+                Download PDF
+              </Button>
+            )
+          }
+          onDownloadXls={() => {
+            // Single CSV: summary (if present) + customer-by-customer payments (if present)
+            downloadNominalFinancialReportCsv(
+              financialReport,
+              paymentsReport,
+              financialCsvFilename
+            );
+          }}
+          disableDownload={
+            (!paymentsReport || paymentsReport.length === 0) && !financialReport
+          }
         />
       </div>
     </div>
