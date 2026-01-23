@@ -17,10 +17,13 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
-import { useGenerateOrdersReports } from "@/api/vendor/reports/use_generate_reports";
-import { useGenerateFinancialReports } from "@/api/vendor/reports/use_generate_financial_reports";
-import { useGeneratePaymentsReport } from "@/api/vendor/reports/use_generate_payments_report";
+import { format, startOfMonth, startOfQuarter, startOfYear, endOfDay } from "date-fns";
+import {
+  useGenerateFinancialReports,
+  useGenerateOrdersReports,
+  useGeneratePaymentsReport,
+  useVendorReportStats,
+} from "@/api/vendor/reports/use_reports";
 import {
   downloadNominalFinancialReportCsv,
   downloadOrdersReportCsv,
@@ -29,7 +32,17 @@ import { PDFDownloadButton } from "@/components/utils/order_pdf_generator";
 import { useVendor } from "@/components/context/vendors/vendor_provider";
 import { VendorFinancialPDFDownloadButton } from "@/components/utils/vendor_financial_report";
 
-const StatSection = () => (
+type StatPeriod = "month" | "quarter" | "year";
+
+const StatSection = ({
+  period,
+  onChangePeriod,
+  stats,
+}: {
+  period: StatPeriod;
+  onChangePeriod: (p: StatPeriod) => void;
+  stats: Awaited<ReturnType<typeof useVendorReportStats>>["data"];
+}) => (
   <StatCard>
     <StatCardHeader>
       <StatCardSelect
@@ -38,20 +51,29 @@ const StatSection = () => (
           { value: "quarter", label: "This Quarter" },
           { value: "year", label: "This Year" },
         ]}
-        defaultValue="month"
+        defaultValue={period}
+        onValueChange={(v) => onChangePeriod(v as StatPeriod)}
       />
     </StatCardHeader>
     <StatCardContent>
-      <StatItem label="Total Orders" value="125,600" variant="blue" />
-      <StatItem label="Total Complete Orders" value="24,000" variant="purple" />
+      <StatItem
+        label="Total Orders"
+        value={(stats?.total_orders ?? 0).toLocaleString()}
+        variant="blue"
+      />
+      <StatItem
+        label="Total Complete Orders"
+        value={(stats?.total_completed_orders ?? 0).toLocaleString()}
+        variant="purple"
+      />
       <StatItem
         label="Income from Service (kes)"
-        value="18,500"
+        value={(stats?.income_from_service ?? 0).toLocaleString()}
         variant="blue"
       />
       <StatItem
         label="Income from delivery costs (kes)"
-        value="41,300"
+        value={(stats?.income_from_delivery ?? 0).toLocaleString()}
         variant="purple"
       />
     </StatCardContent>
@@ -161,8 +183,10 @@ const ReportCard = ({
 };
 
 export const ReportsPageUI = () => {
+  const [statPeriod, setStatPeriod] = React.useState<StatPeriod>("month");
   const [ordersStartDate, setOrdersStartDate] = React.useState<
     Date | undefined
+    
   >();
   const [ordersEndDate, setOrdersEndDate] = React.useState<Date | undefined>();
   const [financialStartDate, setFinancialStartDate] = React.useState<
@@ -172,6 +196,20 @@ export const ReportsPageUI = () => {
     React.useState<Date | undefined>();
 
   const { vendor } = useVendor();
+
+  const statStartDate = React.useMemo(() => {
+    const now = new Date();
+    if (statPeriod === "month") return startOfMonth(now);
+    if (statPeriod === "quarter") return startOfQuarter(now);
+    return startOfYear(now);
+  }, [statPeriod]);
+  const statEndDate = React.useMemo(() => endOfDay(new Date()), []);
+
+  const { data: stats } = useVendorReportStats({
+    vendorId: vendor?.id,
+    startDate: statStartDate,
+    endDate: statEndDate,
+  });
   const { data: orders } = useGenerateOrdersReports({
     startDate: ordersStartDate,
     endDate: ordersEndDate,
@@ -200,7 +238,11 @@ export const ReportsPageUI = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <StatSection />
+      <StatSection
+        period={statPeriod}
+        onChangePeriod={setStatPeriod}
+        stats={stats}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ReportCard

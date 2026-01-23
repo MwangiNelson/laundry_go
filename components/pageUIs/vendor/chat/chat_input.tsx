@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Send } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 import { useChat } from "./chat_provider";
 
 export const ChatInput = () => {
@@ -39,10 +39,14 @@ export const ChatInput = () => {
         onClick={handleSend}
         size="icon"
         variant="outline"
-        loading={isSendingMessage}
+      disabled={isSendingMessage} 
         className="h-10 w-10 border-border hover:bg-accent"
       >
-        <Send className="h-4 w-4 text-foreground" />
+        {
+          isSendingMessage ? <Loader2 className="h-4 w-4 text-foreground animate-spin" /> :
+           <Send className="h-4 w-4 text-foreground" />
+        }
+      
       </Button>
     </div>
   );

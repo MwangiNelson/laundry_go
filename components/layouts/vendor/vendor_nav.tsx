@@ -11,15 +11,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "../../context/auth_provider";
 import { PanelLeft } from "lucide-react";
-import { BellIcon, ChatCenteredDotsIcon } from "@phosphor-icons/react";
+import { BellIcon } from "@phosphor-icons/react";
 import { useVendorUI } from "./vendor_ui_provider";
 import { Button } from "@/components/ui/button";
-import { MessagesPopup } from "./messages_popup";
-
+import { useGetAllUnreadMessagesCount } from "@/api/vendor/chat/use_messages";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ChatCenteredDotsIcon } from "@phosphor-icons/react";
 export const VendorNavbar = () => {
   const { sidebar } = useVendorUI();
   const isCollapsed = !sidebar.isOpen;
-
+  
   return (
     <header className=" text-foreground flex h-20 w-full items-center px-4 border-b border-border bg-background ">
       <button
@@ -42,14 +47,38 @@ export const VendorNavbar = () => {
   );
 };
 
-//
+
+const MessageTootip = () => {
+  const { data: number_of_unread_messages } = useGetAllUnreadMessagesCount();
+  const hasUnread = (number_of_unread_messages ?? 0) > 0;
+  
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="ghost"  className="relative">
+          {hasUnread && (
+            <span className="absolute -top-0.5 -right-0.5 bg-yellow-400 text-black text-[10px] font-semibold rounded-full h-3.5 min-w-[16px] px-1.5 flex items-center justify-center">
+              {number_of_unread_messages}
+            </span>
+          )}
+          <ChatCenteredDotsIcon className="h-5 w-5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        {hasUnread ? "There're Unread chats" : "No Unread chats"}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
 const UserDropdown = () => {
   const { user, logout } = useAuth();
   const userName = user?.full_name || "User";
+
   return (
     <div className="ml-auto flex items-center gap-3">
       <BellIcon className="h-5 w-5" />
-      <MessagesPopup />
+      <MessageTootip />
+  
       <DropdownMenu>
         <DropdownMenuTrigger className="text-foreground/90 hover:text-foreground inline-flex items-center gap-2  px-2 py-1  bg-background">
           <Avatar className="h-8 w-8">

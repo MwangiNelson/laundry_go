@@ -72,4 +72,38 @@ export const useFetchRiders = (params: IParams) => {
   });
 };
 
-///fe
+export const useGetRider = (riderId: string | undefined) => {
+  return useQuery({
+    queryKey: ["rider", riderId],
+    enabled: !!riderId,
+    queryFn: async () => {
+      if (!riderId) return null;
+
+      const supabase = createSupabaseClient();
+
+      const { data, error } = await supabase
+        .from("riders")
+        .select(
+          `
+          *,
+          user:profiles!riders_user_id_fkey(
+            id,
+            full_name,
+            email,
+            phone,
+            avatar_url,
+            role
+          )
+        `
+        )
+        .eq("id", riderId)
+        .single();
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data;
+    },
+  });
+};

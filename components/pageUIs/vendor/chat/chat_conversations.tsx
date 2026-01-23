@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, Menu } from "lucide-react";
 import { useChat } from "./chat_provider";
+import { formatDistanceToNow } from "date-fns";
 
 interface Conversation {
   id: string;
   name: string;
   message: string;
-  time: string;
+  time: string | null;
   avatar?: string;
   unreadCount?: number;
 }
@@ -84,6 +85,10 @@ const ConversationCard = ({ conversation, onClick }: ConversationCardProps) => {
     .join("")
     .toUpperCase();
 
+  const formattedTime = conversation.time
+    ? formatDistanceToNow(new Date(conversation.time), { addSuffix: true })
+    : "";
+
   return (
     <button
       onClick={onClick}
@@ -102,7 +107,7 @@ const ConversationCard = ({ conversation, onClick }: ConversationCardProps) => {
             {conversation.name}
           </h4>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {conversation.time}
+            {formattedTime}
           </span>
         </div>
         <p className="text-sm text-muted-foreground truncate">

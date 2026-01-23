@@ -68,12 +68,6 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
     ],
   },
   {
-    key: "services",
-    label: "Services",
-    icon: BroomIcon,
-    link: "/vendor/services",
-  },
-  {
     key: "riders",
     label: "Riders",
     icon: BicycleIcon,

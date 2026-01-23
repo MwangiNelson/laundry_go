@@ -1,3 +1,5 @@
+"use client";
+
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Rider } from "@/api/vendor/riders/use_fetch_rider";
 import { get_profile } from "@/api/supabase/functions";
+import { EditRiderModal } from "@/components/modals/riders/edit_rider.modal";
 
 type RiderStatus = "active" | "inactive";
 
@@ -126,11 +129,14 @@ export const ridersColumns: ColumnDef<Rider>[] = [
             >
               View Details
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => console.log("Edit rider:", row.original.id)}
-            >
-              Edit Rider
-            </DropdownMenuItem>
+            <EditRiderModal
+              riderId={row.original.id}
+              trigger={
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  Edit Rider
+                </DropdownMenuItem>
+              }
+            />
             {row.original.status === "active" ? (
               <DropdownMenuItem
                 onClick={() => console.log("Deactivate:", row.original.id)}

@@ -51,16 +51,12 @@ export const TransactionsPageUI = () => {
           />
         </StatCardContent>
       </StatCard>
-
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="lg:col-span-3">
           <TransactionsEarningsLineChart />
         </div>
         <TransactionsPie />
       </div>
-
-      {/* Transactions Table */}
       <TransactionsTable />
     </div>
   );

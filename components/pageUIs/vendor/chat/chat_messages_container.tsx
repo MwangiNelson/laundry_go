@@ -2,11 +2,11 @@
 import React, { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { useChat } from "./chat_provider";
-
+import { formatDistanceToNow } from "date-fns";
 interface Message {
   id: string;
   text: string;
-  time: string;
+  time: string | null;
   isOwn: boolean;
 }
 
@@ -43,6 +43,10 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = ({ message }: MessageBubbleProps) => {
+  const formattedTime = message.time
+    ? formatDistanceToNow(new Date(message.time), { addSuffix: true })
+    : "";
+
   return (
     <div
       className={cn(
@@ -60,7 +64,9 @@ const MessageBubble = ({ message }: MessageBubbleProps) => {
       >
         <p className="text-sm">{message.text}</p>
       </div>
-      <span className="text-xs text-muted-foreground mt-1">{message.time}</span>
+      <span className="text-xs text-muted-foreground mt-1">
+        {formattedTime}
+      </span>
     </div>
   );
 };
