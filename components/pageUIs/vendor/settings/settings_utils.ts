@@ -2,7 +2,6 @@ import { z } from "zod";
 
 // Business Profile Schema
 export const business_profile_schema = z.object({
-  username: z.string().min(2, "Username must be at least 2 characters"),
   business_name: z
     .string()
     .min(2, "Business name must be at least 2 characters"),

@@ -13,7 +13,6 @@ export interface AllServiceOption {
 export interface AllServiceItem {
   id: string;
   name: string;
-  type: string;
   icon_path: string | null;
   display_order: number;
   main_service_id: number;
@@ -75,7 +74,6 @@ export const useGetAllServiceItems = (mainServiceId: number | null) => {
           return {
             id: item.id,
             name: item.name,
-            type: item.type,
             icon_path: item.icon_path,
             display_order: item.display_order,
             main_service_id: item.main_service_id,
@@ -102,4 +100,3 @@ export const useGetAllServiceItems = (mainServiceId: number | null) => {
     enabled: !!mainServiceId,
   });
 };
-

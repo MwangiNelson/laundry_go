@@ -76,7 +76,6 @@ export const SettingsProvider = ({
   const business_profile_form = useForm<TBusinessProfile>({
     resolver: zodResolver(business_profile_schema),
     defaultValues: {
-      username: vendorUser?.full_name || "",
       business_name: vendor?.business_name || "",
       phone_number: vendor?.phone || "",
       email: vendor?.email || "",
@@ -89,7 +88,6 @@ export const SettingsProvider = ({
   useEffect(() => {
     if (vendor && vendorUser) {
       business_profile_form.reset({
-        username: vendorUser?.full_name || "",
         business_name: vendor?.business_name || "",
         phone_number: vendor?.phone || "",
         email: vendor?.email || "",
@@ -163,7 +161,6 @@ export const SettingsProvider = ({
     await updateBusinessProfile({
       vendor_id: vendor.id,
       user_id: user.id,
-      username: data.username,
       business_name: data.business_name,
       phone_number: data.phone_number,
       email: data.email,

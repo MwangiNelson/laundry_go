@@ -9,6 +9,8 @@ import { FileUpload } from "@/components/fields/files/basic_image_input";
 import { Button } from "@/components/ui/button";
 import { TBusinessProfile } from "./settings_utils";
 import { ArrowRight } from "lucide-react";
+import { ProfilePhotoUpload } from "@/components/fields/files/profile_photo_upload";
+import { useVendor } from "@/components/context/vendors/vendor_provider";
 
 export const BusinessProfileSettings = () => {
   const {
@@ -20,20 +22,13 @@ export const BusinessProfileSettings = () => {
   const handleSubmit = business_profile_form.handleSubmit(
     onUpdateBusinessProfile
   );
+  const { vendor } = useVendor();
 
   return (
     <Form {...business_profile_form}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-        {/* Form Fields */}
         <div className="flex flex-col gap-4">
-          {/* Row 1: Username, Business Name, Phone Number, Email */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  2xl:grid-cols-4 gap-4">
-            <BasicInput<TBusinessProfile>
-              control={business_profile_form.control}
-              name="username"
-              label="Username"
-              placeholder="LaundrySmart"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2   2xl:grid-cols-4 gap-4">
             <BasicInput<TBusinessProfile>
               control={business_profile_form.control}
               name="business_name"
@@ -55,17 +50,13 @@ export const BusinessProfileSettings = () => {
               type="email"
             />
           </div>
-
-          {/* Logo Upload */}
           <div className="w-full max-w-[276px]">
-            <FileUpload<TBusinessProfile>
+            <ProfilePhotoUpload<TBusinessProfile>
               control={business_profile_form.control}
               name="logo"
               label="Upload Logo"
-              accept="image/png,image/jpeg,image/gif"
-              multiple={false}
-              placeholder="Browse photo"
               description="PNG, JPG or GIF (max 3MB)"
+              // defaultImage={vendor?.logo_url}
             />
           </div>
         </div>

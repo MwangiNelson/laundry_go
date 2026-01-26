@@ -6,7 +6,6 @@ import { Database } from "@/database.types";
 type UpdateBusinessProfileParams = {
   vendor_id: string;
   user_id: string;
-  username: string;
   business_name: string;
   phone_number: string;
   email: string;
@@ -46,17 +45,6 @@ export const useUpdateBusinessProfile = () => {
           });
           logoUrl = result.url;
         }
-      }
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          full_name: params.username,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", params.user_id);
-
-      if (profileError) {
-        throw new Error(profileError.message);
       }
 
       const updateData: Database["public"]["Tables"]["vendors"]["Update"] = {
