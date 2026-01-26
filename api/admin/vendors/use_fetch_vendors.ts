@@ -68,32 +68,21 @@ export interface IFetchVendorsResponse {
 
 export const useFetchVendorStats = () => {
   return useQuery({
-    queryKey: ["vendor-stats"],
+    queryKey: ["vendos", "stats"],
     queryFn: async (): Promise<IVendorStats> => {
       const supabase = createSupabaseClient();
 
-      // Fetch vendor counts by status
-      const [underReview, onboarded, active, suspended] = await Promise.all([
-        supabase
-          .from("vendor_approval_queue")
-          .select("*", { count: "exact", head: true }),
-        supabase.from("vendors").select("*", { count: "exact", head: true }),
-        supabase
-          .from("vendors")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "active"),
-        supabase
-          .from("vendors")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "suspended"),
-      ]);
+      const { data, error } = await supabase.rpc("get_vendor_stats");
 
-      return {
-        under_review: underReview.count || 0,
-        onboarded: onboarded.count || 0,
-        active: active.count || 0,
-        suspended: suspended.count || 0,
-      };
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!data) {
+        throw new Error("No data returned from get_vendor_stats");
+      }
+
+      return data as unknown as IVendorStats;
     },
   });
 };

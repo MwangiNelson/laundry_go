@@ -15,13 +15,15 @@ import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { ProfilePhotoUpload } from "@/components/fields/files/profile_photo_upload";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { useAddServiceItem, useGetMainServiceBySlug } from "../../../../api/admin/services/use_services.admin";
+import {
+  useAddServiceItem,
+  useGetMainServiceBySlug,
+} from "../../../../api/admin/services/use_services.admin";
 import BasicSelect from "@/components/fields/select/basic_select";
 
 const schema = z.object({
   image: z.instanceof(File).optional(),
   service_item: z.string().min(1, "Service item name is required"),
-  type: z.enum(["item", "area"]),
   service_options: z.array(
     z.object({
       name: z.string(),
@@ -54,7 +56,6 @@ const STANDARD_OPTIONS: Record<
   ],
   moving: [],
   fumigation: [],
-
 };
 
 interface AddMainServiceItemProps {
@@ -72,11 +73,9 @@ export const AddMainServiceItem = ({
   service_slug,
 }: AddMainServiceItemProps) => {
   const [open, setOpen] = useState(false);
-  const {data:mainService}=useGetMainServiceBySlug(service_slug)
-const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceItem()
-
-  const defaultType = service_slug === "laundry" ? "item" : "area";
-
+  const { data: mainService } = useGetMainServiceBySlug(service_slug);
+  const { mutateAsync: addServiceItem, isPending: isAddingServiceItem } =
+    useAddServiceItem();
 
   const standardOptions = useMemo(
     () => STANDARD_OPTIONS[service_slug] || [],
@@ -88,7 +87,6 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
     resolver: zodResolver(schema),
     defaultValues: {
       service_item: "",
-      type: defaultType,
       service_options: standardOptions.map((opt) => ({
         ...opt,
         enabled: true,
@@ -102,7 +100,6 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
     if (open && mainService) {
       form.reset({
         service_item: "",
-        type: defaultType,
         service_options: standardOptions.map((opt) => ({
           ...opt,
           enabled: true,
@@ -111,7 +108,7 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
         main_service_id: Number(mainService.id),
       });
     }
-  }, [open, form, defaultType, standardOptions, mainService]);
+  }, [open, form, standardOptions, mainService]);
 
   const handleSubmit = async (data: IAddServiceItemModalSchema) => {
     if (!mainService?.id) {
@@ -123,7 +120,6 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
       ...data,
       main_service_id: data.main_service_id || Number(mainService.id),
     };
-    console.log("submitting", submitData);
     await addServiceItem(submitData).then(() => {
       setOpen(false);
     });
@@ -134,7 +130,6 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
       form.setValue("main_service_id", Number(mainService.id));
     }
   }, [mainService, form]);
-  
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -145,9 +140,7 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
       ) : null}
 
       <DialogContent className="sm:max-w-2xl space-y-4 rounded-3xl bg-background border-none overflow-hidden max-h-[90vh] overflow-y-auto">
-        <DialogTitle>
-          Add Service Item - {mainService?.service}
-        </DialogTitle>
+        <DialogTitle>Add Service Item - {mainService?.service}</DialogTitle>
 
         <Form {...form}>
           <form
@@ -174,12 +167,14 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
                 }
               />
               <BasicSelect
-              control={form.control}
-              name="status"
-              options={[{value:"active",label:"Active"},{value:"inactive",label:"Inactive"}]}
-              label="Status"
-              description="The status of the service item"
-
+                control={form.control}
+                name="status"
+                options={[
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+                label="Status"
+                description="The status of the service item"
               />
             </div>
 
@@ -254,21 +249,23 @@ const {mutateAsync:addServiceItem,isPending:isAddingServiceItem}=useAddServiceIt
               <Button
                 type="button"
                 variant="outline"
-               
+                onClick={() => setOpen(false)}
                 disabled={isAddingServiceItem}
               >
                 Cancel
               </Button>
-              <Button type="submit"
-               onClick={()=>{
+              <Button
+                type="submit"
+                onClick={() => {
                   console.log({
-                    formData: form.getValues(), 
+                    formData: form.getValues(),
                     formErrors: form.formState.errors,
                   });
                 }}
-              loading={isAddingServiceItem}
-              
-              >Add Service Item</Button>
+                loading={isAddingServiceItem}
+              >
+                Add Service Item
+              </Button>
             </DialogFooter>
           </form>
         </Form>

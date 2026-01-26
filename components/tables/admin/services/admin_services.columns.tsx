@@ -32,10 +32,17 @@ export const servicesColumns: ColumnDef<
     },
   },
   {
-    accessorKey: "no_of_order_items",
-    header: "No. of Order Items",
+    accessorKey: "number_of_service_items",
+    header: "Service Items",
     cell: ({ row }) => {
-      return <span>{row.original.no_of_order_items}</span>;
+      return <span>{row.original.number_of_service_items}</span>;
+    },
+  },
+  {
+    accessorKey: "no_of_orders",
+    header: "No. of Orders",
+    cell: ({ row }) => {
+      return <span>{row.original.no_of_orders}</span>;
     },
   },
   {

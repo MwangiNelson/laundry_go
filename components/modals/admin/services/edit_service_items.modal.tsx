@@ -17,11 +17,11 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import BasicSelect from "@/components/fields/select/basic_select";
 import { useEditServiceItem } from "../../../../api/admin/services/use_services.admin";
+import { Database } from "@/database.types";
 
 const schema = z.object({
   image: z.instanceof(File).optional(),
   service_item: z.string().min(1, "Service item name is required"),
-  type: z.enum(["item", "area"]),
   service_options: z.array(
     z.object({
       id: z.string().optional(),
@@ -37,28 +37,8 @@ const schema = z.object({
 
 export type IEditServiceItemModalSchema = z.infer<typeof schema>;
 
-type ServiceOption = {
-  created_at: string | null;
-  description: string | null;
-  display_order: number | null;
-  id: string;
-  is_active: boolean | null;
-  name: string;
-  service_item_id: string;
-  updated_at: string | null;
-};
-
-type ServiceItem = {
-  created_at: string | null;
-  display_order: number | null;
-  icon_path: string | null;
-  id: string;
-  is_active: boolean | null;
-  main_service_id: number;
-  name: string;
-  type: string;
-  updated_at: string | null;
-  service_options: ServiceOption[];
+type ServiceItem = Database['public']['Tables']['service_items']['Row'] & {
+  service_options: Database['public']['Tables']['service_options']['Row'][];
 };
 
 interface EditServiceItemModalProps {
@@ -159,10 +139,9 @@ export const EditServiceItemModal = ({
     resolver: zodResolver(schema),
     defaultValues: {
       service_item: serviceItem.name || "",
-      type: (serviceItem.type as "item" | "area") || "item",
       service_options: standardOptions,
       status: serviceItem.is_active ? "active" : "inactive",
-      main_service_id: serviceItem.main_service_id,
+      main_service_id: serviceItem.main_service_id || 0,
     },
   });
 
@@ -170,10 +149,9 @@ export const EditServiceItemModal = ({
     if (open && serviceItem) {
       form.reset({
         service_item: serviceItem.name || "",
-        type: (serviceItem.type as "item" | "area") || "item",
         service_options: standardOptions,
         status: serviceItem.is_active ? "active" : "inactive",
-        main_service_id: serviceItem.main_service_id,
+        main_service_id: serviceItem.main_service_id || 0,
       });
     }
   }, [open, form, serviceItem, standardOptions]);

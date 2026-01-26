@@ -39,6 +39,7 @@ import {
   CaretUpIcon,
   CaretDownIcon,
 } from "@phosphor-icons/react";
+import { Database } from "@/database.types";
 import {
   useDeleteServiceItem,
   useFetchServicesAdmin,

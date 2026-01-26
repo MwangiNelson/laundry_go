@@ -16,7 +16,6 @@ type ServiceOption = {
 type ServiceItem = {
   id: string;
   name: string;
-  type: string;
   icon_path: string | null;
   display_order: number;
   is_available: boolean;

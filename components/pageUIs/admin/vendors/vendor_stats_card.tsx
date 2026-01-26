@@ -13,17 +13,8 @@ import { useFetchVendorStats } from "@/api/admin/vendors/use_fetch_vendors";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-const timeRangeOptions: SelectOption[] = [
-  { value: "this_month", label: "This Month" },
-  { value: "last_month", label: "Last Month" },
-  { value: "this_year", label: "This Year" },
-  { value: "all_time", label: "All Time" },
-];
-
 export const VendorStatsCard = () => {
   const { data: stats, isLoading } = useFetchVendorStats();
-  const [selectedTimeRange, setSelectedTimeRange] =
-    React.useState("this_month");
 
   if (isLoading) {
     return (
@@ -45,13 +36,7 @@ export const VendorStatsCard = () => {
     <StatCard>
       <StatCardHeader>
         <StatCardTitle>
-          <span>Vendors</span>
-          <StatCardSelect
-            options={timeRangeOptions}
-            placeholder="This Month"
-            defaultValue={selectedTimeRange}
-            onValueChange={setSelectedTimeRange}
-          />
+          <h1 className="font-semibold text-lg">Vendors</h1>
         </StatCardTitle>
         <Button size="sm" className="gap-2 rounded-xl">
           <Plus className="size-4" />

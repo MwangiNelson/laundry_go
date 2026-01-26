@@ -5,11 +5,15 @@ import { Database } from "../../../database.types";
 import { IAddServiceItemModalSchema } from "@/components/modals/admin/services/add_services_items.modal";
 import { IEditServiceItemModalSchema } from "@/components/modals/admin/services/edit_service_items.modal";
 import { useMutation } from "@tanstack/react-query";
-import { uploadFile, replaceFile, deleteFile } from "@/api/supabase/supabase_file_upload";
+import {
+  uploadFile,
+  replaceFile,
+  deleteFile,
+} from "@/api/supabase/supabase_file_upload";
 
 export const useFetchServicesAdmin = () => {
   return useQuery({
-    queryKey: ["services","admin"],
+    queryKey: ["services", "admin"],
     queryFn: async () => {
       const supabase = createSupabaseClient();
       const { data, error } = await supabase.from("main_services").select(`*,
@@ -26,26 +30,30 @@ export const useFetchServicesAdmin = () => {
 };
 
 export const useGetMainServiceBySlug = (slug: string) => {
-    return useQuery({
-        queryKey: ["main_services", slug],
-        queryFn: async () => {
-            const supabase = createSupabaseClient();
-            const { data, error } = await supabase.from("main_services").select("*").eq("slug", slug as Database["public"]["Enums"]["main_services_types"]).single();
-            if (error) {
-                throw new Error(error.message);
-            }
-            return data;
-        },
-    });
+  return useQuery({
+    queryKey: ["main_services", slug],
+    queryFn: async () => {
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase
+        .from("main_services")
+        .select("*")
+        .eq("slug", slug as Database["public"]["Enums"]["main_services_types"])
+        .single();
+      if (error) {
+        throw new Error(error.message);
+      }
+      return data;
+    },
+  });
 };
 
 //add servcie item
 export const useAddServiceItem = () => {
   return useMutation({
-    meta:{
+    meta: {
       showErrorMessage: true,
       successMessage: "Service item added successfully",
-      invalidateQueries:[["services","admin"]],
+      invalidateQueries: [["services", "admin"]],
     },
     mutationFn: async (data: IAddServiceItemModalSchema) => {
       let _url = "";
@@ -57,31 +65,37 @@ export const useAddServiceItem = () => {
         _url = url;
       }
       const supabase = createSupabaseClient();
-      const service_item: Database["public"]["Tables"]["service_items"]["Insert"] = {
-        main_service_id: data.main_service_id,
-        name: data.service_item,
-        is_active: data.status === "active",
-        icon_path: _url,
-        
-        }
-      const {data:res_service_item,error:error_service_item}=await supabase.from("service_items").insert(service_item).select().single();
+      const service_item: Database["public"]["Tables"]["service_items"]["Insert"] =
+        {
+          main_service_id: data.main_service_id,
+          name: data.service_item,
+          is_active: data.status === "active",
+          icon_path: _url,
+        };
+      const { data: res_service_item, error: error_service_item } =
+        await supabase
+          .from("service_items")
+          .insert(service_item)
+          .select()
+          .single();
       if (error_service_item) {
         throw new Error(error_service_item.message);
       }
-        const service_options:Database["public"]["Tables"]["service_options"]["Insert"][] = data.service_options.map((option) => ({
+      const service_options: Database["public"]["Tables"]["service_options"]["Insert"][] =
+        data.service_options.map((option) => ({
           name: option.name,
           service_item_id: res_service_item.id,
-          is_active: option.enabled?true:false,
-            }));
-            const {data:res_service_options,error:error_service_options}=await supabase.from("service_options").insert(service_options);
-            if (error_service_options) {
-              throw new Error(error_service_options.message);
-            }
-            return {
-              service_item: res_service_item,
-              service_options: res_service_options,
-              
-            }
+          is_active: option.enabled ? true : false,
+        }));
+      const { data: res_service_options, error: error_service_options } =
+        await supabase.from("service_options").insert(service_options);
+      if (error_service_options) {
+        throw new Error(error_service_options.message);
+      }
+      return {
+        service_item: res_service_item,
+        service_options: res_service_options,
+      };
     },
   });
 };

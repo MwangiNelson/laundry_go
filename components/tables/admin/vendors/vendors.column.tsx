@@ -5,53 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { IVendor } from "@/api/admin/vendors/use_fetch_vendors";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { MoreHorizontal } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
-// Status Badge Component
-const VendorStatusBadge = ({ status }: { status: string | null }) => {
-  const statusConfig: Record<string, { label: string; className: string }> = {
-    active: {
-      label: "Active",
-      className: "bg-green-100 text-green-700",
-    },
-    suspended: {
-      label: "Suspended",
-      className: "bg-red-100 text-red-700",
-    },
-    under_review: {
-      label: "Under Review",
-      className: "bg-yellow-100 text-yellow-700",
-    },
-    rejected: {
-      label: "Rejected",
-      className: "bg-gray-100 text-gray-700",
-    },
-    onboarded: {
-      label: "Onboarded",
-      className: "bg-blue-100 text-blue-700",
-    },
-    pending: {
-      label: "Pending",
-      className: "bg-orange-100 text-orange-700",
-    },
-  };
-
-  const config = statusConfig[status || "pending"] || statusConfig.pending;
-
-  return (
-    <Badge variant="secondary" className={cn("text-xs", config.className)}>
-      {config.label}
-    </Badge>
-  );
-};
+import { VendorActionsCell } from "@/components/modals/admin/vendors/vendor_actions_cell";
 
 export const vendorsColumns: ColumnDef<IVendor>[] = [
   {
@@ -160,36 +114,7 @@ export const vendorsColumns: ColumnDef<IVendor>[] = [
     header: "",
     cell: ({ row }) => {
       const vendor = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>View Details</DropdownMenuItem>
-            <DropdownMenuItem>Edit Vendor</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            {vendor.status === "under_review" && (
-              <>
-                <DropdownMenuItem>Approve Vendor</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive">
-                  Reject Vendor
-                </DropdownMenuItem>
-              </>
-            )}
-            {vendor.status === "active" && (
-              <DropdownMenuItem className="text-destructive">
-                Suspend Vendor
-              </DropdownMenuItem>
-            )}
-            {vendor.status === "suspended" && (
-              <DropdownMenuItem>Activate Vendor</DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <VendorActionsCell vendor={vendor} />;
     },
   },
 ];

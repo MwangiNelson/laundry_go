@@ -9,9 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { VendorService } from "@/api/vendor/services/use_fetch_services";
-import { Badge } from "@/components/ui/badge";
 
-// Availability badge component
 const AvailabilityBadge = ({ isAvailable }: { isAvailable: boolean }) => {
   return (
     <div className="flex items-center gap-1">

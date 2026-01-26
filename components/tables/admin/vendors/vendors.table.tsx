@@ -13,20 +13,20 @@ import {
   FilterItem,
 } from "@/components/tables/table_components/data_table_multi_filters";
 
-export type IVendorTab = "under_review" | "active" | "suspended" | "pending";
+export type IVendorTab = "pending" | "approved" | "rejected" | "suspended";
 
 const convertTabToDbStatus = (tab: IVendorTab): string => {
   const statusMap: Record<IVendorTab, string> = {
-    under_review: "under_review",
-    active: "active",
-    suspended: "suspended",
     pending: "pending",
+    approved: "approved",
+    rejected: "rejected",
+    suspended: "suspended",
   };
   return statusMap[tab];
 };
 
 export const VendorsTable = () => {
-  const [activeTab, setActiveTab] = useState<IVendorTab>("under_review");
+  const [activeTab, setActiveTab] = useState<IVendorTab>("pending");
 
   const {
     handleSearchChange,
@@ -101,9 +101,9 @@ export const VendorsTable = () => {
       >
         <div className="flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="under_review">Under review</TabsTrigger>
             <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="active">Active</TabsTrigger>
+            <TabsTrigger value="approved">Approved</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected</TabsTrigger>
             <TabsTrigger value="suspended">Suspended</TabsTrigger>
           </TabsList>
 
