@@ -11,6 +11,7 @@ import { Form } from "@/components/ui/form";
 import { PasswordInput } from "@/components/fields/inputs/password_input";
 import { Button } from "@/components/ui/button";
 import { useSetNewPassword } from "@/api/auth/use_auth";
+import { useRouter } from "next/navigation";
 
 const setNewPasswordSchema = z
   .object({
@@ -26,6 +27,7 @@ type SetNewPasswordFormValues = z.infer<typeof setNewPasswordSchema>;
 
 export const VendorSetNewPasswordPageUI = () => {
   const { mutateAsync, isPending } = useSetNewPassword();
+  const router = useRouter();
   const form = useForm<SetNewPasswordFormValues>({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
@@ -34,9 +36,11 @@ export const VendorSetNewPasswordPageUI = () => {
     },
   });
 
-  const onSubmit = (data: SetNewPasswordFormValues) => {
-    mutateAsync({
+  const onSubmit = async (data: SetNewPasswordFormValues) => {
+    await mutateAsync({
       password: data.password,
+    }).then(() => {
+      router.push("/auth/vendor/password-success");
     });
   };
 

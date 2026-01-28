@@ -52,7 +52,7 @@ export const AdminServicesTable = () => {
         loading={isLoading}
         tableOptions={{
           manualPagination: true,
-          pageCount: 5,
+          pageCount: 1,
           state: {
             pagination: {
               pageIndex: pagination.pageIndex,

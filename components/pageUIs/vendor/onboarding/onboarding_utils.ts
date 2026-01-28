@@ -5,6 +5,7 @@ export const SERVICE_NAME_TO_ID: Record<string, number> = {
   office_cleaning: 3,
   fumigation: 4,
   house_cleaning: 5,
+  dry_cleaning: 6,
 };
 
 // Helper to convert service name to slug
@@ -41,6 +42,11 @@ const getServiceDescription = (
     fumigation: {
       title: "Setup Fumigation Pricing",
       description: "Define your standard rates for pest control services.",
+    },
+    dry_cleaning: {
+      title: "Setup Dry Cleaning Pricing",
+      description:
+        "Set your prices for dry cleaning items like suits, blazers, and coats.",
     },
   };
 
@@ -116,6 +122,12 @@ const fumigation_item = z.object({
   service_item_id: z.string().min(1, "Room/Place is required"),
   price: z.number().min(0, "Price must be a positive number"),
 });
+
+const dry_cleaning_item = z.object({
+  service_item_id: z.string().min(1, "Item is required"),
+  price: z.number().min(0, "Price must be a positive number"),
+});
+
 const laundry_config = z.object({
   enabled: z.boolean(),
   items: z.array(laundry_item),
@@ -136,6 +148,11 @@ const fumigation_config = z.object({
   items: z.array(fumigation_item),
 });
 
+const dry_cleaning_config = z.object({
+  enabled: z.boolean(),
+  items: z.array(dry_cleaning_item),
+});
+
 // Base schema for type inference (without refine)
 const service_and_pricing_base = z.object({
   laundry: laundry_config,
@@ -143,6 +160,7 @@ const service_and_pricing_base = z.object({
   house_cleaning: cleaning_config,
   office_cleaning: cleaning_config,
   fumigation: fumigation_config,
+  dry_cleaning: dry_cleaning_config,
 });
 
 // Full schema with validation refinements
@@ -153,7 +171,8 @@ export const service_and_pricing = service_and_pricing_base
       data.moving.enabled ||
       data.house_cleaning.enabled ||
       data.office_cleaning.enabled ||
-      data.fumigation.enabled,
+      data.fumigation.enabled ||
+      data.dry_cleaning.enabled,
     { message: "Please select at least one service" }
   )
   .refine(
@@ -164,6 +183,7 @@ export const service_and_pricing = service_and_pricing_base
         data.house_cleaning,
         data.office_cleaning,
         data.fumigation,
+        data.dry_cleaning,
       ];
       return services.every((s) => !s.enabled || s.items.length > 0);
     },

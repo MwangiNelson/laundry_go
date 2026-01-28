@@ -11,6 +11,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useConfirmEmailOtp } from "@/api/auth/use_auth";
+import { useRouter } from "next/navigation";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete OTP"),
@@ -18,9 +19,9 @@ const otpSchema = z.object({
 
 type OtpFormValues = z.infer<typeof otpSchema>;
 
-export const SignUpOTP = () => {
+export const SignInOtp = () => {
   const { mutateAsync: confirmEmail, isPending } = useConfirmEmailOtp();
-
+  const router = useRouter();
   const form = useForm<OtpFormValues>({
     resolver: zodResolver(otpSchema),
     defaultValues: {
@@ -28,13 +29,15 @@ export const SignUpOTP = () => {
     },
   });
 
-  const onSubmit = (data: OtpFormValues) => {
-    const email = localStorage.getItem("signup_email") || "";
+  const onSubmit = async (data: OtpFormValues) => {
+    const email = localStorage.getItem("recovery_email") || "";
     if (!email) {
       console.error("No email found in localStorage");
       return;
     }
-    confirmEmail({ email, token: data.otp });
+    await confirmEmail({ email, token: data.otp }).then(() => {
+      router.push("/auth/vendor/set-new-password");
+    });
   };
 
   return (
@@ -63,12 +66,12 @@ export const SignUpOTP = () => {
                 <FormItem className="flex justify-center">
                   <FormControl>
                     <InputOTP
-                      maxLength={8}
+                      maxLength={6}
                       value={field.value}
                       onChange={field.onChange}
                     >
                       <InputOTPGroup className="gap-3">
-                        {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+                        {[0, 1, 2, 3, 4, 5].map((index) => (
                           <InputOTPSlot
                             key={index}
                             index={index}

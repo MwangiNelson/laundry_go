@@ -54,6 +54,7 @@ const useOnboardingProvider = () => {
       house_cleaning: { enabled: false, items: [] },
       office_cleaning: { enabled: false, items: [] },
       fumigation: { enabled: false, items: [] },
+      dry_cleaning: { enabled: false, items: [] },
     },
   });
   const steps = [

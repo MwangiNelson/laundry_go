@@ -1,8 +1,11 @@
 "use client";
 import { useMutation } from "@tanstack/react-query";
-import { createSupabaseClient } from "../supabase/client";
+import { useRouter } from "next/navigation";
+import { createVendorUser } from "@/app/actions/send_verification_email.action";
 
 export const useVendorSignUpWithEmail = () => {
+  const router = useRouter();
+
   return useMutation({
     meta: {
       successMessage: "Confirmation email sent",
@@ -18,27 +21,18 @@ export const useVendorSignUpWithEmail = () => {
       password: string;
       full_name: string;
     }) => {
-      const client = createSupabaseClient();
-      const { data, error } = await client.auth.signUp({
+      const result = await createVendorUser({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/vendor/signin`,
-          data: {
-            full_name: full_name,
-            role: "admin", // Changed from "vendor" to "admin" - vendors are admins of their business
-          },
-        },
+        full_name,
       });
-      if (error) {
-        throw new Error(error.message);
-      }
-      if (!data.user?.id) {
-        throw new Error("User ID not found after sign up.");
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to create user");
       }
 
       return {
-        user: data.user,
+        user: result.user,
       };
     },
   });

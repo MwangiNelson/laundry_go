@@ -86,12 +86,12 @@ export const OtpVerificationPageUI = () => {
                   <FormItem className="flex justify-center">
                     <FormControl>
                       <InputOTP
-                        maxLength={8}
+                        maxLength={6}
                         value={field.value}
                         onChange={field.onChange}
                       >
                         <InputOTPGroup className="gap-3">
-                          {[0, 1, 2, 3, 4, 5, 6, 7].map((index) => (
+                          {[0, 1, 2, 3, 4, 5].map((index) => (
                             <InputOTPSlot
                               key={index}
                               index={index}

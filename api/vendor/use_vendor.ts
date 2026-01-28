@@ -2,32 +2,40 @@
 import { useMutation, useQuery, useQueries } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "../supabase/client";
+import { useAuth } from "@/components/context/auth_provider";
 
-export const useGetVendor = ({
-  admin_id,
-}: {
-  admin_id: string | undefined;
-}) => {
+export const useGetVendor = () => {
+  const { user } = useAuth();
   const client = createSupabaseClient();
   return useQuery({
-    queryKey: ["vendor", admin_id],
-    enabled: !!admin_id,
+    queryKey: ["vendor", user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
-      const { data, error } = await client
-        .from("vendors")
-        .select(
+      if (user?.id) {
+        const { data, error } = await client
+          .from("vendor_users")
+          .select(
+            `
+            *,
+            vendors(
+              *,
+              location:locations(*)
+            )
           `
-          *
-          
-        `
-        )
-        .eq("admin_id", admin_id!)
-        .single();
+          )
+          .eq("user_id", user?.id)
+          .single();
 
-      if (error) {
-        throw new Error(error.message);
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        let vendor = data?.vendors;
+        return {
+          data,
+          ...vendor,
+        };
       }
-      return data;
     },
   });
 };

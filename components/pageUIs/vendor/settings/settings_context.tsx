@@ -80,6 +80,7 @@ export const SettingsProvider = ({
       phone_number: vendor?.phone || "",
       email: vendor?.email || "",
       logo: undefined,
+      location: undefined,
       ...defaultBusinessProfile,
     },
   });
@@ -87,11 +88,21 @@ export const SettingsProvider = ({
   // Update form when vendor data loads
   useEffect(() => {
     if (vendor && vendorUser) {
+      const location = vendor?.location as any;
       business_profile_form.reset({
         business_name: vendor?.business_name || "",
         phone_number: vendor?.phone || "",
         email: vendor?.email || "",
         logo: undefined,
+        location: location
+          ? {
+              place_id: location.place_id || undefined,
+              description: location.description || null,
+              main_text: location.main_text || undefined,
+              secondary_text: location.secondary_text || undefined,
+              coordinates: location.coordinates || undefined,
+            }
+          : undefined,
         ...defaultBusinessProfile,
       });
     }
@@ -166,6 +177,8 @@ export const SettingsProvider = ({
       email: data.email,
       logo: data.logo,
       current_logo_url: vendor?.logo_url ?? undefined,
+      location: data.location,
+      current_location_id: vendor?.location_id ?? undefined,
     });
   };
 

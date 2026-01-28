@@ -31,7 +31,7 @@ export const useFetchServicesAdmin = () => {
 
 export const useGetMainServiceBySlug = (slug: string) => {
   return useQuery({
-    queryKey: ["main_services", slug],
+    queryKey: ["services", slug],
     queryFn: async () => {
       const supabase = createSupabaseClient();
       const { data, error } = await supabase

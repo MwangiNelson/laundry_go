@@ -3,10 +3,6 @@
     "supabase": {
       "url": "https://mcp.supabase.com/mcp",
       "type": "http"
-    },
-    "figma": {
-      "url": "https://mcp.figma.com/mcp",
-      "type": "http"
     }
   },
   "inputs": []

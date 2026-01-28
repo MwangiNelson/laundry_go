@@ -21,7 +21,7 @@ export const LaundryOrderOverview = () => {
               </div>
               <div className="col-span-5 px-3 py-2">
                 <p className="text-sm text-muted-foreground font-normal font-manrope">
-                  Service
+                  Price
                 </p>
               </div>
             </div>
@@ -31,7 +31,7 @@ export const LaundryOrderOverview = () => {
                 <div key={index} className="grid grid-cols-12 gap-3 py-2">
                   <div className="col-span-5 px-3 py-2">
                     <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
-                      {item.service_item.name}
+                      {item.name}
                     </p>
                   </div>
                   <div className="col-span-2 px-3 py-2">
@@ -41,7 +41,7 @@ export const LaundryOrderOverview = () => {
                   </div>
                   <div className="col-span-5 px-3 py-2">
                     <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
-                      {item.service_option?.name}
+                      {item.price * item.quantity}
                     </p>
                   </div>
                 </div>
@@ -55,12 +55,31 @@ export const LaundryOrderOverview = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-end">
-          <p className="text-base text-muted-foreground font-normal font-manrope leading-[1.6]">
-            Pickup Location: {orderData?.delivery_details?.location}
-            Delivery Location: {orderData?.pickup_details?.location}
-            Time: {orderData?.delivery_details?.time}
-          </p>
+        <div className="bg-card rounded-2xl p-6 space-y-3">
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold font-manrope uppercase tracking-wide">
+              Pickup Location
+            </p>
+            <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6] mt-1">
+              {orderData?.pickup_details?.location}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold font-manrope uppercase tracking-wide">
+              Delivery Location
+            </p>
+            <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6] mt-1">
+              {orderData?.delivery_details?.location}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-semibold font-manrope uppercase tracking-wide">
+              Delivery Time
+            </p>
+            <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6] mt-1">
+              {orderData?.delivery_details?.time}
+            </p>
+          </div>
         </div>
       </div>
     </div>

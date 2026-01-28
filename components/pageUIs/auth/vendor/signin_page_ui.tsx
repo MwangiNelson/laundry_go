@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import VendorAuthPageUI from "./vendor_auth_page_ui";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -12,6 +12,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useLoginWithEmail } from "@/api/auth/use_auth";
+import { useRememberMe } from "@/api/auth/use_remember_me";
+import { createSupabaseClient } from "@/api/supabase/client";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -22,6 +24,8 @@ const schema = z.object({
 });
 const SignInPageUI = () => {
   const { mutateAsync: signInWithEmail, isPending } = useLoginWithEmail();
+  const { getRememberedEmail } = useRememberMe();
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -30,13 +34,36 @@ const SignInPageUI = () => {
       rememberMe: false,
     },
   });
+
+  // Pre-fill email if remembered
+  useEffect(() => {
+    const rememberedEmail = getRememberedEmail();
+    if (rememberedEmail) {
+      form.setValue("email", rememberedEmail);
+      form.setValue("rememberMe", true);
+    }
+  }, [form, getRememberedEmail]);
+
   const onSubmit = async (data: z.infer<typeof schema>) => {
     await signInWithEmail({
       email: data.email,
       password: data.password,
+      rememberMe: data.rememberMe,
     }).then(() => {
       window.location.href = "/vendor";
       form.reset();
+    });
+  };
+  const handleGoogleLogin = async () => {
+    const supabase = createSupabaseClient();
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          next: "vendor",
+        },
+      },
     });
   };
   return (
@@ -127,15 +154,7 @@ const SignInPageUI = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    disabled={true}
-                    className="flex-1 h-12 border-primary text-foreground font-manrope text-[14px] rounded-lg hover:bg-primary/10"
-                  >
-                    Sign In with Phone Number
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    disabled={true}
+                    onClick={handleGoogleLogin}
                     className="flex-1 h-12 border-primary text-foreground font-manrope text-[14px] rounded-lg hover:bg-primary/10 gap-2"
                   >
                     <Image

@@ -25,6 +25,7 @@ const SERVICE_NAME_TO_ID: Record<string, number> = {
   office_cleaning: 3,
   fumigation: 4,
   house_cleaning: 5,
+  dry_cleaning: 6,
 };
 
 export const OnboardingServiceAndPricing = () => {
@@ -164,7 +165,7 @@ const LaundryItemsForm = ({
 }: LaundryItemsFormProps) => {
   const { service_and_pricing_form } = useOnboarding();
 
-  const { fields, append, remove, update } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: service_and_pricing_form.control,
     name: "laundry.items",
   });
@@ -202,38 +203,6 @@ const LaundryItemsForm = ({
     [serviceItems, append]
   );
 
-  const handleToggleOption = useCallback(
-    (itemIndex: number, optionIndex: number, enabled: boolean) => {
-      const currentItem = fields[itemIndex] as TLaundryItem;
-      const updatedOptions = [...currentItem.options];
-      updatedOptions[optionIndex] = {
-        ...updatedOptions[optionIndex],
-        enabled,
-      };
-      update(itemIndex, {
-        ...currentItem,
-        options: updatedOptions,
-      });
-    },
-    [fields, update]
-  );
-
-  const handlePriceChange = useCallback(
-    (itemIndex: number, optionIndex: number, price: number) => {
-      const currentItem = fields[itemIndex] as TLaundryItem;
-      const updatedOptions = [...currentItem.options];
-      updatedOptions[optionIndex] = {
-        ...updatedOptions[optionIndex],
-        price,
-      };
-      update(itemIndex, {
-        ...currentItem,
-        options: updatedOptions,
-      });
-    },
-    [fields, update]
-  );
-
   if (isLoading) {
     return (
       <div className="text-sm text-muted-foreground">Loading services...</div>
@@ -269,68 +238,94 @@ const LaundryItemsForm = ({
               <span className="font-manrope text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Service Options
               </span>
-              {item.options.map((option, optionIndex) => (
-                <div
-                  key={option.service_option_id}
-                  className={cn(
-                    "flex items-center gap-4 p-3 rounded-lg border transition-all",
-                    option.enabled
-                      ? "bg-background border-primary-blue/20"
-                      : "bg-muted/20 border-muted opacity-60"
-                  )}
-                >
-                  {/* Toggle Switch */}
-                  <Switch
-                    checked={option.enabled}
-                    onCheckedChange={(checked) =>
-                      handleToggleOption(itemIndex, optionIndex, checked)
-                    }
-                  />
+              {item.options.map((option, optionIndex) => {
+                const enabledPath =
+                  `laundry.items.${itemIndex}.options.${optionIndex}.enabled` as Path<TServiceAndPricing>;
+                const pricePath =
+                  `laundry.items.${itemIndex}.options.${optionIndex}.price` as Path<TServiceAndPricing>;
 
-                  {/* Option Name */}
-                  <span
+                return (
+                  <div
+                    key={option.service_option_id}
                     className={cn(
-                      "font-manrope text-sm flex-1",
+                      "flex items-center gap-4 p-3 rounded-lg border transition-all",
                       option.enabled
-                        ? "text-foreground"
-                        : "text-muted-foreground"
+                        ? "bg-background border-primary-blue/20"
+                        : "bg-muted/20 border-muted opacity-60"
                     )}
                   >
-                    {option.option_name}
-                  </span>
+                    {/* Toggle Switch */}
+                    <FormField
+                      control={service_and_pricing_form.control}
+                      name={enabledPath}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Switch
+                              checked={field.value as boolean}
+                              onCheckedChange={field.onChange}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
 
-                  {/* Price Input */}
-                  <div className="w-32">
-                    <div
+                    {/* Option Name */}
+                    <span
                       className={cn(
-                        "relative rounded-xl border px-3 py-2 transition-colors",
-                        "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
-                        !option.enabled && "opacity-50"
+                        "font-manrope text-sm flex-1",
+                        option.enabled
+                          ? "text-foreground"
+                          : "text-muted-foreground"
                       )}
                     >
-                      <div className="flex flex-col gap-0.5">
-                        <label className="text-[10px] font-medium tracking-wide text-label">
-                          Price (Kes)
-                        </label>
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          step={1}
-                          value={option.price || ""}
-                          onChange={(e) => {
-                            const value = parseInt(e.target.value, 10) || 0;
-                            handlePriceChange(itemIndex, optionIndex, value);
-                          }}
-                          disabled={!option.enabled}
-                          placeholder="0"
-                          className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
-                        />
-                      </div>
+                      {option.option_name}
+                    </span>
+
+                    {/* Price Input */}
+                    <div className="w-32">
+                      <FormField
+                        control={service_and_pricing_form.control}
+                        name={pricePath}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <div
+                                className={cn(
+                                  "relative rounded-xl border px-3 py-2 transition-colors",
+                                  "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
+                                  !option.enabled && "opacity-50"
+                                )}
+                              >
+                                <div className="flex flex-col gap-0.5">
+                                  <label className="text-[10px] font-medium tracking-wide text-label">
+                                    Price (Kes)
+                                  </label>
+                                  <input
+                                    type="number"
+                                    inputMode="numeric"
+                                    min={0}
+                                    step={1}
+                                    value={(field.value as number) || ""}
+                                    onChange={(e) => {
+                                      const value =
+                                        parseInt(e.target.value, 10) || 0;
+                                      field.onChange(value);
+                                    }}
+                                    disabled={!option.enabled}
+                                    placeholder="0"
+                                    className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+                                  />
+                                </div>
+                              </div>
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         );
@@ -392,6 +387,7 @@ const GenericServiceItemsForm = ({
     switch (serviceId) {
       case "moving":
       case "fumigation":
+      case "dry_cleaning":
         return { service_item_id: "", price: 0 };
       case "house_cleaning":
       case "office_cleaning":
@@ -416,7 +412,7 @@ const GenericServiceItemsForm = ({
   return (
     <div className="flex flex-col gap-3">
       <span className="font-manrope text-sm text-muted-foreground">
-        Add Room/ Place
+        {serviceId === "dry_cleaning" ? "Add Item" : "Add Room/ Place"}
       </span>
 
       {fields.map((field, index) => (
@@ -438,7 +434,7 @@ const GenericServiceItemsForm = ({
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors self-end"
       >
         <Plus size={16} />
-        <span>Add Room</span>
+        <span>{serviceId === "dry_cleaning" ? "Add Item" : "Add Room"}</span>
       </button>
     </div>
   );
@@ -513,6 +509,7 @@ const ServiceItemInputs = ({
   switch (serviceId) {
     case "moving":
     case "fumigation":
+    case "dry_cleaning":
       return (
         <div className="grid grid-cols-2 gap-3 flex-1">
           <BasicSelect
@@ -520,8 +517,10 @@ const ServiceItemInputs = ({
             name={
               `${basePath}.service_item_id` as `moving.items.${number}.service_item_id`
             }
-            label="Room/Place"
-            placeholder="Select room"
+            label={serviceId === "dry_cleaning" ? "Item" : "Room/Place"}
+            placeholder={
+              serviceId === "dry_cleaning" ? "Select item" : "Select room"
+            }
             options={itemOptions}
             searchable
           />

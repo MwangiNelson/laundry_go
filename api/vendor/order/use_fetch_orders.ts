@@ -62,7 +62,6 @@ export interface IOrderRider {
 export interface IServiceItem {
   id: string;
   name: string;
-  type: string;
   icon_path: string | null;
 }
 
@@ -76,6 +75,7 @@ export interface IOrderItem {
   id: string;
   quantity: number;
   price: number;
+  name: string;
   service_item: IServiceItem;
   service_option: IServiceOption | null;
 }
@@ -86,16 +86,14 @@ export interface IMainService {
   slug: string;
 }
 export type IOrderStatus =
-  | "New"
-  | "Confirmed"
-  | "Ongoing"
-  | "Ready"
-  | "Delivered"
-  | "Completed"
-  | "Rated"
-  | "Cancelled"
-  | "Scheduled"
-  | "Draft";
+  | "under_review"
+  | "accepted"
+  | "in_pickup"
+  | "in_processing"
+  | "ready_for_delivery"
+  | "under_delivery"
+  | "complete"
+  | "cancelled";
 
 export interface IOrder {
   id: string;
@@ -155,5 +153,38 @@ export const useFetchOrders = (params: IOrderParams) => {
       return data as unknown as IFetchOrdersResponse;
     },
     enabled: !!params.vendor_id || !!params.main_service_slug,
+  });
+};
+
+//feth
+
+export interface IOrderTimelineEntry {
+  id: string;
+  order_id: string;
+  status: string;
+  created_at: string;
+  created_by: string | null;
+  notes: string | null;
+}
+
+export const useFetchOrderTimeline = (orderId: string) => {
+  return useQuery({
+    queryKey: ["order-timeline", orderId],
+    queryFn: async (): Promise<IOrderTimelineEntry[]> => {
+      const supabase = createSupabaseClient();
+
+      const { data, error } = await supabase
+        .from("order_timeline")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return data || [];
+    },
+    enabled: !!orderId,
   });
 };

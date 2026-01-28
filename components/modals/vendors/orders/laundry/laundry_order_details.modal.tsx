@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { useLaundryModal } from "./use_laundry_modal";
+import { useFetchOrderTimeline } from "@/api/vendor/order/use_fetch_orders";
 import {
   ProfileCard,
   StarRating,
@@ -15,6 +16,34 @@ import { LaundryOrderOverview } from "./laundry_order_overview";
 
 export const LaundryOrderDetailsModal = () => {
   const { order, setOpen } = useLaundryModal();
+  const { data: timelineData } = useFetchOrderTimeline(order?.id || "");
+
+  // Format timeline data for OrderProgressTimeline component
+  const formatTimelineForProgress = () => {
+    if (!timelineData || timelineData.length === 0) return [];
+
+    const statusLabels: Record<string, string> = {
+      under_review: "Under Review",
+      accepted: "Accepted",
+      in_pickup: "In Pickup",
+      in_processing: "In Processing",
+      ready_for_delivery: "Ready for Delivery",
+      under_delivery: "Under Delivery",
+      complete: "Complete",
+      cancelled: "Cancelled",
+    };
+
+    return timelineData.map((entry) => ({
+      label: statusLabels[entry.status] || entry.status,
+      time: new Date(entry.created_at).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      completed: true,
+    }));
+  };
 
   return (
     <DialogContent
@@ -44,10 +73,48 @@ export const LaundryOrderDetailsModal = () => {
             </h2>
             <Badge className="bg-card border border-border shadow-[0px_1px_2px_0px_rgba(0,0,0,0.1)] px-2.5 h-8 rounded-md gap-1.5">
               <div className="size-4 flex items-center justify-center">
-                <div className="size-2 rounded-full bg-secondary" />
+                <div
+                  className={`size-2 rounded-full ${
+                    order?.status === "complete"
+                      ? "bg-green-500"
+                      : order?.status === "cancelled"
+                        ? "bg-red-500"
+                        : order?.status === "under_delivery"
+                          ? "bg-blue-500"
+                          : order?.status === "ready_for_delivery"
+                            ? "bg-green-400"
+                            : order?.status === "in_processing"
+                              ? "bg-orange-500"
+                              : order?.status === "in_pickup"
+                                ? "bg-purple-500"
+                                : order?.status === "accepted"
+                                  ? "bg-blue-400"
+                                  : "bg-yellow-500"
+                  }`}
+                />
               </div>
-              <span className="text-base font-normal text-secondary font-manrope">
-                Delivered
+              <span
+                className={`text-base font-normal font-manrope ${
+                  order?.status === "complete"
+                    ? "text-green-500"
+                    : order?.status === "cancelled"
+                      ? "text-red-500"
+                      : order?.status === "under_delivery"
+                        ? "text-blue-500"
+                        : order?.status === "ready_for_delivery"
+                          ? "text-green-400"
+                          : order?.status === "in_processing"
+                            ? "text-orange-500"
+                            : order?.status === "in_pickup"
+                              ? "text-purple-500"
+                              : order?.status === "accepted"
+                                ? "text-blue-400"
+                                : "text-yellow-500"
+                }`}
+              >
+                {order?.status
+                  ?.replace("_", " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase())}
               </span>
             </Badge>
           </div>
@@ -81,7 +148,7 @@ export const LaundryOrderDetailsModal = () => {
                       />
                     </div>
                     <LaundryOrderOverview />
-                    {/* <div className="flex gap-6">
+                    <div className="flex gap-6">
                       <div className="flex-1 bg-card rounded-2xl p-6 space-y-4">
                         <div className="flex items-center justify-between">
                           <p className="text-sm text-muted-foreground font-normal font-manrope">
@@ -93,18 +160,7 @@ export const LaundryOrderDetailsModal = () => {
                           Clothes done well.
                         </p>
                       </div>
-                      <div className="flex-1 bg-card rounded-2xl p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground font-normal font-manrope">
-                            Our Review
-                          </p>
-                          <StarRating rating={4.5} />
-                        </div>
-                        <p className="text-base text-card-foreground font-normal font-manrope leading-[1.6]">
-                          Was polite and paid on time.
-                        </p>
-                      </div>
-                    </div> */}
+                    </div>
                   </div>
                 ),
               },
@@ -112,74 +168,9 @@ export const LaundryOrderDetailsModal = () => {
                 label: "Track Order",
                 value: "track-order",
                 content: (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ActivityLog
-                      items={[
-                        {
-                          icon: "package",
-                          text: "Order marked as Ready for Delivery",
-                          time: "4:30 PM",
-                        },
-                        {
-                          icon: "package",
-                          text: "Order progressing started",
-                          time: "11:00 AM",
-                        },
-                        {
-                          icon: "motorcycle",
-                          text: "Rider Lucy picked up order",
-                          time: "10:00 AM",
-                        },
-                        {
-                          icon: "package",
-                          text: `Order placed by ${order?.customer.full_name}`,
-                          time: "9:15 AM",
-                        },
-                        {
-                          icon: "package",
-                          text: "Order marked as Ready for Delivery",
-                          time: "4:30 PM",
-                        },
-                        {
-                          icon: "package",
-                          text: "Order progressing started",
-                          time: "11:00 AM",
-                        },
-                        {
-                          icon: "motorcycle",
-                          text: "Rider Lucy picked up order",
-                          time: "10:00 AM",
-                        },
-                        {
-                          icon: "package",
-                          text: `Order placed by ${order?.customer.full_name}`,
-                          time: "9:15 AM",
-                        },
-                      ]}
-                    />
+                  <div className="grid grid-cols-1  gap-6">
                     <OrderProgressTimeline
-                      steps={[
-                        {
-                          label: "New (under review)",
-                          time: "Nov 6, 9:15 AM",
-                          completed: true,
-                        },
-                        {
-                          label: "In progress",
-                          time: "Nov 6, 10:00 AM (Rider: Kevin O.)",
-                          completed: true,
-                        },
-                        {
-                          label: "Ready (for delivery)",
-                          time: "Nov 6, 11:00 AM",
-                          completed: true,
-                        },
-                        {
-                          label: "Delivered",
-                          time: "Nov 6, 4:30 PM",
-                          completed: true,
-                        },
-                      ]}
+                      steps={formatTimelineForProgress()}
                     />
                   </div>
                 ),

@@ -43,7 +43,14 @@ export const NewOrderModal = () => {
 
     setOpen(false);
   };
-  const handleStatusChange = async (newStatus: "Ready" | "Delivered") => {
+  const handleStatusChange = async (
+    newStatus:
+      | "in_pickup"
+      | "in_processing"
+      | "ready_for_delivery"
+      | "under_delivery"
+      | "complete"
+  ) => {
     await update_order_status({ order_id: order!.id, status: newStatus });
     setOpen(false);
   };
@@ -88,7 +95,7 @@ export const NewOrderModal = () => {
             </Badge>
           </div>
 
-          {order.status === "New" || order.status === "Scheduled" ? (
+          {order.status === "under_review" ? (
             <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
@@ -116,7 +123,9 @@ export const NewOrderModal = () => {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              {(order.status === "Ongoing" || order.status === "Ready") && (
+              {(order.status === "under_delivery" ||
+                order.status === "accepted" ||
+                order.status === "ready_for_delivery") && (
                 <Button
                   className="bg-primary/90 border border-primary text-foreground hover:bg-primary rounded-xl px-4 py-2 h-auto gap-2"
                   onClick={() => setAssignRiderOpen(true)}
@@ -124,7 +133,7 @@ export const NewOrderModal = () => {
                 >
                   <Truck className="size-5" />
                   <span className="text-sm font-normal font-manrope">
-                    {order.rider ? "  Assign Rider" : "Reassign Rider"}
+                    {order.rider ? "Reassign Rider" : "Assign Rider"}
                   </span>
                 </Button>
               )}
@@ -138,10 +147,35 @@ export const NewOrderModal = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  {order.status !== "Ready" && (
+                  {order.status === "accepted" && (
                     <>
                       <DropdownMenuItem
-                        onClick={() => handleStatusChange("Ready")}
+                        onClick={() => handleStatusChange("in_pickup")}
+                        disabled={isUpdatingStatus || !vendor_id}
+                      >
+                        <span className="font-manrope">Mark as In Pickup</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {(order.status === "accepted" ||
+                    order.status === "in_pickup") && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => handleStatusChange("in_processing")}
+                        disabled={isUpdatingStatus || !vendor_id}
+                      >
+                        <span className="font-manrope">Mark as Processing</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {(order.status === "accepted" ||
+                    order.status === "in_pickup" ||
+                    order.status === "in_processing") && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => handleStatusChange("ready_for_delivery")}
                         disabled={isUpdatingStatus || !vendor_id}
                       >
                         <span className="font-manrope">Mark as Ready</span>
@@ -151,10 +185,12 @@ export const NewOrderModal = () => {
                   )}
 
                   <DropdownMenuItem
-                    onClick={() => handleStatusChange("Delivered")}
+                    onClick={() => handleStatusChange("under_delivery")}
                     disabled={isUpdatingStatus || !vendor_id}
                   >
-                    <span className="font-manrope">Mark as Delivered</span>
+                    <span className="font-manrope">
+                      Mark as Out for Delivery
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

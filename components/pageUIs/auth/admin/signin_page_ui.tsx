@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
+import { useEffect } from "react";
 import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form } from "@/components/ui/form";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/components/context/auth_provider";
 import { useLoginWithEmail } from "@/api/auth/use_auth";
+import { useRememberMe } from "@/api/auth/use_remember_me";
 
 const signInSchema = z.object({
   email: z
@@ -25,6 +27,8 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const SigninPageUI = () => {
   const { mutateAsync: loginWithEmail, isPending } = useLoginWithEmail();
+  const { getRememberedEmail } = useRememberMe();
+
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -33,6 +37,15 @@ export const SigninPageUI = () => {
       rememberMe: false,
     },
   });
+
+  // Pre-fill email if remembered
+  useEffect(() => {
+    const rememberedEmail = getRememberedEmail();
+    if (rememberedEmail) {
+      form.setValue("email", rememberedEmail);
+      form.setValue("rememberMe", true);
+    }
+  }, [form, getRememberedEmail]);
 
   const rememberMe = useWatch({
     control: form.control,
@@ -43,6 +56,7 @@ export const SigninPageUI = () => {
     loginWithEmail({
       email: data.email,
       password: data.password,
+      rememberMe: data.rememberMe,
     }).then(() => {
       window.location.href = "/dashboard";
     });

@@ -65,6 +65,11 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
         label: "Fumigation Orders",
         link: "/vendor/orders/fumigation_orders",
       },
+      {
+        key: "dry_cleaning",
+        label: "Dry Cleaning Orders",
+        link: "/vendor/orders/dry_cleaning_orders",
+      },
     ],
   },
   {

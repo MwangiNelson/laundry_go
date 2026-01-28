@@ -32,7 +32,7 @@ export const useAcceptOrder = () => {
       const { data, error } = await supabase
         .from("orders")
         .update({
-          status: "Ongoing",
+          status: "accepted",
           updated_at: new Date().toISOString(),
         })
         .eq("id", order_id)
@@ -68,7 +68,7 @@ export const useRejectOrder = () => {
       const { data, error } = await supabase
         .from("orders")
         .update({
-          status: "Cancelled",
+          status: "cancelled",
           updated_at: new Date().toISOString(),
         })
         .eq("id", order_id)

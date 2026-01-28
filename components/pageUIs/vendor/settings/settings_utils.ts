@@ -1,3 +1,4 @@
+import { locationSchema } from "@/components/schema/shared.schema";
 import { z } from "zod";
 
 // Business Profile Schema
@@ -8,6 +9,7 @@ export const business_profile_schema = z.object({
   phone_number: z.string().min(10, "Please enter a valid phone number"),
   email: z.string().email("Please enter a valid email address"),
   logo: z.instanceof(File).optional(),
+  location: locationSchema.optional(),
 });
 
 export type TBusinessProfile = z.infer<typeof business_profile_schema>;

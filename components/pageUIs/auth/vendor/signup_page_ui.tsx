@@ -129,8 +129,7 @@ const SignUpPageUI = () => {
                 Sign Up
               </Button>
 
-              {/* Divider */}
-              <div className="flex items-center gap-2.5">
+              {/* <div className="flex items-center gap-2.5">
                 <div className="flex-1 h-px bg-border" />
                 <span className="font-normal text-[14px] text-foreground">
                   or
@@ -138,7 +137,6 @@ const SignUpPageUI = () => {
                 <div className="flex-1 h-px bg-border" />
               </div>
 
-              {/* Google Sign Up Option */}
               <Button
                 type="button"
                 variant="outline"
@@ -151,7 +149,7 @@ const SignUpPageUI = () => {
                   height={15}
                 />
                 Sign up with Google
-              </Button>
+              </Button> */}
             </div>
 
             {/* Sign In Link */}

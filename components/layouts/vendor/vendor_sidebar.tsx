@@ -15,6 +15,8 @@ import { useVendorUI } from "./vendor_ui_provider";
 import { TVendorNavItem, VENDOR_NAV_ITEMS } from "./vendor_layout_utils";
 import { CaretRightIcon, SignOutIcon } from "@phosphor-icons/react";
 import { useVendor } from "@/components/context/vendors/vendor_provider";
+import Image from "next/image";
+import { get_vendor_logo } from "@/api/supabase/functions";
 
 export const VendorSidebar = () => {
   const { sidebar } = useVendorUI();
@@ -58,11 +60,13 @@ export const VendorSidebar = () => {
     >
       <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
         <div className="flex items-center gap-3">
-          {!isCollapsed && (
-            <h1 className="text-2xl font-semibold text-foreground font-marck">
-              {vendor?.business_name}
-            </h1>
-          )}
+          <Image
+            src={get_vendor_logo(vendor?.id || "")}
+            alt={`${vendor?.business_name} Logo`}
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
         </div>
       </div>
 

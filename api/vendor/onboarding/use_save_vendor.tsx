@@ -107,6 +107,20 @@ const saveVendorPrices = async ({
       });
     });
   }
+
+  // Dry Cleaning - no options, just items with prices
+  if (services.dry_cleaning.enabled) {
+    services.dry_cleaning.items.forEach((item) => {
+      pricesToInsert.push({
+        vendor_id: vendorId,
+        service_item_id: item.service_item_id,
+        service_option_id: null, // Dry cleaning doesn't have options
+        price: item.price,
+        is_available: true,
+      });
+    });
+  }
+
   const { error: deleteError } = await supabase
     .from("vendor_prices")
     .delete()
@@ -138,7 +152,9 @@ export const useCreateVendor = () => {
         profile_complete: true,
         profile_completed_at: new Date().toISOString(),
         status: "pending",
+        location_id: null,
       };
+
       const { data: vendor, error: vendorError } = await supabase
         .from("vendors")
         .insert(vendor_admin)
@@ -146,6 +162,16 @@ export const useCreateVendor = () => {
         .single();
       if (vendorError) throw vendorError;
       if (!vendor) throw new Error("Failed to create vendor");
+      const insert_vendor_owner: Database["public"]["Tables"]["vendor_users"]["Insert"] =
+        {
+          user_id: vendor_admin.admin_id,
+          vendor_id: vendor.id,
+          role: "owner",
+        };
+      const { data, error } = await supabase
+        .from("vendor_users")
+        .insert(insert_vendor_owner);
+      if (error) throw error;
 
       if (vendorData.business_information.logo) {
         await uploadFile(vendorData.business_information.logo, {

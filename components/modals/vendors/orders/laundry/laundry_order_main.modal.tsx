@@ -8,6 +8,7 @@ import { LaundryOrderDetailsModal } from "./laundry_order_details.modal";
 export const NewLaundryOrderModal = () => {
   const { open, setOpen, order } = useLaundryModal();
   const orderStatus = order?.status;
+
   return (
     <Dialog
       open={open}
@@ -15,12 +16,14 @@ export const NewLaundryOrderModal = () => {
         setOpen(newOpen);
       }}
     >
-      {(orderStatus === "New" ||
-        orderStatus === "Ongoing" ||
-        orderStatus === "Scheduled" ||
-        orderStatus === "Ready") && <NewOrderModal />}
-      {orderStatus === "Completed" && <LaundryOrderInProgressModal />}
-      {orderStatus === "Delivered" && <LaundryOrderDetailsModal />}
+      {(orderStatus === "under_review" ||
+        orderStatus === "accepted" ||
+        orderStatus === "in_pickup" ||
+        orderStatus === "in_processing" ||
+        orderStatus === "ready_for_delivery" ||
+        orderStatus === "under_delivery") && <NewOrderModal />}
+      {/* {orderStatus === "complete" && <LaundryOrderInProgressModal />} */}
+      {orderStatus === "complete" && <LaundryOrderDetailsModal />}
     </Dialog>
   );
 };

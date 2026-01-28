@@ -1,5 +1,5 @@
 import VendorOtpVerificationPageUI from "@/components/pageUIs/auth/vendor/otp_verification_page_ui";
-import { SignUpOTP } from "@/components/pageUIs/auth/vendor/signup_otp";
+import { SignInOtp } from "@/components/pageUIs/auth/vendor/signup_otp";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function VendorOtpVerificationPage() {
-  return <SignUpOTP />;
+  return <SignInOtp />;
 }

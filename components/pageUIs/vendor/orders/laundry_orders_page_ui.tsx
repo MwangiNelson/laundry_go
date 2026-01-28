@@ -24,11 +24,15 @@ export const LaundryOrdersPageUI = () => {
         >
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
-            <TabsTrigger value="new">New</TabsTrigger>
-            <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
-            <TabsTrigger value="ready">Ready</TabsTrigger>
-            <TabsTrigger value="delivered">Delivered</TabsTrigger>
+            <TabsTrigger value="under_review">Under Review</TabsTrigger>
+            <TabsTrigger value="accepted">Accepted</TabsTrigger>
+            <TabsTrigger value="in_pickup">In Pickup</TabsTrigger>
+            <TabsTrigger value="in_processing">In Processing</TabsTrigger>
+            <TabsTrigger value="ready_for_delivery">
+              Ready for Delivery
+            </TabsTrigger>
+            <TabsTrigger value="under_delivery">Under Delivery</TabsTrigger>
+            <TabsTrigger value="complete">Complete</TabsTrigger>
             <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} className="mt-4">
