@@ -11,16 +11,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    // Suppress source map warnings from dependencies
-    config.ignoreWarnings = [
-      { module: /node_modules/ },
-      (warning: { message: string }) =>
-        warning.message.includes("Invalid source map") ||
-        warning.message.includes("sourceMapURL could not be parsed"),
-    ];
-    return config;
-  },
 };
 
 export default nextConfig;

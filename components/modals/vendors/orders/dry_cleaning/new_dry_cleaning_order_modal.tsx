@@ -4,9 +4,9 @@ import { DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { X, Check, ChevronDown, Truck } from "lucide-react";
-import { CustomerProfile } from "./customer_profile";
-import { useLaundryModal } from "./use_laundry_modal";
-import { LaundryOrderOverview } from "./laundry_order_overview";
+import { CustomerProfile } from "../laundry/customer_profile";
+import { useDryCleaningModal } from "./use_dry_cleaning_modal";
+import { DryCleaningOrderOverview } from "./dry_cleaning_order_overview";
 import { format } from "date-fns";
 import {
   useAcceptOrder,
@@ -20,12 +20,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { AssignRiderModal } from "./assign_rider_modal";
+import { AssignRiderModal } from "../laundry/assign_rider_modal";
 import { useAuth } from "@/components/context/auth_provider";
 
-export const NewOrderModal = () => {
+export const NewDryCleaningOrderModal = () => {
   const { vendor_id } = useAuth();
-  const { order, setOpen } = useLaundryModal();
+  const { order, setOpen } = useDryCleaningModal();
   const [assignRiderOpen, setAssignRiderOpen] = useState(false);
   const { mutateAsync: accept_orders, isPending } = useAcceptOrder();
   const { mutateAsync: reject_orders, isPending: isRejecting } =
@@ -59,13 +59,13 @@ export const NewOrderModal = () => {
       showCloseButton={false}
       className="sm:max-w-3xl p-0 rounded-3xl bg-background border border-foreground/10 overflow-hidden"
     >
-      <DialogTitle className="sr-only">New Laundry Order</DialogTitle>
+      <DialogTitle className="sr-only">New Dry Cleaning Order</DialogTitle>
 
       <div className="p-6 space-y-6 ">
         <div className="flex items-center justify-between">
           <div className="flex items-end gap-2">
             <h2 className="text-xl font-semibold text-foreground font-manrope">
-              Laundry
+              Dry Cleaning
             </h2>
             <p className="text-xs text-muted-foreground tracking-[0.5px] font-manrope">
               {format(new Date(order!.created_at), "MMM dd, yyyy 'at' hh:mm a")}
@@ -183,7 +183,6 @@ export const NewOrderModal = () => {
                       <DropdownMenuSeparator />
                     </>
                   )}
-
                   {order.status !== "under_delivery" && (
                     <DropdownMenuItem
                       onClick={() => handleStatusChange("under_delivery")}
@@ -207,7 +206,7 @@ export const NewOrderModal = () => {
         </div>
         <div className=" max-h-[calc(100vh-200px)] overflow-y-auto space-y-6">
           <CustomerProfile />
-          <LaundryOrderOverview />
+          <DryCleaningOrderOverview />
         </div>
       </div>
 

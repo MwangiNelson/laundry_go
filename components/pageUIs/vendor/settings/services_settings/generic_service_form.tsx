@@ -182,9 +182,6 @@ export const GenericServiceForm = ({ service }: GenericServiceFormProps) => {
             >
               <div className="flex items-center justify-between mb-3">
                 <h4 className="font-medium text-sm">{item.name}</h4>
-                <span className="text-xs text-muted-foreground">
-                  {item.type === "area" ? "Area" : "Item"}
-                </span>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -300,7 +297,8 @@ export const GenericServiceForm = ({ service }: GenericServiceFormProps) => {
                         <span
                           className={cn(
                             "text-sm",
-                            !mergedOption.is_available && "text-muted-foreground"
+                            !mergedOption.is_available &&
+                              "text-muted-foreground"
                           )}
                         >
                           {option.name}

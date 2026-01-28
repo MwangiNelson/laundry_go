@@ -14,7 +14,6 @@ export interface MergedOption {
 export interface MergedItem {
   id: string;
   name: string;
-  type: string;
   icon_path: string | null;
   display_order: number;
   options: MergedOption[];
@@ -27,7 +26,7 @@ export interface MergedItem {
 
 /**
  * Unified hook to merge all available service items/options with vendor's existing prices
- * Handles both services with options (laundry, house_cleaning, office_cleaning) 
+ * Handles both services with options (laundry, house_cleaning, office_cleaning)
  * and services without options (moving, fumigation)
  */
 export const useServiceMergedData = (
@@ -70,19 +69,21 @@ export const useServiceMergedData = (
 
       // If item has options, merge them
       if (allItem.options.length > 0) {
-        const mergedOptions: MergedOption[] = allItem.options.map((allOption) => {
-          const vendorOption = vendorItem?.options.find(
-            (opt) => opt.id === allOption.id
-          );
+        const mergedOptions: MergedOption[] = allItem.options.map(
+          (allOption) => {
+            const vendorOption = vendorItem?.options.find(
+              (opt) => opt.id === allOption.id
+            );
 
-          return {
-            ...allOption,
-            price: vendorOption?.price || 0,
-            is_available: vendorOption?.is_available || false,
-            vendor_price_id: vendorOption?.vendor_price_id,
-            has_vendor_price: !!vendorOption,
-          };
-        });
+            return {
+              ...allOption,
+              price: vendorOption?.price || 0,
+              is_available: vendorOption?.is_available || false,
+              vendor_price_id: vendorOption?.vendor_price_id,
+              has_vendor_price: !!vendorOption,
+            };
+          }
+        );
 
         return {
           ...allItem,
@@ -102,4 +103,3 @@ export const useServiceMergedData = (
     });
   }, [allServiceItems, service.service_items]);
 };
-

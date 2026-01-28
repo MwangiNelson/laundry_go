@@ -1,25 +1,25 @@
 export type FumigationOrderStatus =
-  | "ongoing"
+  | "under_review"
+  | "accepted"
+  | "in_processing"
   | "complete"
-  | "new"
-  | "cancelled"
-  | "scheduled";
+  | "cancelled";
 
 export type IFumigationOrderTab =
   | "all"
-  | "new"
-  | "ongoing"
-  | "complete"
-  | "rated";
+  | "under_review"
+  | "accepted"
+  | "in_processing"
+  | "complete";
 
 export const convertTabToDbStatus = (
   tab: IFumigationOrderTab
 ): string | undefined => {
   const statusMap: Record<Exclude<IFumigationOrderTab, "all">, string> = {
-    new: "New",
-    ongoing: "Ongoing",
-    complete: "Completed",
-    rated: "Rated",
+    under_review: "under_review",
+    accepted: "accepted",
+    in_processing: "in_processing",
+    complete: "complete",
   };
 
   return tab === "all" ? undefined : statusMap[tab];

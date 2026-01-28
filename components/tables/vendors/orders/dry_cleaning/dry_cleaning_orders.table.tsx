@@ -1,12 +1,12 @@
 "use client";
 import React, { useMemo, useEffect } from "react";
 import { Table_Wrapper } from "../../../table_wrapper";
-import { houseCleaningOrdersColumns } from "./house_cleaning_orders.column";
+import { dryCleaningOrdersColumns } from "./dry_cleaning_orders.column";
 import {
   convertTabToDbStatus,
-  IHouseCleaningOrderTab,
-} from "./house_cleaning_orders.data";
-import { useHouseCleaningModal } from "@/components/modals/vendors/orders/house_cleaning/use_house_cleaning_modal";
+  IDryCleaningOrderTab,
+} from "./dry_cleaning_orders.data";
+import { useDryCleaningModal } from "@/components/modals/vendors/orders/dry_cleaning/use_dry_cleaning_modal";
 import { useQueryTable } from "@/components/tables/use_table_query";
 import { Search, Filter, ArrowDownNarrowWide, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -23,14 +23,14 @@ import {
 } from "@/components/tables/table_components/data_table_multi_filters";
 import { useAuth } from "@/components/context/auth_provider";
 
-interface HouseCleaningOrdersTableProps {
-  activeTab: IHouseCleaningOrderTab;
+interface DryCleaningOrdersTableProps {
+  activeTab: IDryCleaningOrderTab;
 }
 
-export const HouseCleaningOrdersTable = ({
+export const DryCleaningOrdersTable = ({
   activeTab,
-}: HouseCleaningOrdersTableProps) => {
-  const { openModal } = useHouseCleaningModal();
+}: DryCleaningOrdersTableProps) => {
+  const { openModal } = useDryCleaningModal();
   const { vendor_id } = useAuth();
 
   const {
@@ -58,15 +58,17 @@ export const HouseCleaningOrdersTable = ({
     },
   });
 
+  // Update status when tab changes
   useEffect(() => {
     updateParams({
       status: convertTabToDbStatus(activeTab),
     });
   }, [activeTab, updateParams]);
 
+  // Fetch orders with filters
   const { data: ordersData, isLoading } = useFetchOrders({
-    vendor_id: vendor_id || "",
-    main_service_slug: "house_cleaning",
+    vendor_id: vendor_id,
+    main_service_slug: "dry_cleaning",
     status: queryParams.status,
     search: searchTerm,
     page: pagination.pageIndex + 1,
@@ -78,19 +80,23 @@ export const HouseCleaningOrdersTable = ({
     sort_order: queryParams.sortOrder || "DESC",
   });
 
+  // Fetch riders for filter
   const { data: ridersData } = useFetchRiders({
     vendor_id: vendor_id || "",
     status: "active",
   });
 
+  // Fetch service items for dry cleaning (main_service_id = 6)
   const { data: serviceItems } = useFetchServiceItems({
-    main_service_id: 3,
+    main_service_id: 6,
   });
 
+  // Fetch service options (for selected service item)
   const { data: serviceOptions } = useFetchServiceOptions({
     service_item_id: queryParams.serviceItemId,
   });
 
+  // Sort filters
   const sortFilters: FilterItem[] = useMemo(
     () => [
       {
@@ -120,6 +126,7 @@ export const HouseCleaningOrdersTable = ({
     [queryParams.sortBy, queryParams.sortOrder, updateParams]
   );
 
+  // Data filters
   const dataFilters: FilterItem[] = useMemo(
     () => [
       {
@@ -220,7 +227,7 @@ export const HouseCleaningOrdersTable = ({
       </div>
 
       <Table_Wrapper
-        columns={houseCleaningOrdersColumns}
+        columns={dryCleaningOrdersColumns}
         data={ordersData?.data ?? []}
         enableRowSelection
         loading={isLoading}

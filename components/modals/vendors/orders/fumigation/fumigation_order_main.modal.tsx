@@ -11,11 +11,10 @@ export const FumigationOrderMainModal = () => {
 
   return (
     <Dialog open={isOpen} onOpenChange={closeModal}>
-      {(orderStatus === "New" ||
-        orderStatus === "Ongoing" ||
-        orderStatus === "Scheduled" ||
-        orderStatus === "Ready") && <NewFumigationOrderModal />}
-      {orderStatus === "Completed" && <FumigationOrderInProgressModal />}
+      {(orderStatus === "under_review" ||
+        orderStatus === "accepted" ||
+        orderStatus === "in_processing") && <NewFumigationOrderModal />}
+      {orderStatus === "complete" && <FumigationOrderInProgressModal />}
     </Dialog>
   );
 };

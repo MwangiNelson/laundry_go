@@ -118,7 +118,7 @@ export const useFetchServiceItemsWithOptions = (
           return {
             ...item,
             options: options || [],
-          } as ServiceItemWithOptions;
+          } as unknown as ServiceItemWithOptions;
         })
       );
 

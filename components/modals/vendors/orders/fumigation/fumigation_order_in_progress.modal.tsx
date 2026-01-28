@@ -6,6 +6,7 @@ import { ChevronDown, Dot } from "lucide-react";
 import { CustomerProfile } from "../shared";
 import { useFumigationModal } from "./use_fumigation_modal";
 import { FumigationOrderOverview } from "./fumigation_order_overview";
+import { DialogContent } from "@/components/ui/dialog";
 
 export const FumigationOrderInProgressModal = () => {
   const { order } = useFumigationModal();
@@ -13,7 +14,7 @@ export const FumigationOrderInProgressModal = () => {
   if (!order) return null;
 
   return (
-    <div className="flex flex-col gap-6 w-full">
+    <DialogContent className="flex flex-col gap-6 w-full">
       {/* Header */}
       <div className="flex items-start justify-between w-full">
         <div className="flex items-center">
@@ -52,6 +53,6 @@ export const FumigationOrderInProgressModal = () => {
 
       {/* Order Overview */}
       <FumigationOrderOverview />
-    </div>
+    </DialogContent>
   );
 };

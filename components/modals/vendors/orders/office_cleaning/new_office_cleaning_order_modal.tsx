@@ -40,7 +40,9 @@ export const NewOfficeCleaningOrderModal = () => {
     setOpen(false);
   };
 
-  const handleStatusChange = async (newStatus: "Ready" | "Delivered") => {
+  const handleStatusChange = async (
+    newStatus: "in_processing" | "complete"
+  ) => {
     await update_order_status({ order_id: order!.id, status: newStatus });
     setOpen(false);
   };
@@ -87,7 +89,7 @@ export const NewOfficeCleaningOrderModal = () => {
             </Badge>
           </div>
 
-          {order!.status === "New" || order!.status === "Scheduled" ? (
+          {order!.status === "under_review" ? (
             <div className="flex items-center gap-1.5">
               <Button
                 variant="outline"
@@ -127,19 +129,22 @@ export const NewOfficeCleaningOrderModal = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem
-                  onClick={() => handleStatusChange("Ready")}
-                  disabled={isUpdatingStatus}
-                >
-                  <span className="font-manrope">Mark as Ready</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => handleStatusChange("Delivered")}
-                  disabled={isUpdatingStatus}
-                >
-                  <span className="font-manrope">Mark as Delivered</span>
-                </DropdownMenuItem>
+                {order!.status === "accepted" && (
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("in_processing")}
+                    disabled={isUpdatingStatus}
+                  >
+                    <span className="font-manrope">Mark as In Processing</span>
+                  </DropdownMenuItem>
+                )}
+                {order!.status === "in_processing" && (
+                  <DropdownMenuItem
+                    onClick={() => handleStatusChange("complete")}
+                    disabled={isUpdatingStatus}
+                  >
+                    <span className="font-manrope">Mark as Complete</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

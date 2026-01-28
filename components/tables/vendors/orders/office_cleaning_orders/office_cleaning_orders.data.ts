@@ -1,25 +1,25 @@
 export type OfficeCleaningOrderStatus =
-  | "ongoing"
+  | "under_review"
+  | "accepted"
+  | "in_processing"
   | "complete"
-  | "new"
-  | "cancelled"
-  | "scheduled";
+  | "cancelled";
 
 export type IOfficeCleaningOrderTab =
   | "all"
-  | "new"
-  | "ongoing"
-  | "complete"
-  | "rated";
+  | "under_review"
+  | "accepted"
+  | "in_processing"
+  | "complete";
 
 export const convertTabToDbStatus = (
   tab: IOfficeCleaningOrderTab
 ): string | undefined => {
   const statusMap: Record<Exclude<IOfficeCleaningOrderTab, "all">, string> = {
-    new: "New",
-    ongoing: "Ongoing",
-    complete: "Completed",
-    rated: "Rated",
+    under_review: "under_review",
+    accepted: "accepted",
+    in_processing: "in_processing",
+    complete: "complete",
   };
 
   return tab === "all" ? undefined : statusMap[tab];

@@ -18,30 +18,30 @@ const OrderStatusBadge = ({ status }: { status: FumigationOrderStatus }) => {
     FumigationOrderStatus,
     { label: string; dotColor: string; textColor: string }
   > = {
-    ongoing: {
-      label: "Ongoing",
+    under_review: {
+      label: "Under Review",
+      dotColor: "bg-yellow-500",
+      textColor: "text-yellow-500",
+    },
+    accepted: {
+      label: "Accepted",
       dotColor: "bg-blue-500",
       textColor: "text-blue-500",
     },
+    in_processing: {
+      label: "In Processing",
+      dotColor: "bg-purple-500",
+      textColor: "text-purple-500",
+    },
     complete: {
       label: "Complete",
-      dotColor: "bg-teal-600",
-      textColor: "text-teal-600",
-    },
-    new: {
-      label: "New",
-      dotColor: "bg-red-600",
-      textColor: "text-red-600",
+      dotColor: "bg-green-500",
+      textColor: "text-green-500",
     },
     cancelled: {
       label: "Cancelled",
       dotColor: "bg-gray-400",
       textColor: "text-gray-400",
-    },
-    scheduled: {
-      label: "Scheduled",
-      dotColor: "bg-yellow-600",
-      textColor: "text-yellow-600",
     },
   };
 
@@ -140,21 +140,8 @@ export const fumigationOrdersColumns: ColumnDef<IOrder>[] = [
     header: "Status",
     accessorKey: "status",
     cell: ({ row }) => {
-      const statusMap: Record<string, FumigationOrderStatus> = {
-        New: "new",
-        Confirmed: "new",
-        Ongoing: "ongoing",
-        Ready: "complete",
-        Delivered: "complete",
-        Completed: "complete",
-        Rated: "complete",
-        Cancelled: "cancelled",
-        Scheduled: "scheduled",
-        Draft: "new",
-      };
-      const mappedStatus =
-        statusMap[row.original.status] || ("new" as FumigationOrderStatus);
-      return <OrderStatusBadge status={mappedStatus} />;
+      const status = row.original.status as FumigationOrderStatus;
+      return <OrderStatusBadge status={status} />;
     },
   },
   {

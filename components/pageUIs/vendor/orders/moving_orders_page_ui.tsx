@@ -23,10 +23,10 @@ export const MovingOrdersPageUI = () => {
         >
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="new">New</TabsTrigger>
-            <TabsTrigger value="ongoing">Ongoing</TabsTrigger>
+            <TabsTrigger value="under_review">Under Review</TabsTrigger>
+            <TabsTrigger value="accepted">Accepted</TabsTrigger>
+            <TabsTrigger value="in_processing">In Processing</TabsTrigger>
             <TabsTrigger value="complete">Complete</TabsTrigger>
-            <TabsTrigger value="rated">Rated</TabsTrigger>
           </TabsList>
           <TabsContent value={activeTab} className="mt-4">
             <MovingOrdersTable activeTab={activeTab} />

@@ -14,7 +14,6 @@ export interface MergedOption {
 export interface MergedItem {
   id: string;
   name: string;
-  type: string;
   icon_path: string | null;
   display_order: number;
   options: MergedOption[];
@@ -70,4 +69,3 @@ export const useLaundryServiceMergedData = (
     });
   }, [allServiceItems, service.service_items]);
 };
-

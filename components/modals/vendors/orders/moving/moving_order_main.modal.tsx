@@ -15,12 +15,10 @@ export const MovingOrderMainModal = () => {
         setOpen(newOpen);
       }}
     >
-      {(orderStatus === "New" ||
-        orderStatus === "Ongoing" ||
-        orderStatus === "Scheduled" ||
-        orderStatus === "Ready") && <NewMovingOrderModal />}
-      {orderStatus === "Completed" && <MovingOrderInProgressModal />}
-      {orderStatus === "Delivered" && <MovingOrderDetailsModal />}
+      {(orderStatus === "under_review" ||
+        orderStatus === "accepted" ||
+        orderStatus === "in_processing") && <NewMovingOrderModal />}
+      {orderStatus === "complete" && <MovingOrderInProgressModal />}
     </Dialog>
   );
 };

@@ -14,21 +14,76 @@ type AdminOrdersReportRow =
 
 // Styles similar to vendor report but adapted for admin
 const styles = StyleSheet.create({
-  page: { backgroundColor: "#ffffff", padding: 40, fontFamily: "Helvetica", fontSize: 12 },
-  header: { marginBottom: 30, borderBottom: "2 solid #2563eb", paddingBottom: 15 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#1e293b", marginBottom: 5 },
+  page: {
+    backgroundColor: "#ffffff",
+    padding: 40,
+    fontFamily: "Helvetica",
+    fontSize: 12,
+  },
+  header: {
+    marginBottom: 30,
+    borderBottom: "2 solid #2563eb",
+    paddingBottom: 15,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 5,
+  },
   subtitle: { fontSize: 12, color: "#64748b", marginBottom: 3 },
   reportInfo: { fontSize: 10, color: "#64748b", marginTop: 10 },
   section: { marginTop: 20 },
-  sectionTitle: { fontSize: 16, fontWeight: "bold", color: "#1e293b", marginBottom: 15, backgroundColor: "#f1f5f9", padding: 8, borderRadius: 4 },
-  statsContainer: { flexDirection: "row", justifyContent: "space-between", marginBottom: 20, gap: 10 },
-  statCard: { flex: 1, backgroundColor: "#f8fafc", padding: 12, borderRadius: 6, border: "1 solid #e2e8f0" },
-  statLabel: { fontSize: 12, color: "#64748b", marginBottom: 4, textTransform: "uppercase" },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 15,
+    backgroundColor: "#f1f5f9",
+    padding: 8,
+    borderRadius: 4,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
+    gap: 10,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+    padding: 12,
+    borderRadius: 6,
+    border: "1 solid #e2e8f0",
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#64748b",
+    marginBottom: 4,
+    textTransform: "uppercase",
+  },
   statValue: { fontSize: 22, fontWeight: "bold", color: "#2563eb" },
   table: { width: "100%", marginTop: 15 },
-  tableHeader: { flexDirection: "row", backgroundColor: "#2563eb", padding: 10, borderTopLeftRadius: 4, borderTopRightRadius: 4, fontWeight: "bold" },
-  tableHeaderText: { fontSize: 11, color: "#ffffff", fontWeight: "bold", textTransform: "uppercase" },
-  tableRow: { flexDirection: "row", borderBottom: "1 solid #e2e8f0", padding: 10, minHeight: 40 },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: "#2563eb",
+    padding: 10,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    fontWeight: "bold",
+  },
+  tableHeaderText: {
+    fontSize: 11,
+    color: "#ffffff",
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottom: "1 solid #e2e8f0",
+    padding: 10,
+    minHeight: 40,
+  },
   tableRowAlt: { backgroundColor: "#f8fafc" },
   tableCell: { fontSize: 10, color: "#334155", paddingRight: 5 },
   tableCellBold: { fontWeight: "bold" },
@@ -39,14 +94,36 @@ const styles = StyleSheet.create({
   col5: { width: "15%" }, // Customer
   col6: { width: "15%" }, // Payment
   col7: { width: "18%" }, // Location
-  footer: { position: "absolute", bottom: 30, left: 40, right: 40, textAlign: "center", fontSize: 10, color: "#94a3b8", borderTop: "1 solid #e2e8f0", paddingTop: 10 },
-  statusBadge: { backgroundColor: "#d1fae5", color: "#065f46", padding: "3 8", borderRadius: 3, fontSize: 10, fontWeight: "bold" },
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 40,
+    right: 40,
+    textAlign: "center",
+    fontSize: 10,
+    color: "#94a3b8",
+    borderTop: "1 solid #e2e8f0",
+    paddingTop: 10,
+  },
+  statusBadge: {
+    backgroundColor: "#d1fae5",
+    color: "#065f46",
+    padding: "3 8",
+    borderRadius: 3,
+    fontSize: 10,
+    fontWeight: "bold",
+  },
 });
 
-const formatCurrency = (amount: number) => `KES ${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+const formatCurrency = (amount: number) =>
+  `KES ${amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
 const formatDate = (dateStr: string) => {
   try {
-    return new Date(dateStr).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   } catch {
     return dateStr;
   }
@@ -58,23 +135,33 @@ interface AdminOrdersReportDocumentProps {
   endDate?: Date;
 }
 
-const AdminOrdersReportDocument: React.FC<AdminOrdersReportDocumentProps> = ({ orders, startDate, endDate }) => {
+const AdminOrdersReportDocument: React.FC<AdminOrdersReportDocumentProps> = ({
+  orders,
+  startDate,
+  endDate,
+}) => {
   const stats = {
     totalOrders: orders.length,
     totalRevenue: orders.reduce((sum, o) => sum + (o.total_price || 0), 0),
   };
 
-  const dateRangeText = startDate && endDate
-    ? `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-    : "All Time";
+  const dateRangeText =
+    startDate && endDate
+      ? `${startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} - ${endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+      : "All Time";
 
   return (
     <Document>
       <Page size="A4" style={styles.page} orientation="landscape">
         <View style={styles.header}>
           <Text style={styles.title}>Admin Orders Report</Text>
-          <Text style={styles.subtitle}>LaundryGo - All Vendors (Completed Orders)</Text>
-          <Text style={styles.reportInfo}>Report Period: {dateRangeText} | Generated: {new Date().toLocaleDateString("en-US")}</Text>
+          <Text style={styles.subtitle}>
+            LaundryGo - All Vendors (Completed Orders)
+          </Text>
+          <Text style={styles.reportInfo}>
+            Report Period: {dateRangeText} | Generated:{" "}
+            {new Date().toLocaleDateString("en-US")}
+          </Text>
         </View>
 
         <View style={styles.statsContainer}>
@@ -84,7 +171,9 @@ const AdminOrdersReportDocument: React.FC<AdminOrdersReportDocumentProps> = ({ o
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>Total Revenue</Text>
-            <Text style={styles.statValue}>{formatCurrency(stats.totalRevenue)}</Text>
+            <Text style={styles.statValue}>
+              {formatCurrency(stats.totalRevenue)}
+            </Text>
           </View>
         </View>
 
@@ -96,39 +185,76 @@ const AdminOrdersReportDocument: React.FC<AdminOrdersReportDocumentProps> = ({ o
               <Text style={[styles.tableHeaderText, styles.col2]}>Vendor</Text>
               <Text style={[styles.tableHeaderText, styles.col3]}>Items</Text>
               <Text style={[styles.tableHeaderText, styles.col4]}>Amount</Text>
-              <Text style={[styles.tableHeaderText, styles.col5]}>Customer</Text>
+              <Text style={[styles.tableHeaderText, styles.col5]}>
+                Customer
+              </Text>
               <Text style={[styles.tableHeaderText, styles.col6]}>Payment</Text>
-              <Text style={[styles.tableHeaderText, styles.col7]}>Location</Text>
+              <Text style={[styles.tableHeaderText, styles.col7]}>
+                Location
+              </Text>
             </View>
 
             {orders.map((order, index) => {
               type OrderItem = { quantity?: number; [key: string]: unknown };
-              const items = Array.isArray(order.items) && order.items.length > 0
-                ? `${order.items.reduce((sum: number, item: OrderItem) => sum + (item.quantity || 0), 0)} items`
-                : "No items";
-              type PickupDetails = { location?: string; [key: string]: unknown };
-              const location = typeof order.pickup_details === "object" && order.pickup_details !== null
-                ? (order.pickup_details as PickupDetails).location || "N/A"
-                : "N/A";
+              const items =
+                Array.isArray(order.items) && order.items.length > 0
+                  ? `${(order.items as OrderItem[]).reduce((sum: number, item: OrderItem) => sum + (item.quantity || 0), 0)} items`
+                  : "No items";
+              type PickupDetails = {
+                location?: string;
+                [key: string]: unknown;
+              };
+              const location =
+                typeof order.pickup_details === "object" &&
+                order.pickup_details !== null
+                  ? (order.pickup_details as PickupDetails).location || "N/A"
+                  : "N/A";
 
-              const rowStyle = index % 2 === 1 ? [styles.tableRow, styles.tableRowAlt] : styles.tableRow;
+              const rowStyle =
+                index % 2 === 1
+                  ? [styles.tableRow, styles.tableRowAlt]
+                  : styles.tableRow;
               return (
                 <View key={order.order_id} style={rowStyle}>
-                  <Text style={[styles.tableCell, styles.col1]}>{formatDate(order.created_at)}</Text>
-                  <Text style={[styles.tableCell, styles.col2, styles.tableCellBold]}>{order.vendor_name || "N/A"}</Text>
+                  <Text style={[styles.tableCell, styles.col1]}>
+                    {formatDate(order.created_at)}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      styles.col2,
+                      styles.tableCellBold,
+                    ]}
+                  >
+                    {order.vendor_name || "N/A"}
+                  </Text>
                   <Text style={[styles.tableCell, styles.col3]}>{items}</Text>
-                  <Text style={[styles.tableCell, styles.col4, styles.tableCellBold]}>{formatCurrency(order.total_price)}</Text>
+                  <Text
+                    style={[
+                      styles.tableCell,
+                      styles.col4,
+                      styles.tableCellBold,
+                    ]}
+                  >
+                    {formatCurrency(order.total_price)}
+                  </Text>
                   <Text style={[styles.tableCell, styles.col5]}>
                     {order.customer_name || "N/A"}
                     {"\n"}
-                    <Text style={{ fontSize: 9, color: "#64748b" }}>{order.customer_phone || ""}</Text>
+                    <Text style={{ fontSize: 9, color: "#64748b" }}>
+                      {order.customer_phone || ""}
+                    </Text>
                   </Text>
                   <Text style={[styles.tableCell, styles.col6]}>
                     {order.payment_method || "N/A"}
                     {"\n"}
-                    <Text style={{ fontSize: 9, color: "#64748b" }}>{order.payment_status || ""}</Text>
+                    <Text style={{ fontSize: 9, color: "#64748b" }}>
+                      {order.payment_status || ""}
+                    </Text>
                   </Text>
-                  <Text style={[styles.tableCell, styles.col7]}>{location}</Text>
+                  <Text style={[styles.tableCell, styles.col7]}>
+                    {location}
+                  </Text>
                 </View>
               );
             })}
@@ -137,7 +263,13 @@ const AdminOrdersReportDocument: React.FC<AdminOrdersReportDocumentProps> = ({ o
 
         <Text
           style={styles.footer}
-          render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+          render={({
+            pageNumber,
+            totalPages,
+          }: {
+            pageNumber: number;
+            totalPages: number;
+          }) =>
             `Page ${pageNumber} of ${totalPages} | LaundryGo Admin Orders Report | Confidential`
           }
           fixed
@@ -156,7 +288,9 @@ interface AdminOrdersPDFDownloadButtonProps {
   className?: string;
 }
 
-export const AdminOrdersPDFDownloadButton: React.FC<AdminOrdersPDFDownloadButtonProps> = ({
+export const AdminOrdersPDFDownloadButton: React.FC<
+  AdminOrdersPDFDownloadButtonProps
+> = ({
   orders,
   startDate,
   endDate,
@@ -168,12 +302,19 @@ export const AdminOrdersPDFDownloadButton: React.FC<AdminOrdersPDFDownloadButton
 
   return (
     <PDFDownloadLink
-      document={<AdminOrdersReportDocument orders={orders} startDate={startDate} endDate={endDate} />}
+      document={
+        <AdminOrdersReportDocument
+          orders={orders}
+          startDate={startDate}
+          endDate={endDate}
+        />
+      }
       fileName={filename}
       className={className}
     >
-      {({ loading }: { loading: boolean }) => (loading ? "Generating PDF..." : children || "Download PDF")}
+      {({ loading }: { loading: boolean }) =>
+        loading ? "Generating PDF..." : children || "Download PDF"
+      }
     </PDFDownloadLink>
   );
 };
-

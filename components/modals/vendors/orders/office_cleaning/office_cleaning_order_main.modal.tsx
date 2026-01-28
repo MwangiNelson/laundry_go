@@ -14,11 +14,10 @@ export const OfficeCleaningOrderMainModal = () => {
         setOpen(newOpen);
       }}
     >
-      {(orderStatus === "New" ||
-        orderStatus === "Ongoing" ||
-        orderStatus === "Scheduled" ||
-        orderStatus === "Ready") && <NewOfficeCleaningOrderModal />}
-      {orderStatus === "Completed" && <OfficeCleaningOrderInProgressModal />}
+      {(orderStatus === "under_review" ||
+        orderStatus === "accepted" ||
+        orderStatus === "in_processing") && <NewOfficeCleaningOrderModal />}
+      {orderStatus === "complete" && <OfficeCleaningOrderInProgressModal />}
     </Dialog>
   );
 };
