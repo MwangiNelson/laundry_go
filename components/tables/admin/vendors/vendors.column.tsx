@@ -114,7 +114,15 @@ export const vendorsColumns: ColumnDef<IVendor>[] = [
     header: "",
     cell: ({ row }) => {
       const vendor = row.original;
-      return <VendorActionsCell vendor={vendor} />;
+      return (
+        <div
+          onClick={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <VendorActionsCell vendor={vendor} />
+        </div>
+      );
     },
   },
 ];

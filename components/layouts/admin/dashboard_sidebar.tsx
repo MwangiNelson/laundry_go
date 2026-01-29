@@ -20,6 +20,7 @@ import {
   CaretRightIcon,
   PackageIcon,
   SignOutIcon,
+  HeadsetIcon,
 } from "@phosphor-icons/react";
 export type TVendorNavItemChild = {
   key: string;
@@ -80,6 +81,12 @@ export const ADMIN_NAV_ITEMS: TVendorNavItem[] = [
         link: "/dashboard/orders/fumigation_orders",
       },
     ],
+  },
+  {
+    key: "customers",
+    label: "Customers",
+    link: "/dashboard/customers",
+    icon: HeadsetIcon,
   },
   {
     key: "services",

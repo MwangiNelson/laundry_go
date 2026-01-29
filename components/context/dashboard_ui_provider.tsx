@@ -6,6 +6,10 @@ import React, {
   useContext,
   useState,
 } from "react";
+import { CustomerModalProvider } from "./customers_modal_provider";
+import { CustomerModal } from "../modals/admin/customers/customers.modal";
+import { VendorModalProvider } from "./admin/vendors_context";
+import { VendorDetailsModal } from "../modals/admin/vendor_details/vendor_details_main.modal";
 
 type DashboardUIContextType = {
   sidebar: {
@@ -44,7 +48,11 @@ export const DashboardUIProvider = ({ children }: Props) => {
         },
       }}
     >
-      <Modals>{children}</Modals>
+      <CustomerModalProvider>
+        <VendorModalProvider>
+          <Modals>{children}</Modals>
+        </VendorModalProvider>
+      </CustomerModalProvider>
     </DashboardUIContext.Provider>
   );
 };
@@ -57,4 +65,10 @@ export function useDashboardUI() {
   return context;
 }
 
-const Modals = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+const Modals = ({ children }: { children: React.ReactNode }) => (
+  <>
+    <CustomerModal />
+    <VendorDetailsModal />
+    {children}
+  </>
+);

@@ -39,13 +39,13 @@ export const SigninPageUI = () => {
   });
 
   // Pre-fill email if remembered
-  useEffect(() => {
-    const rememberedEmail = getRememberedEmail();
-    if (rememberedEmail) {
-      form.setValue("email", rememberedEmail);
-      form.setValue("rememberMe", true);
-    }
-  }, [form, getRememberedEmail]);
+  // useEffect(() => {
+  //   const rememberedEmail = getRememberedEmail();
+  //   if (rememberedEmail) {
+  //     form.setValue("email", rememberedEmail);
+  //     form.setValue("rememberMe", true);
+  //   }
+  // }, [form, getRememberedEmail]);
 
   const rememberMe = useWatch({
     control: form.control,
@@ -71,7 +71,7 @@ export const SigninPageUI = () => {
             <h1 className="text-3xl font-bold leading-tight text-title">
               Welcome Back
             </h1>
-            <p className="text-sm leading-normal text-subtitle text-secondary">
+            <p className="text-sm leading-normal text-secondary">
               Sign in to your account
             </p>
           </div>
@@ -94,7 +94,7 @@ export const SigninPageUI = () => {
                   placeholder="Set your password"
                 />
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
+                  {/* <div className="flex items-center gap-1.5">
                     <Checkbox
                       id="rememberMe"
                       checked={rememberMe}
@@ -109,7 +109,7 @@ export const SigninPageUI = () => {
                     >
                       Remember me
                     </label>
-                  </div>
+                  </div> */}
                   <Link
                     href="/auth/forgot-password"
                     className="text-sm leading-normal text-link hover:underline"

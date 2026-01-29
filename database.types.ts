@@ -69,6 +69,57 @@ export type Database = {
           },
         ]
       }
+      commissions: {
+        Row: {
+          base_amount: number
+          commission_amount: number
+          created_at: string | null
+          id: string
+          order_id: string | null
+          rate: number
+          status: string | null
+          updated_at: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          base_amount: number
+          commission_amount: number
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          rate?: number
+          status?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          base_amount?: number
+          commission_amount?: number
+          created_at?: string | null
+          id?: string
+          order_id?: string | null
+          rate?: number
+          status?: string | null
+          updated_at?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fcm_tokens: {
         Row: {
           created_at: string
@@ -329,6 +380,7 @@ export type Database = {
           created_at: string
           customer_id: string
           delivery_details: Json | null
+          delivery_fee: number | null
           id: string
           main_service_id: number
           payment_channel: string | null
@@ -339,6 +391,7 @@ export type Database = {
           pickup_details: Json | null
           rider_id: string | null
           status: Database["public"]["Enums"]["order_status"]
+          subtotal: number | null
           total_price: number
           updated_at: string
           vendor_id: string | null
@@ -347,6 +400,7 @@ export type Database = {
           created_at?: string
           customer_id: string
           delivery_details?: Json | null
+          delivery_fee?: number | null
           id?: string
           main_service_id: number
           payment_channel?: string | null
@@ -357,6 +411,7 @@ export type Database = {
           pickup_details?: Json | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           total_price: number
           updated_at?: string
           vendor_id?: string | null
@@ -365,6 +420,7 @@ export type Database = {
           created_at?: string
           customer_id?: string
           delivery_details?: Json | null
+          delivery_fee?: number | null
           id?: string
           main_service_id?: number
           payment_channel?: string | null
@@ -375,11 +431,19 @@ export type Database = {
           pickup_details?: Json | null
           rider_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          subtotal?: number | null
           total_price?: number
           updated_at?: string
           vendor_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_main_service_id_fkey"
             columns: ["main_service_id"]
@@ -450,6 +514,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          address: string | null
           avatar_url: string | null
           created_at: string
           email: string
@@ -458,11 +523,12 @@ export type Database = {
           id: string
           phone: string | null
           profile_completed_at: string | null
-          role: string | null
+          role: Database["public"]["Enums"]["user_role"] | null
           signup_step: string | null
           updated_at: string
         }
         Insert: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email: string
@@ -471,11 +537,12 @@ export type Database = {
           id: string
           phone?: string | null
           profile_completed_at?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           signup_step?: string | null
           updated_at?: string
         }
         Update: {
+          address?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string
@@ -484,7 +551,7 @@ export type Database = {
           id?: string
           phone?: string | null
           profile_completed_at?: string | null
-          role?: string | null
+          role?: Database["public"]["Enums"]["user_role"] | null
           signup_step?: string | null
           updated_at?: string
         }
@@ -683,6 +750,59 @@ export type Database = {
             columns: ["service_item_id"]
             isOneToOne: false
             referencedRelation: "service_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          channel: string | null
+          created_at: string | null
+          currency: string | null
+          customer_id: string | null
+          gateway_fee: number | null
+          id: string
+          metadata: Json | null
+          net_amount: number
+          order_id: string | null
+          reference: string
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          channel?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_id?: string | null
+          gateway_fee?: number | null
+          id?: string
+          metadata?: Json | null
+          net_amount: number
+          order_id?: string | null
+          reference: string
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          channel?: string | null
+          created_at?: string | null
+          currency?: string | null
+          customer_id?: string | null
+          gateway_fee?: number | null
+          id?: string
+          metadata?: Json | null
+          net_amount?: number
+          order_id?: string | null
+          reference?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
             referencedColumns: ["id"]
           },
         ]
@@ -1017,14 +1137,7 @@ export type Database = {
       }
     }
     Views: {
-      signup_funnel: {
-        Row: {
-          percentage: number | null
-          signup_step: string | null
-          user_count: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       approve_vendor: {
@@ -1178,6 +1291,34 @@ export type Database = {
           total_revenue: number
           vendor_payouts: number
         }[]
+      }
+      get_customer_order_stats: {
+        Args: { p_customer_id: string }
+        Returns: Json
+      }
+      get_customer_orders: {
+        Args: {
+          p_customer_id: string
+          p_main_service_slug?: string
+          p_page?: number
+          p_page_size?: number
+          p_sort_by?: string
+          p_sort_order?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
+      get_customer_stats: { Args: never; Returns: Json }
+      get_customers: {
+        Args: {
+          p_page?: number
+          p_page_size?: number
+          p_search?: string
+          p_sort_by?: string
+          p_sort_order?: string
+          p_status?: string
+        }
+        Returns: Json
       }
       get_fcm_tokens: {
         Args: { target_user_id: string }
@@ -1344,6 +1485,13 @@ export type Database = {
           vendor_id: string
         }[]
       }
+      get_vendor_service_prices: {
+        Args: { p_main_service_id: number; p_vendor_id: string }
+        Returns: {
+          price: number
+          service_name: string
+        }[]
+      }
       get_vendor_services: {
         Args: { p_vendor_id: string }
         Returns: {
@@ -1484,6 +1632,9 @@ export type Database = {
         | "under_delivery"
         | "complete"
         | "cancelled"
+        | "scheduled"
+        | "draft"
+      user_role: "super_admin" | "vendor_user" | "customer" | "rider"
       vendor_user_role: "owner" | "manager" | "staff"
     }
     CompositeTypes: {
@@ -1638,7 +1789,10 @@ export const Constants = {
         "under_delivery",
         "complete",
         "cancelled",
+        "scheduled",
+        "draft",
       ],
+      user_role: ["super_admin", "vendor_user", "customer", "rider"],
       vendor_user_role: ["owner", "manager", "staff"],
     },
   },

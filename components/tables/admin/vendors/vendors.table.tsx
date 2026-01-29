@@ -12,6 +12,7 @@ import {
   DataTableMultiFilter,
   FilterItem,
 } from "@/components/tables/table_components/data_table_multi_filters";
+import { useVendorModal } from "@/components/context/admin/vendors_context";
 
 export type IVendorTab = "pending" | "approved" | "rejected" | "suspended";
 
@@ -27,7 +28,7 @@ const convertTabToDbStatus = (tab: IVendorTab): string => {
 
 export const VendorsTable = () => {
   const [activeTab, setActiveTab] = useState<IVendorTab>("pending");
-
+  const { openModal } = useVendorModal();
   const {
     handleSearchChange,
     pagination,
@@ -146,6 +147,9 @@ export const VendorsTable = () => {
             data={vendorsData?.data ?? []}
             enableRowSelection
             loading={isLoading}
+            onRowClick={(row) => {
+              openModal(row.id);
+            }}
             tableOptions={{
               manualPagination: true,
               pageCount: vendorsData

@@ -51,7 +51,7 @@ export const createRider = async ({
         .from("profiles")
         .update({
           avatar_url,
-          role: "driver",
+          role: "rider",
         })
         .eq("id", userId);
 
@@ -62,7 +62,7 @@ export const createRider = async ({
       // Just set role to driver
       const { error: updateProfileError } = await supabase
         .from("profiles")
-        .update({ role: "driver" })
+        .update({ role: "rider" })
         .eq("id", userId);
 
       if (updateProfileError) {

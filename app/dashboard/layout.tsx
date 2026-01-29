@@ -31,6 +31,9 @@ const Layout = (props: Props) => {
   if (!loggedIn) {
     return <></>;
   }
+  if (user && user.role !== "super_admin") {
+    throw new Error("Not allowed to access this page");
+  }
   return (
     <DashboardUIProvider>
       <VendorUIProvider>
