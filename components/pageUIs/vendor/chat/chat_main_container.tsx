@@ -12,7 +12,7 @@ export const ChatMainContainer = () => {
   // Show empty state when no conversation is selected
   if (!selectedChatId) {
     return (
-      <div className="flex flex-col items-center justify-center bg-card border border-border rounded-lg overflow-hidden flex-1 h-[calc(100vh-20rem)]">
+      <div className="flex flex-col items-center justify-center bg-card border border-border rounded-lg overflow-hidden flex-1  h-[calc(100vh-5rem)]">
         <p className="text-muted-foreground text-sm">
           Select a conversation to start chatting
         </p>
@@ -21,7 +21,7 @@ export const ChatMainContainer = () => {
   }
 
   return (
-    <div className="flex flex-col bg-card border border-border rounded-lg overflow-hidden flex-1 h-[calc(100vh-20rem)]">
+    <div className="flex flex-col bg-card border border-border rounded-lg overflow-hidden flex-1  h-[calc(100vh-5rem)]">
       <ChatHeader />
       <ChatMessagesContainer />
       <ChatInput />

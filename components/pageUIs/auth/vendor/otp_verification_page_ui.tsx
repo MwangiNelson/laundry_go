@@ -14,6 +14,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useVerifyOtp } from "@/api/auth/use_auth";
+import { useRouter } from "next/navigation";
 
 const otpSchema = z.object({
   otp: z.string().min(6, "Please enter the complete OTP"),
@@ -22,6 +23,7 @@ const otpSchema = z.object({
 type OtpFormValues = z.infer<typeof otpSchema>;
 
 export const VendorOtpVerificationPageUI = () => {
+  const router = useRouter();
   const [countdown, setCountdown] = useState(59);
   const { mutateAsync: verifyOtp, isPending } = useVerifyOtp();
   // const { mutateAsync: resendRecoveryEmail, isPending: isResending } =
@@ -41,8 +43,10 @@ export const VendorOtpVerificationPageUI = () => {
     },
   });
 
-  const onSubmit = (data: OtpFormValues) => {
-    verifyOtp({ access_token: data.otp });
+  const onSubmit = async (data: OtpFormValues) => {
+    verifyOtp({ access_token: data.otp }).then(() => {
+      router.push("/vendor/auth/set-new-password");
+    });
   };
 
   const handleResend = () => {

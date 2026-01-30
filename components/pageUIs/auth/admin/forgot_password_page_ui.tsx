@@ -10,6 +10,8 @@ import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Form } from "@/components/ui/form";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { Button } from "@/components/ui/button";
+import { useResendRecoveryOtp } from "@/api/auth/use_auth";
+import { useRouter } from "next/navigation";
 // import { useSendRecoveryEmail } from "@/api/auth/use_auth";
 
 const forgotPasswordSchema = z.object({
@@ -19,7 +21,8 @@ const forgotPasswordSchema = z.object({
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export const ForgotPasswordPageUI = () => {
-  // const sendRecoveryEmailMutation = useSendRecoveryEmail();
+  const router = useRouter();
+  const sendRecoveryEmailMutation = useResendRecoveryOtp();
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
@@ -27,10 +30,14 @@ export const ForgotPasswordPageUI = () => {
     },
   });
 
-  const onSubmit = (data: ForgotPasswordFormValues) => {
-    // sendRecoveryEmailMutation.mutateAsync({ email: data.email });
+  const onSubmit = async (data: ForgotPasswordFormValues) => {
+    await sendRecoveryEmailMutation
+      .mutateAsync({ email: data.email })
+      .then(() => {
+        localStorage.setItem("recovery_email", data.email);
+        router.push("/auth/otp-verification");
+      });
   };
-
   return (
     <AuthSharedPageUI>
       <div className="flex flex-col gap-6 pt-6">
@@ -62,7 +69,7 @@ export const ForgotPasswordPageUI = () => {
 
               <Button
                 type="submit"
-                // loading={sendRecoveryEmailMutation.isPending}
+                loading={sendRecoveryEmailMutation.isPending}
                 className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 h-auto text-sm font-normal"
               >
                 Submit

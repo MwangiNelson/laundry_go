@@ -130,9 +130,6 @@ export const useVerifyOtp = () => {
       }
       return data;
     },
-    onSuccess: () => {
-      router.push("/auth/set-new-password");
-    },
   });
 };
 

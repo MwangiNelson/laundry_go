@@ -27,7 +27,7 @@ const ChatConversations = () => {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-20rem)] rounded-md border  bg-card">
+    <div className="flex flex-col h-[calc(100vh-5rem)] rounded-md border  bg-card">
       <ConversationHeader onSearch={handleSearch} />
       <div className="flex-1 overflow-y-auto">
         {conversations?.map((conversation) => (
