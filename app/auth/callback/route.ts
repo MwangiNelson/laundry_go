@@ -17,14 +17,20 @@ export async function GET(request: Request) {
       const forwardedHost = request.headers.get("x-forwarded-host");
       const isLocalEnv = process.env.NODE_ENV === "development";
 
-      if (forwardedHost && !isLocalEnv) {
-        return NextResponse.redirect(`https://${forwardedHost}/${next}`);
-      }
-      return NextResponse.redirect(`${origin}/${next}`);
+      // if (forwardedHost && !isLocalEnv) {
+      // return NextResponse.redirect(`https://${forwardedHost}/${next}`);
+      return NextResponse.redirect(
+        `${process.env.NEXT_PUBLIC_APP_URL}/${next}`
+      );
+      // }
+      // return NextResponse.redirect(`${origin}/${next}`);
+      // }
+      // console.error("Error exchanging code for session:", error);
     }
-    console.error("Error exchanging code for session:", error);
-  }
 
-  // If no code, redirect to login
-  return NextResponse.redirect(`${origin}/auth/vendor/signin`);
+    // If no code, redirect to login
+    return NextResponse.redirect(
+      `${process.env.NEXT_PUBLIC_APP_URL}/auth/vendor/signin`
+    );
+  }
 }
