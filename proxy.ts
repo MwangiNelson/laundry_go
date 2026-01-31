@@ -4,7 +4,6 @@ import { updateSession } from "./api/supabase/middleware";
 export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
-///hellow
 export const config = {
   matcher: [
     /*
