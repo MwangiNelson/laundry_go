@@ -31,11 +31,13 @@ type GetVendorReportStatsArgs =
 export interface UseGenerateOrdersReportsParams {
   startDate?: Date;
   endDate?: Date;
+  enabled?: boolean;
 }
 
 export const useGenerateOrdersReports = ({
   startDate,
   endDate,
+  enabled = true,
 }: UseGenerateOrdersReportsParams = {}) => {
   const supabase = createSupabaseClient();
   const { vendor } = useVendor();
@@ -48,7 +50,7 @@ export const useGenerateOrdersReports = ({
       startDate?.toISOString(),
       endDate?.toISOString(),
     ],
-    enabled: !!vendor?.id,
+    enabled: !!vendor?.id && enabled,
     queryFn: async (): Promise<OrdersReportRow[] | null> => {
       if (!vendor?.id) return null;
       const args: GetOrdersReportArgs = {
@@ -56,7 +58,10 @@ export const useGenerateOrdersReports = ({
         p_start_date: startDate ? startDate.toISOString() : undefined,
         p_end_date: endDate ? endDate.toISOString() : undefined,
       };
-      const { data, error } = await supabase.rpc("get_orders_report_sheet", args);
+      const { data, error } = await supabase.rpc(
+        "get_orders_report_sheet",
+        args
+      );
       if (error) throw new Error(error.message);
       return data ?? null;
     },
@@ -70,12 +75,14 @@ export interface UseGenerateFinancialReportsParams {
   vendorId?: string;
   startDate?: Date;
   endDate?: Date;
+  enabled?: boolean;
 }
 
 export const useGenerateFinancialReports = ({
   vendorId,
   startDate,
   endDate,
+  enabled = true,
 }: UseGenerateFinancialReportsParams = {}) => {
   const supabase = createSupabaseClient();
 
@@ -87,7 +94,7 @@ export const useGenerateFinancialReports = ({
       startDate?.toISOString(),
       endDate?.toISOString(),
     ],
-    enabled: !!vendorId,
+    enabled: !!vendorId && enabled,
     queryFn: async (): Promise<FinancialReportRow | null> => {
       if (!vendorId) return null;
 
@@ -115,12 +122,14 @@ export interface UseGeneratePaymentsReportParams {
   vendorId?: string;
   startDate?: Date;
   endDate?: Date;
+  enabled?: boolean;
 }
 
 export const useGeneratePaymentsReport = ({
   vendorId,
   startDate,
   endDate,
+  enabled = true,
 }: UseGeneratePaymentsReportParams = {}) => {
   const supabase = createSupabaseClient();
 
@@ -132,7 +141,7 @@ export const useGeneratePaymentsReport = ({
       startDate?.toISOString(),
       endDate?.toISOString(),
     ],
-    enabled: !!vendorId,
+    enabled: !!vendorId && enabled,
     queryFn: async (): Promise<VendorPaymentRow[] | null> => {
       if (!vendorId) return null;
 
@@ -141,7 +150,10 @@ export const useGeneratePaymentsReport = ({
         p_start_date: startDate ? startDate.toISOString() : undefined,
         p_end_date: endDate ? endDate.toISOString() : undefined,
       };
-      const { data, error } = await supabase.rpc("get_vendor_payments_report", args);
+      const { data, error } = await supabase.rpc(
+        "get_vendor_payments_report",
+        args
+      );
 
       if (error) throw new Error(error.message);
       return data ?? null;
@@ -181,12 +193,13 @@ export const useVendorReportStats = ({
         p_start_date: startDate ? startDate.toISOString() : undefined,
         p_end_date: endDate ? endDate.toISOString() : undefined,
       };
-      const { data, error } = await supabase.rpc("get_vendor_report_stats", args);
+      const { data, error } = await supabase.rpc(
+        "get_vendor_report_stats",
+        args
+      );
       if (error) throw new Error(error.message);
       if (!data || data.length === 0) return null;
       return data[0] as VendorReportStatsRow;
     },
   });
 };
-
-

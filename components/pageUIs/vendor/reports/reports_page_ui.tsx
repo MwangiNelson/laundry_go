@@ -17,7 +17,13 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
-import { format, startOfMonth, startOfQuarter, startOfYear, endOfDay } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  startOfQuarter,
+  startOfYear,
+  endOfDay,
+} from "date-fns";
 import {
   useGenerateFinancialReports,
   useGenerateOrdersReports,
@@ -186,14 +192,14 @@ export const ReportsPageUI = () => {
   const [statPeriod, setStatPeriod] = React.useState<StatPeriod>("month");
   const [ordersStartDate, setOrdersStartDate] = React.useState<
     Date | undefined
-    
   >();
   const [ordersEndDate, setOrdersEndDate] = React.useState<Date | undefined>();
   const [financialStartDate, setFinancialStartDate] = React.useState<
     Date | undefined
   >();
-  const [financialEndDate, setFinancialEndDate] =
-    React.useState<Date | undefined>();
+  const [financialEndDate, setFinancialEndDate] = React.useState<
+    Date | undefined
+  >();
 
   const { vendor } = useVendor();
 
@@ -210,19 +216,27 @@ export const ReportsPageUI = () => {
     startDate: statStartDate,
     endDate: statEndDate,
   });
+  // Only fetch orders when both dates are selected
+  const ordersEnabled = !!(ordersStartDate && ordersEndDate);
   const { data: orders } = useGenerateOrdersReports({
     startDate: ordersStartDate,
     endDate: ordersEndDate,
+    enabled: ordersEnabled,
   });
+
+  // Only fetch financial reports when both dates are selected
+  const financialEnabled = !!(financialStartDate && financialEndDate);
   const { data: financialReport } = useGenerateFinancialReports({
     vendorId: vendor?.id,
     startDate: financialStartDate,
     endDate: financialEndDate,
+    enabled: financialEnabled,
   });
   const { data: paymentsReport } = useGeneratePaymentsReport({
     vendorId: vendor?.id,
     startDate: financialStartDate,
     endDate: financialEndDate,
+    enabled: financialEnabled,
   });
 
   const handleDownloadOrdersXls = () => {
@@ -253,9 +267,9 @@ export const ReportsPageUI = () => {
           onChangeStartDate={setOrdersStartDate}
           onChangeEndDate={setOrdersEndDate}
           onDownloadXls={handleDownloadOrdersXls}
-          disableDownload={!orders || orders.length === 0}
+          disableDownload={!ordersEnabled || !orders || orders.length === 0}
           pdfDownloadButton={
-            orders && orders.length > 0 ? (
+            ordersEnabled && orders && orders.length > 0 ? (
               <PDFDownloadButton
                 orders={orders}
                 vendorName={vendor?.business_name || undefined}
@@ -267,11 +281,7 @@ export const ReportsPageUI = () => {
                 Download PDF
               </PDFDownloadButton>
             ) : (
-              <Button
-                variant="secondary"
-                className="h-11"
-                disabled
-              >
+              <Button variant="secondary" className="h-11" disabled>
                 Download PDF
               </Button>
             )
@@ -285,7 +295,9 @@ export const ReportsPageUI = () => {
           onChangeStartDate={setFinancialStartDate}
           onChangeEndDate={setFinancialEndDate}
           pdfDownloadButton={
-            (paymentsReport && paymentsReport.length > 0) || financialReport ? (
+            financialEnabled &&
+            ((paymentsReport && paymentsReport.length > 0) ||
+              financialReport) ? (
               <VendorFinancialPDFDownloadButton
                 vendorName={vendor?.business_name || undefined}
                 startDate={financialStartDate}
@@ -312,7 +324,9 @@ export const ReportsPageUI = () => {
             );
           }}
           disableDownload={
-            (!paymentsReport || paymentsReport.length === 0) && !financialReport
+            !financialEnabled ||
+            ((!paymentsReport || paymentsReport.length === 0) &&
+              !financialReport)
           }
         />
       </div>

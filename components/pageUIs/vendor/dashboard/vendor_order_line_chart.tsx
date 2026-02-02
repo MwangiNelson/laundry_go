@@ -1,7 +1,7 @@
 "use client";
 
+import { useState, useMemo } from "react";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
-import { ChevronDown } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -18,27 +18,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  useVendorOrdersChart,
+  ChartPeriod,
+} from "@/api/vendor/dashboard/use_vendor_dashboard";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const chartData = [
-  { day: "Mon", currentWeek: 180, previousWeek: 120 },
-  { day: "Tue", currentWeek: 250, previousWeek: 180 },
-  { day: "Wed", currentWeek: 200, previousWeek: 220 },
-  { day: "Thu", currentWeek: 280, previousWeek: 150 },
-  { day: "Fri", currentWeek: 220, previousWeek: 190 },
-  { day: "Sat", currentWeek: 300, previousWeek: 240 },
-  { day: "Sun", currentWeek: 260, previousWeek: 200 },
-];
+const periodLabels: Record<ChartPeriod, { current: string; previous: string }> =
+  {
+    today: { current: "Today", previous: "Yesterday" },
+    week: { current: "This Week", previous: "Last Week" },
+    month: { current: "This Month", previous: "Last Month" },
+  };
 
-const chartConfig = {
-  currentWeek: {
-    label: "Current Week",
+const getChartConfig = (period: ChartPeriod): ChartConfig => ({
+  currentPeriod: {
+    label: periodLabels[period].current,
     color: "var(--title)",
   },
-  previousWeek: {
-    label: "Previous Week",
+  previousPeriod: {
+    label: periodLabels[period].previous,
     color: "var(--chart-2)",
   },
-} satisfies ChartConfig;
+});
 
 interface LegendDotProps {
   color: string;
@@ -55,6 +57,48 @@ const LegendDot = ({ color, label }: LegendDotProps) => (
 );
 
 export function VendorOrderLineChart() {
+  const [period, setPeriod] = useState<ChartPeriod>("week");
+  const { data: chartDataRaw, isLoading } = useVendorOrdersChart({ period });
+
+  const chartData = useMemo(() => {
+    if (!chartDataRaw) return [];
+    return chartDataRaw.map((item) => ({
+      label: item.label,
+      currentPeriod: item.current_period,
+      previousPeriod: item.previous_period,
+    }));
+  }, [chartDataRaw]);
+
+  const chartConfig = useMemo(() => getChartConfig(period), [period]);
+
+  const maxValue = useMemo(() => {
+    if (!chartData.length) return 10;
+    const max = Math.max(
+      ...chartData.map((d) => Math.max(d.currentPeriod, d.previousPeriod))
+    );
+    return Math.ceil(max / 5) * 5 || 10;
+  }, [chartData]);
+
+  const ticks = useMemo(() => {
+    const tickCount = 4;
+    const step = Math.ceil(maxValue / tickCount);
+    return Array.from({ length: tickCount + 1 }, (_, i) => i * step);
+  }, [maxValue]);
+
+  if (isLoading) {
+    return (
+      <Card className="bg-card rounded-2xl border-none shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between p-6 pb-0">
+          <Skeleton className="h-6 w-[200px]" />
+          <Skeleton className="h-6 w-[100px]" />
+        </CardHeader>
+        <CardContent className="p-6 pt-4">
+          <Skeleton className="h-[250px] w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-card rounded-2xl border-none shadow-none">
       <CardHeader className="flex flex-row items-center justify-between p-6 pb-0">
@@ -62,12 +106,21 @@ export function VendorOrderLineChart() {
           <h3 className="font-bold text-base text-title font-manrope leading-[1.6]">
             Total Orders
           </h3>
-          <LegendDot color="var(--title)" label="Current Week" />
-          <LegendDot color="var(--chart-2)" label="Previous Week" />
+          <LegendDot
+            color="var(--title)"
+            label={periodLabels[period].current}
+          />
+          <LegendDot
+            color="var(--chart-2)"
+            label={periodLabels[period].previous}
+          />
         </div>
-        <Select defaultValue="today">
+        <Select
+          value={period}
+          onValueChange={(value) => setPeriod(value as ChartPeriod)}
+        >
           <SelectTrigger className="border-none shadow-none p-0 h-auto gap-1 font-manrope text-sm text-title">
-            <SelectValue placeholder="Today" />
+            <SelectValue placeholder="This Week" />
           </SelectTrigger>
           <SelectContent className="border border-border ring-0">
             <SelectGroup>
@@ -96,7 +149,7 @@ export function VendorOrderLineChart() {
               stroke="var(--border)"
             />
             <XAxis
-              dataKey="day"
+              dataKey="label"
               tickLine={false}
               axisLine={false}
               tickMargin={12}
@@ -115,8 +168,8 @@ export function VendorOrderLineChart() {
                 fontSize: 12,
                 fontFamily: "var(--font-manrope)",
               }}
-              domain={[0, 300]}
-              ticks={[0, 100, 200, 300]}
+              domain={[0, maxValue]}
+              ticks={ticks}
             />
             <ChartTooltip
               cursor={false}
@@ -128,9 +181,9 @@ export function VendorOrderLineChart() {
               }
             />
             <Line
-              dataKey="currentWeek"
+              dataKey="currentPeriod"
               type="monotone"
-              stroke="var(--color-currentWeek)"
+              stroke="var(--color-currentPeriod)"
               strokeWidth={2}
               dot={false}
               activeDot={{
@@ -141,9 +194,9 @@ export function VendorOrderLineChart() {
               }}
             />
             <Line
-              dataKey="previousWeek"
+              dataKey="previousPeriod"
               type="monotone"
-              stroke="var(--color-previousWeek)"
+              stroke="var(--color-previousPeriod)"
               strokeWidth={2}
               dot={false}
               activeDot={{
