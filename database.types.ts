@@ -1421,6 +1421,21 @@ export type Database = {
           vendor_id: string
         }[]
       }
+      get_vendor_dashboard_stats: {
+        Args: { p_period?: string; p_vendor_id: string }
+        Returns: {
+          in_progress_orders: number
+          new_orders: number
+          prev_in_progress_orders: number
+          prev_new_orders: number
+          prev_ready_for_delivery: number
+          prev_total_orders: number
+          prev_total_revenue: number
+          ready_for_delivery: number
+          total_orders: number
+          total_revenue: number
+        }[]
+      }
       get_vendor_financial_report: {
         Args: {
           p_end_date?: string

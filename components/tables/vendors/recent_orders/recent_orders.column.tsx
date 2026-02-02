@@ -1,74 +1,115 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { IRecentOrderData, OrderStatus } from "./recent_orders.data";
+import { IOrder } from "@/api/vendor/order/use_fetch_orders";
 
 // Status badge component with dot indicator matching Figma design
-const OrderStatusBadge = ({ status }: { status: OrderStatus }) => {
+const OrderStatusBadge = ({
+  status,
+}: {
+  status: string | null | undefined;
+}) => {
+  if (!status) {
+    return <span className="text-sm text-muted-foreground">Unknown</span>;
+  }
+
   const statusConfig: Record<
-    OrderStatus,
+    string,
     { label: string; dotColor: string; textColor: string }
   > = {
-    new: {
-      label: "New",
-      dotColor: "bg-[#b28b00]",
-      textColor: "text-[#b28b00]",
+    under_review: {
+      label: "Under Review",
+      dotColor: "bg-yellow-500",
+      textColor: "text-yellow-500",
     },
-    "in-progress": {
-      label: "In Progress",
-      dotColor: "bg-[#8a8cd9]",
-      textColor: "text-[#8a8cd9]",
+    accepted: {
+      label: "Accepted",
+      dotColor: "bg-blue-500",
+      textColor: "text-blue-500",
     },
-    ready: {
-      label: "Ready",
-      dotColor: "bg-[#4aa785]",
-      textColor: "text-[#4aa785]",
+    in_pickup: {
+      label: "In Pickup",
+      dotColor: "bg-purple-500",
+      textColor: "text-purple-500",
     },
-    delivered: {
-      label: "Delivered",
-      dotColor: "bg-[#59a8d4]",
-      textColor: "text-[#59a8d4]",
+    in_processing: {
+      label: "In Processing",
+      dotColor: "bg-indigo-500",
+      textColor: "text-indigo-500",
+    },
+    ready_for_delivery: {
+      label: "Ready for Delivery",
+      dotColor: "bg-green-500",
+      textColor: "text-green-500",
+    },
+    under_delivery: {
+      label: "Under Delivery",
+      dotColor: "bg-cyan-500",
+      textColor: "text-cyan-500",
+    },
+    complete: {
+      label: "Complete",
+      dotColor: "bg-teal-600",
+      textColor: "text-teal-600",
     },
     cancelled: {
       label: "Cancelled",
-      dotColor: "bg-black/40",
-      textColor: "text-black/40",
+      dotColor: "bg-gray-400",
+      textColor: "text-gray-400",
     },
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || {
+    label: status,
+    dotColor: "bg-gray-300",
+    textColor: "text-gray-600",
+  };
 
   return (
     <div className="flex items-center gap-1">
       <span className={cn("size-2 rounded-full", config.dotColor)} />
-      <span className={cn("text-base", config.textColor)}>{config.label}</span>
+      <span className={cn("text-sm font-medium", config.textColor)}>
+        {config.label}
+      </span>
     </div>
   );
 };
 
 // ALL columns for Recent Orders table
-export const recentOrdersColumns: ColumnDef<IRecentOrderData>[] = [
+export const recentOrdersColumns: ColumnDef<IOrder>[] = [
   {
     id: "orderId",
     header: "Order ID",
-    accessorKey: "orderId",
+    accessorKey: "id",
     cell: ({ row }) => {
-      return <span className="text-title">{row.original.orderId}</span>;
+      const orderId = row.original.id.slice(0, 8).toUpperCase();
+      return <span className="text-title">#{orderId}</span>;
     },
   },
   {
     id: "customer",
     header: "Customer",
-    accessorKey: "customerName",
+    accessorKey: "customer.full_name",
     cell: ({ row }) => {
-      const { customerName, customerAvatar } = row.original;
+      const customer = row.original.customer;
+      if (!customer) {
+        return <span className="text-sm text-muted-foreground">Unknown</span>;
+      }
+      const customerName = customer.full_name || customer.email || "No Name";
+      const customerAvatar = customer.avatar_url;
+      const initials =
+        customerName
+          .split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2) || "NA";
+
       return (
         <div className="flex items-center gap-2">
-          <Avatar className="size-6 border border-[#ff8a65]">
-            <AvatarImage src={customerAvatar} alt={customerName} />
-            <AvatarFallback>
-              {customerName.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
+          <Avatar className="size-6">
+            <AvatarImage src={customerAvatar || ""} alt={customerName} />
+            <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <span className="text-title">{customerName}</span>
         </div>
@@ -78,19 +119,20 @@ export const recentOrdersColumns: ColumnDef<IRecentOrderData>[] = [
   {
     id: "service",
     header: "Service",
-    accessorKey: "service",
+    accessorKey: "main_service.service",
     cell: ({ row }) => {
-      return <span className="text-title">{row.original.service}</span>;
+      const service = row.original.main_service?.service || "Unknown";
+      return <span className="text-title capitalize">{service}</span>;
     },
   },
   {
     id: "price",
-    header: "Price (kes)",
-    accessorKey: "price",
+    header: "Price (KES)",
+    accessorKey: "total_price",
     cell: ({ row }) => {
       return (
         <span className="text-title">
-          {row.original.price.toLocaleString()}
+          {row.original.total_price.toLocaleString()}
         </span>
       );
     },
