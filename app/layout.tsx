@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Marck_Script, Manrope } from "next/font/google";
+import {
+  DM_Sans,
+  Geist,
+  Geist_Mono,
+  Marck_Script,
+  Manrope,
+} from "next/font/google";
 import "./globals.css";
 import "./globals.css";
 import { AuthContextProvider } from "@/components/context/auth_provider";
@@ -28,6 +34,12 @@ const manrope = Manrope({
   variable: "--font-manrope",
 });
 
+const dmSans = DM_Sans({
+  weight: ["400", "500", "700"],
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
+});
+
 export const metadata: Metadata = {
   title: {
     template: "%s | Laundry Go Mart",
@@ -45,7 +57,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable}
-        ${marckScript.variable} ${manrope.variable} bg-background
+        ${marckScript.variable} ${manrope.variable} ${dmSans.variable} bg-background
         font-manrope
           
           antialiased`}

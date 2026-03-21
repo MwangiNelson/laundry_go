@@ -2,11 +2,11 @@ import { LandingPageUI } from "@/components/pageUIs/landing/landing_page_ui";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "LaundryGo!",
+  title: "Landing",
   description:
-    "Grow your laundry business with LaundryGo! Manage orders, pricing, and customer communication from one responsive partner dashboard.",
+    "LaundryGo partner landing page with onboarding details, product features, testimonials, and FAQs.",
 };
 
-export default function Home() {
+export default function LandingPage() {
   return <LandingPageUI />;
 }
