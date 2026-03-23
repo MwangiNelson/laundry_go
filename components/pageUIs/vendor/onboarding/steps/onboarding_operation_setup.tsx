@@ -1,16 +1,10 @@
 "use client";
 
-import React from "react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { useOnboarding } from "../onboarding_context";
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
 import { Plus, X } from "lucide-react";
+import { useOnboarding } from "../onboarding_context";
 
 const DAYS = [
   { key: "sunday", label: "Sun" },
@@ -22,7 +16,7 @@ const DAYS = [
   { key: "saturday", label: "Sat" },
 ] as const;
 
-type DayKey = (typeof DAYS)[number]["key"];
+type TDayKey = (typeof DAYS)[number]["key"];
 
 export const OnboardingOperationSetup = () => {
   const { operation_hours_form } = useOnboarding();
@@ -30,20 +24,18 @@ export const OnboardingOperationSetup = () => {
   return (
     <Form {...operation_hours_form}>
       <form className="flex flex-col gap-4">
-        {/* Title Section */}
-        <div className="flex flex-col gap-2">
-          <h2 className="font-manrope font-bold text-2xl md:text-[32px] leading-tight text-title">
+        <div>
+          <h2 className="font-dm-sans text-xl font-semibold text-title sm:text-2xl">
             Operations Setup
           </h2>
-          <p className="font-manrope text-sm leading-normal text-subtitle">
+          <p className="mt-1 text-sm text-landing-primary">
             Set up your availability schedule to help customers know when to
             assign orders or contact you for your services. This program will
             show up on the customers&apos; app.
           </p>
         </div>
 
-        {/* Days Schedule */}
-        <div className="flex flex-col gap-3">
+        <div className="divide-y divide-border rounded-2xl border border-border">
           {DAYS.map((day) => (
             <DayRow key={day.key} dayKey={day.key} label={day.label} />
           ))}
@@ -53,111 +45,55 @@ export const OnboardingOperationSetup = () => {
   );
 };
 
-interface DayRowProps {
-  dayKey: DayKey;
-  label: string;
-}
-
-const DayRow = ({ dayKey, label }: DayRowProps) => {
+const DayRow = ({ dayKey, label }: { dayKey: TDayKey; label: string }) => {
   const { operation_hours_form } = useOnboarding();
   const dayValue = operation_hours_form.watch(dayKey);
-  const isAvailable = dayValue !== undefined && dayValue !== null;
-
-  const handleAddHours = () => {
-    operation_hours_form.setValue(dayKey, {
-      start_time: "09:00",
-      end_time: "17:00",
-    });
-  };
-
-  const handleRemoveHours = () => {
-    operation_hours_form.setValue(dayKey, undefined);
-  };
+  const isEnabled = Boolean(dayValue?.start_time && dayValue?.end_time);
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-4">
-        {/* Day Label */}
-        <span className="font-manrope text-sm text-foreground w-10 shrink-0">
-          {label}
-        </span>
+    <div className="flex items-center gap-3 px-4 py-2.5">
+      <p className="w-10 text-sm font-medium text-title">{label}</p>
 
-        {isAvailable ? (
-          <>
-            {/* Time Inputs with FormField */}
-            <div className="flex items-center gap-2">
-              <FormField
-                control={operation_hours_form.control}
-                name={`${dayKey}.start_time`}
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormControl>
-                      <input
-                        type="time"
-                        {...field}
-                        value={field.value || "09:00"}
-                        className={cn(
-                          "px-3 py-2 rounded-lg border text-sm text-foreground bg-transparent",
-                          "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
-                          "w-[110px]",
-                          fieldState.error && "border-destructive"
-                        )}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <span className="text-muted-foreground">-</span>
-              <FormField
-                control={operation_hours_form.control}
-                name={`${dayKey}.end_time`}
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormControl>
-                      <input
-                        type="time"
-                        {...field}
-                        value={field.value || "17:00"}
-                        className={cn(
-                          "px-3 py-2 rounded-lg border text-sm text-foreground bg-transparent",
-                          "focus:outline-none focus:ring-1 focus:ring-ring focus:border-ring",
-                          "w-[110px]",
-                          fieldState.error && "border-destructive"
-                        )}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+      {isEnabled ? (
+        <>
+          <TimeField
+            name={`${dayKey}.start_time`}
+            defaultValue={dayValue?.start_time ?? "09:00"}
+          />
+          <span className="text-xs text-muted-foreground">-</span>
+          <TimeField
+            name={`${dayKey}.end_time`}
+            defaultValue={dayValue?.end_time ?? "17:00"}
+          />
+          <button
+            type="button"
+            onClick={() => operation_hours_form.setValue(dayKey, undefined)}
+            className="ml-1 text-muted-foreground hover:text-destructive"
+            aria-label={`Remove ${label} hours`}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </>
+      ) : (
+        <>
+          <span className="text-sm text-muted-foreground">Unavailable</span>
+          <button
+            type="button"
+            onClick={() =>
+              operation_hours_form.setValue(dayKey, {
+                start_time: "09:00",
+                end_time: "17:00",
+              })
+            }
+            className="text-muted-foreground hover:text-title"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </>
+      )}
 
-            {/* Remove Button */}
-            <button
-              type="button"
-              onClick={handleRemoveHours}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X size={16} />
-            </button>
-          </>
-        ) : (
-          <>
-            {/* Unavailable State */}
-            <span className="text-sm text-muted-foreground">Unavailable</span>
-            <button
-              type="button"
-              onClick={handleAddHours}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Plus size={16} />
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Error Messages for this day */}
-      {isAvailable && (
-        <div className="ml-14 flex gap-4">
+      {isEnabled && (
+        <div className="hidden">
           <FormField
             control={operation_hours_form.control}
             name={`${dayKey}.start_time`}
@@ -171,5 +107,37 @@ const DayRow = ({ dayKey, label }: DayRowProps) => {
         </div>
       )}
     </div>
+  );
+};
+
+const TimeField = ({
+  name,
+  defaultValue,
+}: {
+  name: `${TDayKey}.start_time` | `${TDayKey}.end_time`;
+  defaultValue: string;
+}) => {
+  const { operation_hours_form } = useOnboarding();
+
+  return (
+    <FormField
+      control={operation_hours_form.control}
+      name={name}
+      render={({ field, fieldState }) => (
+        <FormItem>
+          <FormControl>
+            <input
+              type="time"
+              {...field}
+              value={field.value || defaultValue}
+              className={cn(
+                "h-8 w-[100px] rounded-lg border border-border bg-white px-2 text-sm text-title outline-none focus:border-landing-primary",
+                fieldState.error && "border-destructive"
+              )}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
   );
 };

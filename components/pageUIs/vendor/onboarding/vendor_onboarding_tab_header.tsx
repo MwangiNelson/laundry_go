@@ -1,148 +1,86 @@
 "use client";
-import { CheckIcon } from "@phosphor-icons/react";
-import React from "react";
-import { useOnboarding } from "./onboarding_context";
-import { cn } from "@/lib/utils";
 
-const STEP_LABELS = [
-  "Business Information",
-  "Services & Pricing",
-  "Operations Setup",
-];
+import { Check } from "lucide-react";
+import React from "react";
+import { cn } from "@/lib/utils";
+import { useOnboarding } from "./onboarding_context";
 
 export const VendorOnboardingTabHeader = () => {
-  const { current_step, set_current_step, completed_steps, steps } =
-    useOnboarding();
-
-  const handleStepClick = (index: number) => {
-    const isFirstStep = index === 0;
-    const isCurrentStep = index === current_step;
-    const isCompletedStep = completed_steps.includes(index);
-    const isNextStep = index === current_step + 1;
-    const isCurrentStepCompleted = completed_steps.includes(current_step);
-
-    const isDisabled =
-      !isFirstStep &&
-      !isCurrentStep &&
-      !isCompletedStep &&
-      !(isNextStep && isCurrentStepCompleted);
-
-    if (!isDisabled) {
-      set_current_step(index);
-    }
-  };
+  const {
+    current_step,
+    set_current_step,
+    completed_steps,
+    steps,
+    canNavigateToStep,
+  } = useOnboarding();
 
   return (
-    <div className="bg-background rounded-xl px-6 py-5 flex flex-col gap-6 shadow-[0px_1px_2px_0px_rgba(0,0,0,0.3),0px_2px_6px_2px_rgba(0,0,0,0.15)]">
-      <h2 className="font-manrope font-extrabold text-2xl leading-[1.4] text-title">
+    <div className="rounded-2xl border border-border bg-white px-4 py-4 sm:px-6">
+      <h1 className="font-dm-sans text-lg font-semibold text-title sm:text-xl">
         Complete Your Profile
-      </h2>
+      </h1>
 
-      <div className="flex items-start justify-center gap-2 sm:gap-6 md:gap-[50px] w-full px-0 sm:px-6">
+      <div className="mt-4 flex items-center justify-between">
         {steps.map((step, index) => {
           const isCompleted = completed_steps.includes(index);
           const isActive = index === current_step;
-          const isFirstStep = index === 0;
-          const isCompletedStep = completed_steps.includes(index);
-          const isNextStep = index === current_step + 1;
-          const isCurrentStepCompleted = completed_steps.includes(current_step);
-
-          const isDisabled =
-            !isFirstStep &&
-            !isActive &&
-            !isCompletedStep &&
-            !(isNextStep && isCurrentStepCompleted);
-
-          const isLastStep = index === steps.length - 1;
+          const isDisabled = !canNavigateToStep(index);
+          const isLast = index === steps.length - 1;
 
           return (
-            <React.Fragment key={index}>
+            <React.Fragment key={step.key}>
               <button
                 type="button"
-                onClick={() => handleStepClick(index)}
                 disabled={isDisabled}
+                onClick={() => set_current_step(index)}
                 className={cn(
-                  "flex flex-col items-center gap-2.5 min-w-8 transition-opacity",
-                  isDisabled
-                    ? "cursor-not-allowed"
-                    : "cursor-pointer hover:opacity-80"
+                  "flex flex-col items-center gap-1.5",
+                  isDisabled && "cursor-not-allowed opacity-60"
                 )}
               >
-                <StepIndicator
-                  stepNumber={index + 1}
-                  isCompleted={isCompleted}
-                  isActive={isActive}
-                />
-                <span
+                <div
                   className={cn(
-                    "font-manrope text-xs text-center tracking-[0.5px] leading-[1.4] whitespace-nowrap",
+                    "flex h-8 w-8 items-center justify-center rounded-full border-2 text-xs font-semibold transition-colors",
                     isCompleted
-                      ? "font-bold text-secondary"
+                      ? "border-landing-primary bg-landing-primary text-white"
                       : isActive
-                      ? "font-bold text-foreground       "
-                      : "font-normal text-muted-foreground"
+                        ? "border-landing-primary text-landing-primary"
+                        : "border-gray-300 text-gray-400"
                   )}
                 >
-                  {STEP_LABELS[index]}
+                  {isCompleted ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    String(index + 1).padStart(2, "0")
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "hidden text-center text-[11px] leading-tight sm:block",
+                    isActive
+                      ? "font-semibold text-title"
+                      : isCompleted
+                        ? "font-medium text-title"
+                        : "text-muted-foreground"
+                  )}
+                >
+                  {step.title}
                 </span>
               </button>
-
-              {!isLastStep && <StepTrail isCompleted={isCompleted} />}
+              {!isLast && (
+                <div
+                  className={cn(
+                    "mx-1 h-0.5 flex-1 rounded-full sm:mx-2",
+                    isCompleted
+                      ? "bg-landing-primary"
+                      : "bg-gray-200"
+                  )}
+                />
+              )}
             </React.Fragment>
           );
         })}
       </div>
-    </div>
-  );
-};
-
-interface StepIndicatorProps {
-  stepNumber: number;
-  isCompleted: boolean;
-  isActive: boolean;
-}
-
-const StepIndicator = ({
-  stepNumber,
-  isCompleted,
-  isActive,
-}: StepIndicatorProps) => {
-  if (isCompleted) {
-    return (
-      <div className="size-8 rounded-full flex items-center justify-center ">
-        <CheckIcon size={20} weight="bold" className="text-foreground" />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "size-8 rounded-full  flex items-center justify-center",
-        isActive ? "bg-[#68C8FF]" : "border ",
-        isCompleted ? "bg-[#68C8FF]" : ""
-      )}
-    >
-      <span
-        className={cn(
-          "font-manrope text-sm leading-normal text-center",
-          isActive ? "text-primary-purple font-medium" : "text-muted-foreground"
-        )}
-      >
-        {String(stepNumber).padStart(2, "0")}
-      </span>
-    </div>
-  );
-};
-
-interface StepTrailProps {
-  isCompleted: boolean;
-}
-
-const StepTrail = ({ isCompleted }: StepTrailProps) => {
-  return (
-    <div className="flex-1 h-8 flex items-center min-w-7">
-      <div className={cn("h-0.5 w-full bg-[#68C8FF]")} />
     </div>
   );
 };

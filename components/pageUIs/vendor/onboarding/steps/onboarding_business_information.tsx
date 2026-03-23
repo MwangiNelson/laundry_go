@@ -1,8 +1,13 @@
-import { Form } from "@/components/ui/form";
-import { useOnboarding } from "../onboarding_context";
+"use client";
+
+import { FileUpload } from "@/components/fields/files/basic_image_input";
+import { ProfilePhotoUpload } from "@/components/fields/files/profile_photo_upload";
+import { GoogleMapsAutocomplete } from "@/components/fields/google_maps/google_auto_complete";
 import { BasicInput } from "@/components/fields/inputs/basic_input";
 import { PhoneInput } from "@/components/fields/inputs/phone_input";
-import { FileUpload } from "@/components/fields/files/basic_image_input";
+import { Form } from "@/components/ui/form";
+import { MapPin } from "lucide-react";
+import { useOnboarding } from "../onboarding_context";
 import { TBusinessInformation } from "../onboarding_utils";
 
 export const OnboardingBusinessInformation = () => {
@@ -11,64 +16,63 @@ export const OnboardingBusinessInformation = () => {
   return (
     <Form {...business_info_form}>
       <form className="flex flex-col gap-4">
-        {/* Title Section */}
-        <div className="flex flex-col gap-2">
-          <h2 className="font-manrope font-bold text-2xl md:text-[32px] leading-tight text-title">
+        <div>
+          <h2 className="font-dm-sans text-xl font-semibold text-title sm:text-2xl">
             Business Information
           </h2>
-          <p className="font-manrope text-sm leading-normal text-subtitle">
+          <p className="mt-1 text-sm text-landing-primary">
             Complete your profile details
           </p>
         </div>
 
-        {/* Form Fields */}
-        <div className="flex flex-col gap-4">
-          {/* Business Name */}
-          <BasicInput<TBusinessInformation>
+        <BasicInput<TBusinessInformation>
+          control={business_info_form.control}
+          name="business_name"
+          label="Business Name"
+          placeholder="LaundrySmart"
+          className="rounded-xl px-3 py-2.5"
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <PhoneInput<TBusinessInformation>
             control={business_info_form.control}
-            name="business_name"
-            label="Business Name"
-            placeholder="LaundrySmart"
+            name="phone_number"
+            label="Work Phone Number"
+            placeholder="Enter number"
+            defaultCountryCode="KE"
+            className="rounded-xl px-3 py-2.5"
           />
+          <GoogleMapsAutocomplete
+            control={business_info_form.control}
+            name="location"
+            label="Location"
+            placeholder="Enter location"
+            icon={MapPin}
+            iconPosition="start"
+            groupClassName="rounded-xl px-3 py-2.5"
+          />
+        </div>
 
-          {/* Phone Number & Location Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            <PhoneInput<TBusinessInformation>
-              control={business_info_form.control}
-              name="phone_number"
-              label="Phone Number"
-              placeholder="Enter number"
-              defaultCountryCode="KE"
-            />
-            <BasicInput<TBusinessInformation>
-              control={business_info_form.control}
-              name="email"
-              label="Email Address"
-              placeholder="Business Email"
-            />
-            <BasicInput<TBusinessInformation>
-              control={business_info_form.control}
-              name="address"
-              label="Location"
-              placeholder="Enter location"
-            />
-          </div>
-
-          {/* File Uploads Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FileUpload<TBusinessInformation>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="mb-2 text-sm font-medium text-title">Upload Logo</p>
+            <ProfilePhotoUpload<TBusinessInformation>
               control={business_info_form.control}
               name="logo"
-              label="Upload Logo"
-              accept="image/png,image/jpeg,image/gif"
-              multiple={false}
-              placeholder="Browse photo"
-              description="PNG, JPG or GIF (max 3MB)"
+              label=""
+              description="PNG, JPG or GIF (max 5MB)"
+              shape="rounded"
+              size="md"
             />
+          </div>
+          <div>
+            <p className="mb-2 text-sm font-medium text-title">
+              Upload Business License (Optional)
+            </p>
             <FileUpload<TBusinessInformation>
               control={business_info_form.control}
-              name="business_lincense"
-              label="Upload Business License (Optional)"
+              name="business_license"
+              label=""
               accept=".pdf"
               multiple={false}
               placeholder="Browse doc"

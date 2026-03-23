@@ -29,6 +29,7 @@ export interface ServiceItemWithOptions extends ServiceItem {
 export const useFetchMainServices = () => {
   return useQuery({
     queryKey: ["main_services"],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       const supabase = createSupabaseClient();
       const { data, error } = await supabase

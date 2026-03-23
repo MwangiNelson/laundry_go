@@ -41,6 +41,15 @@ export const VendorProvider = (props: Props) => {
       router.push("/vendor/onboarding");
       return;
     }
+    if (
+      loggedIn &&
+      !vendorProviders.loading_vendor &&
+      vendorProviders.vendor &&
+      !vendorProviders.vendor.profile_complete
+    ) {
+      router.push("/vendor/onboarding");
+      return;
+    }
     if (vendorProviders.vendor) {
       setVendorId(vendorProviders.vendor.id);
     }
@@ -66,7 +75,7 @@ export const VendorProvider = (props: Props) => {
       </div>
     );
   }
-  if (!vendorProviders.vendor) {
+  if (!vendorProviders.vendor || !vendorProviders.vendor.profile_complete) {
     return null;
   }
 

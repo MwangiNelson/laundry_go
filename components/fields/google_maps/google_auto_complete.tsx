@@ -1,27 +1,12 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { Check, ChevronsUpDown, Loader2, MapPin, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import React, { useEffect, useRef, useState } from "react";
+import { Loader2, MapPin, X } from "lucide-react";
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Control, FieldValues, Path, useWatch } from "react-hook-form";
-import { CommandList } from "cmdk";
+import { Control, FieldValues, Path } from "react-hook-form";
 import { cn } from "@/lib/utils";
 import { TIcon } from "@/types/ui.types";
 import { useGeo } from "@/components/context/geo_provider";
@@ -64,21 +49,23 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
   inputClassName,
   groupClassName,
   className,
-  ...props
 }: GoogleMapsAutocompleteProps<T>) => {
-  const [open, setOpen] = useState(false);
   const [predictions, setPredictions] = useState<
     google.maps.places.AutocompletePrediction[]
   >([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
+  const [inputText, setInputText] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedViaGoogle, setSelectedViaGoogle] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const { isMapLoaded: isLoaded, loadError } = useGeo();
+  const { isMapLoaded, loadError } = useGeo();
+  const googleAvailable = isMapLoaded && !loadError;
 
   const getPlaceDetails = async (
     placeId: string
   ): Promise<LocationData | null> => {
-    if (!isLoaded) return null;
+    if (!googleAvailable) return null;
 
     const placesService = new google.maps.places.PlacesService(
       document.createElement("div")
@@ -87,7 +74,7 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
     return new Promise((resolve) => {
       placesService.getDetails(
         {
-          placeId: placeId,
+          placeId,
           fields: [
             "geometry",
             "formatted_address",
@@ -97,18 +84,17 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
         },
         (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK && place) {
-            const locationData: LocationData = {
+            resolve({
               place_id: placeId,
               description: place.formatted_address || null,
               main_text: place.name || "",
               coordinates: place.geometry?.location
                 ? {
-                    lat: place.geometry.location.lat(),
-                    lng: place.geometry.location.lng(),
-                  }
+                  lat: place.geometry.location.lat(),
+                  lng: place.geometry.location.lng(),
+                }
                 : undefined,
-            };
-            resolve(locationData);
+            });
           } else {
             resolve(null);
           }
@@ -117,49 +103,63 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
     });
   };
 
-  // Debounced search function
+  // Debounced Google predictions
   useEffect(() => {
-    if (!searchValue || !isLoaded) {
+    if (!inputText || !googleAvailable || selectedViaGoogle) {
       setPredictions([]);
       return;
     }
 
     const timeoutId = setTimeout(async () => {
       setIsLoading(true);
-      const autocompleteService = new google.maps.places.AutocompleteService();
       try {
+        const autocompleteService =
+          new google.maps.places.AutocompleteService();
         const results = await autocompleteService.getPlacePredictions({
-          input: searchValue,
+          input: inputText,
         });
         setPredictions(results?.predictions || []);
-      } catch (error) {
-        console.error("Error fetching predictions:", error);
+      } catch {
         setPredictions([]);
       } finally {
         setIsLoading(false);
       }
-    }, 300); // 300ms debounce
+    }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [searchValue, isLoaded]);
+  }, [inputText, googleAvailable, selectedViaGoogle]);
 
-  if (loadError) {
-    return <div>Error loading Google Maps</div>;
-  }
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <FormField
       control={control}
       name={name}
       defaultValue={initialValue}
-      render={({ field }) => (
-        <FormItem className={cn("w-full relative", className)}>
-          <FormControl>
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger className="p-0 w-full" asChild>
+      render={({ field }) => {
+        const displayValue = field.value?.main_text
+          ? `${field.value.main_text}${field.value.description ? ` - ${field.value.description}` : ""}`
+          : field.value?.description || "";
+
+        return (
+          <FormItem className={cn("w-full relative", className)}>
+            <FormControl>
+              <div ref={wrapperRef} className="relative">
                 <div
                   className={cn(
-                    "relative rounded-2xl border px-4 py-3 transition-colors cursor-pointer",
+                    "relative rounded-2xl border px-4 py-3 transition-colors",
                     "focus-within:border-ring focus-within:ring-1 focus-within:ring-ring",
                     groupClassName
                   )}
@@ -178,18 +178,32 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
                       <input
                         type="text"
                         placeholder={placeholder}
-                        value={
-                          field.value?.main_text
-                            ? `${field.value.main_text}${
-                                field.value.description
-                                  ? ` - ${field.value.description}`
-                                  : ""
-                              }`
-                            : ""
-                        }
-                        readOnly
+                        value={showDropdown ? inputText : inputText || displayValue}
+                        onFocus={() => {
+                          if (!inputText && displayValue) {
+                            setInputText(displayValue);
+                          }
+                          setSelectedViaGoogle(false);
+                          setShowDropdown(true);
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputText(val);
+                          setSelectedViaGoogle(false);
+                          setShowDropdown(true);
+
+                          // Update field with manual text
+                          if (val.trim()) {
+                            field.onChange({
+                              description: val.trim(),
+                              main_text: val.trim(),
+                            });
+                          } else {
+                            field.onChange(null);
+                          }
+                        }}
                         className={cn(
-                          "w-full bg-transparent text-sm text-foreground placeholder:text-placeholder focus:outline-none cursor-pointer",
+                          "w-full bg-transparent text-sm text-foreground placeholder:text-placeholder focus:outline-none",
                           inputClassName
                         )}
                       />
@@ -198,120 +212,107 @@ export const GoogleMapsAutocomplete = <T extends FieldValues>({
                         <Icon className={cn("text-xl ml-2", iconClassName)} />
                       )}
 
-                      {/* Clear button - only show when location is selected */}
-                      {field.value && (
+                      {/* Clear button */}
+                      {(field.value || inputText) && (
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             field.onChange(null);
-                            setSearchValue("");
+                            setInputText("");
+                            setPredictions([]);
+                            setShowDropdown(false);
+                            setSelectedViaGoogle(false);
                           }}
                           className="ml-auto transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       )}
-
-                      {/* Dropdown arrow */}
-                      <button type="button" className="ml-2 transition-colors">
-                        <ChevronsUpDown className="w-4 h-4" />
-                      </button>
                     </div>
                   </div>
                 </div>
-              </PopoverTrigger>
-              <PopoverContent
-                className={cn(
-                  "w-[var(--radix-popover-trigger-width)] bg-background backdrop-blur-md border border-blue-200/30 shadow-2xl rounded-lg p-0",
-                  "max-h-60 overflow-hidden"
-                )}
-                align="start"
-              >
-                <Command shouldFilter={false} className="bg-transparent">
-                  <CommandInput
-                    placeholder="Search for a location..."
-                    value={searchValue}
-                    onValueChange={setSearchValue}
-                    className="border-0 bg-transparent font-manrope text-lg "
-                  />
-                  {isLoading && (
-                    <div className="flex items-center justify-center p-4">
-                      <Loader2 className="h-4 w-4 animate-spin " />
-                    </div>
-                  )}
-                  {!isLoading && predictions.length === 0 && searchValue && (
-                    <div className="p-4 text-center">
-                      <p className="text-sm text-muted-foreground font-manrope">
-                        No locations found
-                      </p>
-                    </div>
-                  )}
-                  {!searchValue && (
-                    <div className="p-4 text-center">
-                      <p className="text-sm text-muted-foreground font-manrope">
-                        Start typing to search for a location
-                      </p>
-                    </div>
-                  )}
-                  <CommandGroup>
-                    <CommandList className="max-h-48 overflow-y-auto">
-                      {predictions.map((prediction) => (
-                        <CommandItem
-                          key={prediction.place_id}
-                          value={prediction.description}
-                          onSelect={async () => {
-                            const details = await getPlaceDetails(
-                              prediction.place_id
-                            );
-                            if (details) {
-                              console.log("Location selected:", details);
-                              field.onChange({
-                                place_id: details.place_id,
-                                description: details.description,
-                                main_text: details.main_text,
-                                secondary_text:
-                                  prediction.structured_formatting
-                                    .secondary_text,
-                                coordinates: details.coordinates,
-                              });
-                              setSearchValue("");
-                              setOpen(false);
-                            }
-                          }}
-                          className="hover:bg-blue-100/20 focus:bg-blue-100/20 cursor-pointer transition-colors border-b border-blue-100/20 last:border-b-0"
-                        >
-                          <div className="flex items-start gap-3 w-full">
-                            <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-manrope text-sm text-foreground truncate">
-                                {prediction.structured_formatting.main_text}
-                              </p>
-                              {prediction.structured_formatting
-                                .secondary_text && (
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                  {
-                                    prediction.structured_formatting
-                                      .secondary_text
-                                  }
-                                </p>
-                              )}
-                            </div>
-                            {field.value?.place_id === prediction.place_id && (
-                              <Check className="ml-auto h-4 w-4 flex-shrink-0" />
-                            )}
+
+                {/* Google suggestions dropdown — only when API is available */}
+                {showDropdown &&
+                  googleAvailable &&
+                  inputText &&
+                  !selectedViaGoogle && (
+                    <div className="absolute z-50 mt-1 w-full rounded-lg border border-blue-200/30 bg-background shadow-2xl overflow-hidden">
+                      {isLoading && (
+                        <div className="flex items-center justify-center p-4">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      )}
+                      {!isLoading &&
+                        predictions.length === 0 &&
+                        inputText.length >= 3 && (
+                          <div className="p-3 text-center text-sm text-muted-foreground">
+                            No suggestions found
                           </div>
-                        </CommandItem>
-                      ))}
-                    </CommandList>
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+                        )}
+                      {predictions.length > 0 && (
+                        <ul className="max-h-48 overflow-y-auto py-1">
+                          {predictions.map((prediction) => (
+                            <li key={prediction.place_id}>
+                              <button
+                                type="button"
+                                className="flex w-full items-start gap-3 px-3 py-2.5 text-left hover:bg-muted/50 transition-colors border-b border-blue-100/20 last:border-b-0"
+                                onMouseDown={async (e) => {
+                                  e.preventDefault();
+                                  const details = await getPlaceDetails(
+                                    prediction.place_id
+                                  );
+                                  if (details) {
+                                    field.onChange({
+                                      place_id: details.place_id,
+                                      description: details.description,
+                                      main_text: details.main_text,
+                                      secondary_text:
+                                        prediction.structured_formatting
+                                          .secondary_text,
+                                      coordinates: details.coordinates,
+                                    });
+                                    setInputText(
+                                      `${details.main_text}${details.description ? ` - ${details.description}` : ""}`
+                                    );
+                                  }
+                                  setSelectedViaGoogle(true);
+                                  setPredictions([]);
+                                  setShowDropdown(false);
+                                }}
+                              >
+                                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted-foreground" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm text-foreground truncate">
+                                    {
+                                      prediction.structured_formatting
+                                        .main_text
+                                    }
+                                  </p>
+                                  {prediction.structured_formatting
+                                    .secondary_text && (
+                                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                        {
+                                          prediction.structured_formatting
+                                            .secondary_text
+                                        }
+                                      </p>
+                                    )}
+                                </div>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+              </div>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 };
