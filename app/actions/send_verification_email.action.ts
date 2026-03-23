@@ -91,7 +91,7 @@ export async function createVendorUser({
 
     // Send verification email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: "LaundryGo <laundrygo@meshack.dev>",
+      from: "LaundryGo <laundrygo@glitexsolutions.co.ke>",
       to: [email],
       subject: "Verify your email address",
       html: emailHtml,
