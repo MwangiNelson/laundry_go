@@ -1,7 +1,6 @@
 "use client";
 
 import { BasicInput } from "@/components/fields/inputs/basic_input";
-import { BasicSelect } from "@/components/fields/select/basic_select";
 import {
   Form,
   FormControl,
@@ -12,13 +11,6 @@ import {
 import { RichTextEditor } from "@/components/ui/rich_text_editor";
 import { useOnboarding } from "../onboarding_context";
 import { TFinancesAndTerms } from "../onboarding_utils";
-
-const PAYOUT_OPTIONS = [
-  {
-    label: "Bank transfer",
-    value: "bank_transfer",
-  },
-];
 
 export const OnboardingFinancesAndTerms = () => {
   const { finances_and_terms_form } = useOnboarding();
@@ -37,22 +29,14 @@ export const OnboardingFinancesAndTerms = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-border p-4">
-            <p className="mb-3 text-sm font-semibold text-title">
-              Payout details
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <BasicSelect<TFinancesAndTerms>
-                control={finances_and_terms_form.control}
-                name="payout_method"
-                label="Preferred payout method"
-                placeholder="Select"
-                options={PAYOUT_OPTIONS}
-                className="rounded-lg px-3 py-2"
-              />
-              <BasicInput<TFinancesAndTerms>
-                control={finances_and_terms_form.control}
-                name="bank_name"
+        <div className="rounded-2xl border border-border p-4">
+          <p className="mb-3 text-sm font-semibold text-title">
+            Bank details
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <BasicInput<TFinancesAndTerms>
+              control={finances_and_terms_form.control}
+              name="bank_name"
                 label="Bank name"
                 placeholder="Equity Bank"
                 className="rounded-lg px-3 py-2"

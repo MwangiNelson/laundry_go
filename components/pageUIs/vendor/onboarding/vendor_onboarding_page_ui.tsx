@@ -3,15 +3,13 @@
 import { Button } from "@/components/ui/button";
 import { Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAuth } from "@/components/context/auth_provider";
 import { useOnboarding } from "./onboarding_context";
 import { VendorOnboardingNavbar } from "./vendor_onboarding_navbar";
+import { VendorOnboardingFooter } from "./vendor_onboarding_footer";
 import { VendorOnboardingTabHeader } from "./vendor_onboarding_tab_header";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export const VendorOboardingPageUI = () => {
-  const { loggedIn } = useAuth();
   const {
     StepComponent,
     steps,
@@ -113,9 +111,9 @@ export const VendorOboardingPageUI = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-foreground">
-      <VendorOnboardingNavbar showDashboardLink={loggedIn && Boolean(existing_vendor)} />
-      <main className="px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+    <div className="flex min-h-screen flex-col bg-[#f4f7fb] text-foreground">
+      <VendorOnboardingNavbar />
+      <main className="flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
         <div className="mx-auto max-w-5xl space-y-4">
           <VendorOnboardingTabHeader />
 
@@ -146,6 +144,7 @@ export const VendorOboardingPageUI = () => {
           </div>
         </div>
       </main>
+      <VendorOnboardingFooter />
     </div>
   );
 };

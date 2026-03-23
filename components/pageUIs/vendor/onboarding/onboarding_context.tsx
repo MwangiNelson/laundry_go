@@ -230,11 +230,11 @@ const useOnboardingProvider = () => {
         : createDefaultOperationHours()
     );
 
+    const bankDetails = vendor?.bank_details;
     finances_and_terms_form.reset({
-      payout_method: "bank_transfer",
-      bank_name: vendor?.bank_name ?? "",
-      bank_account_name: vendor?.bank_account_name ?? "",
-      bank_account_number: vendor?.bank_account_number ?? "",
+      bank_name: bankDetails?.bank_name ?? "",
+      bank_account_name: bankDetails?.bank_account_name ?? "",
+      bank_account_number: bankDetails?.bank_account_number ?? "",
       terms_and_conditions: vendor?.terms_and_conditions ?? "",
     });
 

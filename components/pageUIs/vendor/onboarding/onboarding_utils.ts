@@ -358,9 +358,6 @@ export const extractPlainTextFromHtml = (value: string) =>
     .trim();
 
 export const finances_and_terms = z.object({
-  payout_method: z.enum(["bank_transfer"], {
-    message: "Please select your payout method",
-  }),
   bank_name: z.string().min(2, "Please enter your bank name"),
   bank_account_name: z
     .string()
@@ -440,7 +437,6 @@ export const createDefaultOperationHours = (): TOperationHours => ({
 });
 
 export const createDefaultFinancesAndTerms = (): TFinancesAndTerms => ({
-  payout_method: "bank_transfer",
   bank_name: "",
   bank_account_name: "",
   bank_account_number: "",

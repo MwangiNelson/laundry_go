@@ -19,7 +19,8 @@ export const useGetVendor = () => {
             *,
             vendors(
               *,
-              location:locations(*)
+              location:locations(*),
+              bank_details(*)
             )
           `
           )

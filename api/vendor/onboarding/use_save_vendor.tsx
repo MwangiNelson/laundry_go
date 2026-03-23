@@ -23,6 +23,7 @@ import { createSupabaseClient } from "../../supabase/client";
 
 type TVendorWithLocation = Tables<"vendors"> & {
   location: Tables<"locations"> | null;
+  bank_details: Tables<"bank_details"> | null;
 };
 
 export type TVendorOnboardingDraft = {
@@ -76,7 +77,8 @@ const getVendorDraft = async (
     .select(
       `
         *,
-        location:locations(*)
+        location:locations(*),
+        bank_details(*)
       `
     )
     .eq("admin_id", userId)
@@ -181,7 +183,8 @@ const getExistingVendor = async (userId: string) => {
     .select(
       `
         *,
-        location:locations(*)
+        location:locations(*),
+        bank_details(*)
       `
     )
     .eq("admin_id", userId)
@@ -795,10 +798,6 @@ const saveFinancesStep = async ({
     : existingVendor.profile_completed_at;
 
   const vendorUpdate: TablesUpdate<"vendors"> = {
-    payout_method: data.payout_method,
-    bank_name: data.bank_name,
-    bank_account_name: data.bank_account_name,
-    bank_account_number: data.bank_account_number,
     terms_and_conditions: data.terms_and_conditions,
     profile_complete: finalize ? true : existingVendor.profile_complete,
     profile_completed_at: completedAt,
@@ -812,6 +811,22 @@ const saveFinancesStep = async ({
 
   if (error) {
     throw error;
+  }
+
+  const { error: bankError } = await supabase
+    .from("bank_details")
+    .upsert(
+      {
+        vendor_id: existingVendor.id,
+        bank_name: data.bank_name,
+        bank_account_name: data.bank_account_name,
+        bank_account_number: data.bank_account_number,
+      },
+      { onConflict: "vendor_id" }
+    );
+
+  if (bankError) {
+    throw bankError;
   }
 
   await updateProfileProgress({

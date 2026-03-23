@@ -20,6 +20,7 @@ import {
   useUpdateOperatingHours,
   useUpdatePassword,
 } from "@/api/vendor/management/use_manage_vendor";
+import { createSupabaseClient } from "@/api/supabase/client";
 
 interface SettingsContextType {
   business_profile_form: UseFormReturn<TBusinessProfile>;
@@ -96,12 +97,12 @@ export const SettingsProvider = ({
         logo: undefined,
         location: location
           ? {
-              place_id: location.place_id || undefined,
-              description: location.description || null,
-              main_text: location.main_text || undefined,
-              secondary_text: location.secondary_text || undefined,
-              coordinates: location.coordinates || undefined,
-            }
+            place_id: location.place_id || undefined,
+            description: location.description || null,
+            main_text: location.main_text || undefined,
+            secondary_text: location.secondary_text || undefined,
+            coordinates: location.coordinates || undefined,
+          }
           : undefined,
         ...defaultBusinessProfile,
       });
@@ -154,6 +155,19 @@ export const SettingsProvider = ({
       ...defaultPayoutMethods,
     },
   });
+
+  // Load bank details into payout form
+  useEffect(() => {
+    const bankDetails = (vendor as any)?.bank_details;
+    if (bankDetails) {
+      payout_methods_form.reset({
+        bank_name: bankDetails.bank_name ?? "",
+        account_name: bankDetails.bank_account_name ?? "",
+        account_number: bankDetails.bank_account_number ?? "",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [(vendor as any)?.bank_details]);
 
   const security_account_form = useForm<TSecurityAccount>({
     resolver: zodResolver(security_account_schema),
@@ -208,8 +222,26 @@ export const SettingsProvider = ({
   };
 
   const onUpdatePayoutMethods = async (data: TPayoutMethods) => {
-    console.log("Updating payout methods:", data);
-    // TODO: Implement API call
+    if (!vendor?.id) {
+      throw new Error("Vendor not found");
+    }
+
+    const supabase = createSupabaseClient();
+    const { error } = await supabase
+      .from("bank_details")
+      .upsert(
+        {
+          vendor_id: vendor.id,
+          bank_name: data.bank_name,
+          bank_account_name: data.account_name,
+          bank_account_number: data.account_number,
+        },
+        { onConflict: "vendor_id" }
+      );
+
+    if (error) {
+      throw error;
+    }
   };
 
   const onUpdateSecurityAccount = async (data: TSecurityAccount) => {
