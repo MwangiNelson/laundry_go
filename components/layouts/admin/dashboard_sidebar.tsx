@@ -253,7 +253,7 @@ export const DashboardSidebar = () => {
               icon={SignOutIcon}
               collapsed={isCollapsed}
               className="hover:!bg-destructive/10 hover:!text-destructive"
-              onClick={() => {}}
+              onClick={() => { }}
             />
           </li>
         </ul>
