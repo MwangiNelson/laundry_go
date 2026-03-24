@@ -1,5 +1,5 @@
 "use server";
-import { createSupabaseServer } from "@/api/supabase/server";
+import { createSupabaseAdmin } from "@/api/supabase/admin";
 export const createUser = async ({
   email,
   phone,
@@ -11,7 +11,7 @@ export const createUser = async ({
   full_name: string;
   password: string;
 }) => {
-  const supabase = await createSupabaseServer();
+  const supabase = createSupabaseAdmin();
   try {
     const { data, error } = await supabase.auth.admin.createUser({
       email,

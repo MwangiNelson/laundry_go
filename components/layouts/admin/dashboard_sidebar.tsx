@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IoLogOutOutline } from "react-icons/io5";
 import { TbTruckDelivery } from "react-icons/tb";
 import { RiUserLine } from "react-icons/ri";
 import { cn } from "@/lib/utils";
@@ -22,6 +21,8 @@ import {
   SignOutIcon,
   HeadsetIcon,
 } from "@phosphor-icons/react";
+import Image from "next/image";
+
 export type TVendorNavItemChild = {
   key: string;
   label: string;
@@ -35,72 +36,97 @@ export type TVendorNavItem = {
   link?: string;
   children?: TVendorNavItemChild[];
 };
-export const ADMIN_NAV_ITEMS: TVendorNavItem[] = [
-  {
-    key: "overview",
-    label: "Overview",
-    icon: PiChartPieSliceFill,
-    link: "/dashboard",
-  },
-  {
-    key: "vendors",
-    label: "Vendors",
-    icon: RiProfileLine,
-    link: "/dashboard/vendors",
-  },
-  {
-    key: "orders",
-    label: "Orders",
-    icon: PackageIcon,
-    link: "/dashboard/orders",
-    children: [
-      {
-        key: "laundry_orders",
-        label: "Laundry Orders",
-        link: "/dashboard/orders/laundry_orders",
-      },
 
+type TNavSection = {
+  label: string;
+  items: TVendorNavItem[];
+};
+
+const ADMIN_NAV_SECTIONS: TNavSection[] = [
+  {
+    label: "Main",
+    items: [
       {
-        key: "moving_orders",
-        label: "Moving Orders",
-        link: "/dashboard/orders/moving_orders",
-      },
-      {
-        key: "house_cleaning_orders",
-        label: "House Cleaning Orders",
-        link: "/dashboard/orders/house_cleaning_orders",
-      },
-      {
-        key: "office_cleaning_orders",
-        label: "Office Cleaning Orders",
-        link: "/dashboard/orders/office_cleaning_orders",
-      },
-      {
-        key: "fumigation_orders",
-        label: "Fumigation Orders",
-        link: "/dashboard/orders/fumigation_orders",
+        key: "overview",
+        label: "Overview",
+        icon: PiChartPieSliceFill,
+        link: "/dashboard",
       },
     ],
   },
   {
-    key: "customers",
-    label: "Customers",
-    link: "/dashboard/customers",
-    icon: HeadsetIcon,
+    label: "Management",
+    items: [
+      {
+        key: "vendors",
+        label: "Vendors",
+        icon: RiProfileLine,
+        link: "/dashboard/vendors",
+      },
+      {
+        key: "orders",
+        label: "Orders",
+        icon: PackageIcon,
+        link: "/dashboard/orders",
+        children: [
+          {
+            key: "laundry_orders",
+            label: "Laundry Orders",
+            link: "/dashboard/orders/laundry_orders",
+          },
+          {
+            key: "moving_orders",
+            label: "Moving Orders",
+            link: "/dashboard/orders/moving_orders",
+          },
+          {
+            key: "house_cleaning_orders",
+            label: "House Cleaning Orders",
+            link: "/dashboard/orders/house_cleaning_orders",
+          },
+          {
+            key: "office_cleaning_orders",
+            label: "Office Cleaning Orders",
+            link: "/dashboard/orders/office_cleaning_orders",
+          },
+          {
+            key: "fumigation_orders",
+            label: "Fumigation Orders",
+            link: "/dashboard/orders/fumigation_orders",
+          },
+        ],
+      },
+      {
+        key: "customers",
+        label: "Customers",
+        link: "/dashboard/customers",
+        icon: HeadsetIcon,
+      },
+      {
+        key: "services",
+        label: "Services",
+        link: "/dashboard/services",
+        icon: TbTruckDelivery,
+      },
+    ],
   },
   {
-    key: "services",
-    label: "Services",
-    link: "/dashboard/services",
-    icon: TbTruckDelivery,
-  },
-  {
-    key: "transactions",
-    label: "Transactions",
-    icon: RiUserLine,
-    link: "/dashboard/transactions",
+    label: "Finance",
+    items: [
+      {
+        key: "transactions",
+        label: "Transactions",
+        icon: RiUserLine,
+        link: "/dashboard/transactions",
+      },
+    ],
   },
 ];
+
+// Flatten for backward compat
+export const ADMIN_NAV_ITEMS: TVendorNavItem[] = ADMIN_NAV_SECTIONS.flatMap(
+  (s) => s.items
+);
 
 export const DashboardSidebar = () => {
   const { sidebar } = useDashboardUI();
@@ -133,50 +159,92 @@ export const DashboardSidebar = () => {
   return (
     <motion.aside
       className={cn(
-        "flex h-full w-68 flex-col gap-4 md:w-[16rem] bg-background border-r border-border",
+        "flex h-full w-68 flex-col md:w-[16rem] bg-background border-r border-border",
         !isCollapsed ? "px-4" : "px-2"
       )}
       initial={false}
       animate={{ width: isCollapsed ? 60 : 272 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
     >
-      <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
-        <div className="flex items-center gap-3">
+      {/* Header with logo */}
+      <div
+        className={cn(
+          "relative border-b border-landing-primary/15",
+          !isCollapsed ? "pt-6 pb-4 px-4" : "pt-4 pb-3"
+        )}
+      >
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-foreground font-marck">
-            Admin
+            {!isCollapsed ? "Admin" : "A"}
           </h1>
+          {!isCollapsed && (
+            <Image
+              src="/logos/main.svg"
+              alt="Logo"
+              width={36}
+              height={36}
+              className="h-9 w-9 rounded-lg object-contain"
+            />
+          )}
         </div>
       </div>
 
-      <nav className="flex-1">
-        <ul className="flex w-full flex-col gap-1">
-          {ADMIN_NAV_ITEMS.map((item) => (
-            <li key={item.key}>
-              {item.children && item.children.length > 0 ? (
-                <SidebarItemWithChildren
-                  item={item}
-                  isActive={isItemActive(item)}
-                  collapsed={isCollapsed}
-                  isExpanded={expandedItems.includes(item.key)}
-                  onToggle={() => toggleExpand(item.key)}
-                  pathname={pathname}
-                />
-              ) : (
-                <SidebarItem
-                  as="a"
-                  href={item.link ?? "#"}
-                  label={item.label}
-                  icon={item.icon}
-                  isActive={isItemActive(item)}
-                  collapsed={isCollapsed}
-                />
+      {/* Navigation sections */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        {ADMIN_NAV_SECTIONS.map((section, idx) => (
+          <div key={section.label}>
+            {/* Section separator */}
+            {idx > 0 && (
+              <div className={cn("my-2", !isCollapsed ? "mx-2" : "mx-1")}>
+                <div className="h-px bg-border" />
+              </div>
+            )}
+
+            {/* Section label */}
+            <AnimatePresence initial={false}>
+              {!isCollapsed && (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="mb-1 mt-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-secondary"
+                >
+                  {section.label}
+                </motion.p>
               )}
-            </li>
-          ))}
-        </ul>
+            </AnimatePresence>
+
+            <ul className="flex w-full flex-col gap-0.5">
+              {section.items.map((item) => (
+                <li key={item.key}>
+                  {item.children && item.children.length > 0 ? (
+                    <SidebarItemWithChildren
+                      item={item}
+                      isActive={isItemActive(item)}
+                      collapsed={isCollapsed}
+                      isExpanded={expandedItems.includes(item.key)}
+                      onToggle={() => toggleExpand(item.key)}
+                      pathname={pathname}
+                    />
+                  ) : (
+                    <SidebarItem
+                      as="a"
+                      href={item.link ?? "#"}
+                      label={item.label}
+                      icon={item.icon}
+                      isActive={isItemActive(item)}
+                      collapsed={isCollapsed}
+                    />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      <div className="mt-auto px-2 pb-4">
+      {/* Logout */}
+      <div className="mt-auto border-t border-border px-2 pb-4 pt-2">
         <ul>
           <li>
             <SidebarItem
@@ -184,6 +252,7 @@ export const DashboardSidebar = () => {
               label="Logout"
               icon={SignOutIcon}
               collapsed={isCollapsed}
+              className="hover:!bg-destructive/10 hover:!text-destructive"
               onClick={() => {}}
             />
           </li>
@@ -217,11 +286,20 @@ const SidebarItemWithChildren = ({
     <button
       onClick={onToggle}
       className={cn(
-        "py-3 flex w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-muted transition-colors",
-        isActive && "bg-foreground/5"
+        "py-3 flex w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors",
+        isActive
+          ? "bg-landing-primary/10 text-secondary font-medium"
+          : "hover:bg-muted text-foreground"
       )}
     >
-      {Icon && <Icon className="size-5 text-foreground" />}
+      {Icon && (
+        <Icon
+          className={cn(
+            "size-5",
+            isActive ? "text-secondary" : "text-foreground"
+          )}
+        />
+      )}
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span
@@ -229,7 +307,7 @@ const SidebarItemWithChildren = ({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={{ duration: 0.15 }}
-            className="flex-1 text-left text-foreground"
+            className="flex-1 text-left"
           >
             {item.label}
           </motion.span>
@@ -240,7 +318,12 @@ const SidebarItemWithChildren = ({
           animate={{ rotate: isExpanded ? 90 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <CaretRightIcon className="size-4 text-muted-foreground" />
+          <CaretRightIcon
+            className={cn(
+              "size-4",
+              isActive ? "text-secondary/60" : "text-muted-foreground"
+            )}
+          />
         </motion.div>
       )}
     </button>
@@ -267,17 +350,17 @@ const SidebarItemWithChildren = ({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden ml-4 border-l border-border"
+            className="overflow-hidden ml-4 border-l border-landing-primary/20"
           >
             {item.children.map((child) => (
               <li key={child.key}>
                 <Link
                   href={child.link}
                   className={cn(
-                    "block py-2 pl-4 pr-3 text-sm hover:bg-muted rounded-r-lg transition-colors",
+                    "block py-2 pl-4 pr-3 text-sm rounded-r-lg transition-colors",
                     pathname === child.link
-                      ? "text-foreground font-medium bg-foreground/5"
-                      : "text-foreground/90"
+                      ? "text-secondary font-medium bg-landing-primary/10 border-l-2 border-secondary -ml-px"
+                      : "text-foreground/80 hover:bg-muted hover:text-foreground"
                   )}
                 >
                   {child.label}
@@ -331,14 +414,20 @@ const SidebarItem = React.forwardRef<
   } = props;
   const Icon = icon;
   const common = cn(
-    "py-3",
-    isActive && "bg-foreground/5",
-    "flex w-full items-center gap-3 rounded-lg px-3 text-sm hover:bg-muted transition-colors text-foreground",
+    "py-3 flex w-full items-center gap-3 rounded-lg px-3 text-sm transition-colors",
+    isActive
+      ? "bg-landing-primary/10 text-secondary font-medium"
+      : "hover:bg-muted text-foreground",
     className
   );
 
   const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <div className={cn("relative", indicatorClassName)}>{children}</div>
+    <div className={cn("relative", indicatorClassName)}>
+      {isActive && (
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-secondary" />
+      )}
+      {children}
+    </div>
   );
 
   if ("href" in props && props.href && as === "a") {
@@ -353,7 +442,14 @@ const SidebarItem = React.forwardRef<
         className={common}
         {...anchorRest}
       >
-        {Icon && <Icon className="size-5" />}
+        {Icon && (
+          <Icon
+            className={cn(
+              "size-5",
+              isActive ? "text-secondary" : "text-foreground"
+            )}
+          />
+        )}
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.span
@@ -361,7 +457,6 @@ const SidebarItem = React.forwardRef<
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
               transition={{ duration: 0.15 }}
-              className="text-foreground"
             >
               {label}
             </motion.span>
@@ -392,7 +487,14 @@ const SidebarItem = React.forwardRef<
       aria-pressed={isActive}
       {...(rest as SidebarItemButtonProps)}
     >
-      {Icon && <Icon className="size-5" />}
+      {Icon && (
+        <Icon
+          className={cn(
+            "size-5",
+            isActive ? "text-secondary" : "text-muted-foreground"
+          )}
+        />
+      )}
       <AnimatePresence initial={false}>
         {!collapsed && (
           <motion.span
@@ -400,9 +502,6 @@ const SidebarItem = React.forwardRef<
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8 }}
             transition={{ duration: 0.15 }}
-            className={cn(
-              isActive ? "font-medium text-foreground" : "text-muted-foreground"
-            )}
           >
             {label}
           </motion.span>

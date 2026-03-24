@@ -3,9 +3,19 @@ import { render } from "@react-email/render";
 import React from "react";
 import { Resend } from "resend";
 import ConfirmationEmail from "@/components/templates/confirmation_email";
-import { createSupabaseServer } from "@/api/supabase/server";
+import { createSupabaseAdmin } from "@/api/supabase/admin";
 
-const resend = new Resend(process.env.RESEND_PASS);
+const getResendClient = () => {
+  const resendApiKey = process.env.RESEND_API_KEY ?? process.env.RESEND_PASS;
+
+  if (!resendApiKey) {
+    throw new Error(
+      "Missing Resend API key. Set RESEND_API_KEY in the deployment environment."
+    );
+  }
+
+  return new Resend(resendApiKey);
+};
 
 interface SendVerificationEmailParams {
   email: string;
@@ -26,7 +36,8 @@ export async function createVendorUser({
   redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/vendor`,
 }: CreateVendorUserParams) {
   try {
-    const supabase = await createSupabaseServer();
+    const supabase = createSupabaseAdmin();
+    const resend = getResendClient();
 
     // Create user with auth.admin
     const { data: userData, error: userError } =
@@ -52,11 +63,11 @@ export async function createVendorUser({
         id: userData.user.id,
         email: email,
         full_name: full_name,
-      })
-      .eq("id", userData.user.id);
+      });
 
     if (profileError) {
       console.error("Error creating profile:", profileError);
+      await supabase.auth.admin.deleteUser(userData.user.id);
       return { success: false, error: profileError.message };
     }
 
@@ -107,7 +118,10 @@ export async function createVendorUser({
       success: true,
       error: null,
       message: "User created and verification email sent successfully",
-      user: userData.user,
+      user: {
+        id: userData.user.id,
+        email: userData.user.email,
+      },
       emailId: emailData?.id,
     };
   } catch (error) {
@@ -124,7 +138,8 @@ export async function sendVerificationEmail({
   redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/vendor`,
 }: SendVerificationEmailParams) {
   try {
-    const supabase = await createSupabaseServer();
+    const supabase = createSupabaseAdmin();
+    const resend = getResendClient();
     const { data, error } = await supabase.auth.admin.generateLink({
       type: "magiclink",
       email: email,

@@ -7,7 +7,17 @@ import BranchInvitationEmail from "@/components/templates/branch_invitation_emai
 import { createClient } from "@supabase/supabase-js";
 import { Database } from "@/database.types";
 
-const resend = new Resend(process.env.RESEND_PASS);
+const getResendClient = () => {
+  const resendApiKey = process.env.RESEND_API_KEY ?? process.env.RESEND_PASS;
+
+  if (!resendApiKey) {
+    throw new Error(
+      "Missing Resend API key. Set RESEND_API_KEY in the deployment environment."
+    );
+  }
+
+  return new Resend(resendApiKey);
+};
 
 /**
  * Create a Supabase admin client with the service role key.
@@ -45,6 +55,7 @@ export async function sendBranchInvitation({
 }: SendBranchInvitationParams) {
   try {
     const supabase = createAdminClient();
+    const resend = getResendClient();
     const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent('auth/set-new-password?next=/vendor/onboarding')}`;
 
     // 1. Create auth user (or find existing)

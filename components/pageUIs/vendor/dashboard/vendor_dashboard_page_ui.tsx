@@ -34,7 +34,7 @@ export const VendorDashboardPageUI = () => {
             onValueChange={(value) => setPeriod(value as DashboardPeriod)}
           />
         </StatCardHeader>
-        <StatCardContent>
+        <StatCardContent className="xl:grid-cols-5">
           <StatItem
             label="New Orders"
             value={stats?.new_orders.toLocaleString() ?? "0"}

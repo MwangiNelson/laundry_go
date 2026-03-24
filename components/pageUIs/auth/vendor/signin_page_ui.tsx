@@ -37,14 +37,15 @@ const SignInPageUI = () => {
     },
   });
 
-  // Pre-fill email if remembered
+  // Pre-fill email if remembered (run once on mount)
   useEffect(() => {
     const rememberedEmail = getRememberedEmail();
     if (rememberedEmail) {
       form.setValue("email", rememberedEmail);
       form.setValue("rememberMe", true);
     }
-  }, [form, getRememberedEmail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     await signInWithEmail({

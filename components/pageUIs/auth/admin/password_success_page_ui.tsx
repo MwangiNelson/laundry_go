@@ -1,15 +1,10 @@
-"use client";
-
 import React from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
 import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Button } from "@/components/ui/button";
 
-export const PasswordSuccessPageUI = () => {
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next");
+export const PasswordSuccessPageUI = ({ next }: { next?: string }) => {
   const signInHref = next?.startsWith("/vendor") ? "/auth/vendor/signin" : "/auth/signin";
 
   return (

@@ -11,7 +11,7 @@ import { Form } from "@/components/ui/form";
 import { PasswordInput } from "@/components/fields/inputs/password_input";
 import { Button } from "@/components/ui/button";
 import { useSetNewPassword } from "@/api/auth/use_auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const setNewPasswordSchema = z
   .object({
@@ -25,11 +25,9 @@ const setNewPasswordSchema = z
 
 type SetNewPasswordFormValues = z.infer<typeof setNewPasswordSchema>;
 
-export const SetNewPasswordPageUI = () => {
+export const SetNewPasswordPageUI = ({ next }: { next?: string }) => {
   const { mutateAsync, isPending } = useSetNewPassword();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = searchParams.get("next");
   const form = useForm<SetNewPasswordFormValues>({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
