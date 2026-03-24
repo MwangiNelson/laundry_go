@@ -937,17 +937,16 @@ const saveBranchInformationStep = async ({
     steps: multiBranchSteps,
   });
 
-  // Auto-send invitations to all branches when finalizing
+  // Fire-and-forget: send invitations in the background so the RSC
+  // server-action response can never block onboarding completion.
   if (finalize) {
-    try {
-      const { sendAllBranchInvitations } = await import(
-        "@/app/actions/send_branch_invitation.action"
+    import("@/app/actions/send_branch_invitation.action")
+      .then(({ sendAllBranchInvitations }) =>
+        sendAllBranchInvitations({ vendorId: existingVendor.id })
+      )
+      .catch((err) =>
+        console.error("Failed to send branch invitations:", err)
       );
-      await sendAllBranchInvitations({ vendorId: existingVendor.id });
-    } catch (err) {
-      // Don't block onboarding completion if invitations fail
-      console.error("Failed to send branch invitations:", err);
-    }
   }
 
   return existingVendor.id;
