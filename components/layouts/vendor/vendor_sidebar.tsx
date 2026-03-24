@@ -90,7 +90,7 @@ export const VendorSidebar = () => {
     >
       <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
         <div className="flex items-center gap-3">
-          <VendorLogo vendorId={vendor?.id} businessName={vendor?.business_name} />
+          <VendorLogo vendorId={vendor?.id} businessName={vendor?.business_name ?? undefined} />
           {!isCollapsed && vendor?.business_name && (
             <span className="text-sm font-semibold text-foreground truncate">
               {vendor.business_name}
