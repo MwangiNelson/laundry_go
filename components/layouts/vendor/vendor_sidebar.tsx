@@ -17,6 +17,36 @@ import { CaretRightIcon, SignOutIcon } from "@phosphor-icons/react";
 import { useVendor } from "@/components/context/vendors/vendor_provider";
 import Image from "next/image";
 import { get_vendor_logo } from "@/api/supabase/functions";
+import { StorefrontIcon } from "@phosphor-icons/react";
+
+const VendorLogo = ({
+  vendorId,
+  businessName,
+}: {
+  vendorId?: string;
+  businessName?: string;
+}) => {
+  const [imgError, setImgError] = useState(false);
+
+  if (!vendorId || imgError) {
+    return (
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
+        <StorefrontIcon className="h-5 w-5 text-muted-foreground" />
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={get_vendor_logo(vendorId)}
+      alt={`${businessName ?? "Vendor"} Logo`}
+      width={40}
+      height={40}
+      className="h-10 w-10 shrink-0 rounded-full object-cover"
+      onError={() => setImgError(true)}
+    />
+  );
+};
 
 export const VendorSidebar = () => {
   const { sidebar } = useVendorUI();
@@ -60,13 +90,12 @@ export const VendorSidebar = () => {
     >
       <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
         <div className="flex items-center gap-3">
-          <Image
-            src={get_vendor_logo(vendor?.id || "")}
-            alt={`${vendor?.business_name} Logo`}
-            width={40}
-            height={40}
-            className="rounded-full"
-          />
+          <VendorLogo vendorId={vendor?.id} businessName={vendor?.business_name} />
+          {!isCollapsed && vendor?.business_name && (
+            <span className="text-sm font-semibold text-foreground truncate">
+              {vendor.business_name}
+            </span>
+          )}
         </div>
       </div>
 
@@ -106,7 +135,7 @@ export const VendorSidebar = () => {
               label="Logout"
               icon={SignOutIcon}
               collapsed={isCollapsed}
-              onClick={() => {}}
+              onClick={() => { }}
             />
           </li>
         </ul>

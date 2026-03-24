@@ -55,7 +55,11 @@ export const AuthContextProvider = ({
       if (event === "SIGNED_OUT") {
         setAuthUser(null);
       } else if (session?.user) {
-        setAuthUser(session.user);
+        // Only update state if the user identity actually changed,
+        // to avoid unnecessary re-renders on TOKEN_REFRESHED events
+        setAuthUser((prev) =>
+          prev?.id === session.user.id ? prev : session.user
+        );
       }
     });
 
