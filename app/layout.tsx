@@ -64,12 +64,10 @@ export default function RootLayout({
       >
         <TanstackProvider>
           <AuthContextProvider>
-            <TanstackProvider>
-              <GeoProvider>
-                {children}
-                <Toaster />
-              </GeoProvider>
-            </TanstackProvider>
+            <GeoProvider>
+              {children}
+              <Toaster />
+            </GeoProvider>
           </AuthContextProvider>
         </TanstackProvider>
       </body>

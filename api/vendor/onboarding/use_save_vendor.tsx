@@ -2,6 +2,8 @@
 
 import { deleteFile, replaceFile, uploadFile } from "@/api/supabase/supabase_file_upload";
 import {
+  TBranchDetails,
+  TBranchFinances,
   TBranchInformation,
   TBusinessInformation,
   TBusinessType,
@@ -31,6 +33,7 @@ export type TVendorOnboardingDraft = {
   enabledServices: TVendorEnabledService[];
   vendorPrices: TVendorPriceDraftRow[];
   branches: TBranch[];
+  parentBusinessName: string | null;
 } | null;
 
 type TSaveStepPayload =
@@ -65,6 +68,17 @@ type TSaveStepPayload =
     userId: string;
     step: "branch_information";
     data: TBranchInformation;
+    finalize?: boolean;
+  }
+  | {
+    userId: string;
+    step: "branch_details";
+    data: TBranchDetails;
+  }
+  | {
+    userId: string;
+    step: "finances";
+    data: TBranchFinances;
     finalize?: boolean;
   };
 
@@ -118,9 +132,8 @@ const getVendorDraft = async (
           `
       )
       .eq("vendor_id", vendor.id),
-    // TODO: remove 'as any' after running: supabase gen types typescript
     supabase
-      .from("vendor_branches" as any)
+      .from("vendor_branches")
       .select(
         `
             id,
@@ -168,12 +181,31 @@ const getVendorDraft = async (
       : null,
   }));
 
+  // Fetch parent business name for branch sub-vendors
+  const parentBusinessName = vendor?.parent_vendor_id
+    ? await fetchParentBusinessName(vendor.parent_vendor_id)
+    : null;
+
   return {
     vendor: vendor as TVendorWithLocation,
     enabledServices: (enabledServices ?? []) as TVendorEnabledService[],
     vendorPrices: (vendorPrices ?? []) as TVendorPriceDraftRow[],
     branches,
+    parentBusinessName,
   };
+};
+
+/** Fetch parent vendor's business name for branch sub-vendors */
+const fetchParentBusinessName = async (
+  parentVendorId: string
+): Promise<string | null> => {
+  const supabase = createSupabaseClient();
+  const { data } = await supabase
+    .from("vendors")
+    .select("business_name")
+    .eq("id", parentVendorId)
+    .maybeSingle();
+  return data?.business_name ?? null;
 };
 
 const getExistingVendor = async (userId: string) => {
@@ -856,8 +888,7 @@ const saveBranchInformationStep = async ({
   }
 
   // Sync contact person fields on the vendor
-  // TODO: remove 'as any' after running: supabase gen types typescript
-  const vendorUpdate = {
+  const vendorUpdate: TablesUpdate<"vendors"> = {
     contact_person: data.contact_person,
     contact_phone: data.contact_phone,
     contact_email: data.contact_email,
@@ -866,7 +897,7 @@ const saveBranchInformationStep = async ({
       ? new Date().toISOString()
       : existingVendor.profile_completed_at,
     updated_at: new Date().toISOString(),
-  } as TablesUpdate<"vendors">;
+  };
 
   const { error: vendorError } = await supabase
     .from("vendors")
@@ -879,7 +910,7 @@ const saveBranchInformationStep = async ({
 
   // Delete existing branches then re-insert
   const { error: deleteError } = await supabase
-    .from("vendor_branches" as any)
+    .from("vendor_branches")
     .delete()
     .eq("vendor_id", existingVendor.id);
 
@@ -894,7 +925,7 @@ const saveBranchInformationStep = async ({
     });
 
     const { error: insertError } = await supabase
-      .from("vendor_branches" as any)
+      .from("vendor_branches")
       .insert({
         vendor_id: existingVendor.id,
         branch_name: branch.branch_name,
@@ -914,6 +945,142 @@ const saveBranchInformationStep = async ({
     vendorAlreadyComplete: existingVendor.profile_complete,
     finalize,
     steps: multiBranchSteps,
+  });
+
+  // Auto-send invitations to all branches when finalizing
+  if (finalize) {
+    try {
+      const { sendAllBranchInvitations } = await import(
+        "@/app/actions/send_branch_invitation.action"
+      );
+      await sendAllBranchInvitations({ vendorId: existingVendor.id });
+    } catch (err) {
+      // Don't block onboarding completion if invitations fail
+      console.error("Failed to send branch invitations:", err);
+    }
+  }
+
+  return existingVendor.id;
+};
+
+const saveBranchDetailsStep = async ({
+  userId,
+  data,
+}: {
+  userId: string;
+  data: TBranchDetails;
+}) => {
+  const supabase = createSupabaseClient();
+  const existingVendor = await getExistingVendor(userId);
+
+  if (!existingVendor) {
+    throw new Error("Vendor record not found.");
+  }
+
+  const location = await syncLocation({
+    currentLocationId: existingVendor.location_id,
+    location: data.location,
+  });
+
+  const vendorUpdate: TablesUpdate<"vendors"> = {
+    business_name: data.branch_name,
+    address: location.address,
+    location_id: location.locationId,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from("vendors")
+    .update(vendorUpdate)
+    .eq("id", existingVendor.id);
+
+  if (error) {
+    throw error;
+  }
+
+  const branchSteps = getStepsForBusinessType("branch");
+  await updateProfileProgress({
+    userId,
+    step: "branch_details",
+    vendorAlreadyComplete: existingVendor.profile_complete,
+    steps: branchSteps,
+  });
+
+  return existingVendor.id;
+};
+
+const saveBranchFinancesStep = async ({
+  userId,
+  data,
+  finalize,
+}: {
+  userId: string;
+  data: TBranchFinances;
+  finalize?: boolean;
+}) => {
+  const supabase = createSupabaseClient();
+  const existingVendor = await getExistingVendor(userId);
+
+  if (!existingVendor) {
+    throw new Error("Vendor record not found.");
+  }
+
+  const completedAt = finalize
+    ? new Date().toISOString()
+    : existingVendor.profile_completed_at;
+
+  const vendorUpdate: TablesUpdate<"vendors"> = {
+    profile_complete: finalize ? true : existingVendor.profile_complete,
+    profile_completed_at: completedAt,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabase
+    .from("vendors")
+    .update(vendorUpdate)
+    .eq("id", existingVendor.id);
+
+  if (error) {
+    throw error;
+  }
+
+  const { error: bankError } = await supabase
+    .from("bank_details")
+    .upsert(
+      {
+        vendor_id: existingVendor.id,
+        bank_name: data.bank_name,
+        bank_account_name: data.bank_account_name,
+        bank_account_number: data.bank_account_number,
+      },
+      { onConflict: "vendor_id" }
+    );
+
+  if (bankError) {
+    throw bankError;
+  }
+
+  // Mark the branch as accepted in vendor_branches
+  if (finalize) {
+    const parentVendorId = existingVendor.parent_vendor_id;
+    if (parentVendorId) {
+      await supabase
+        .from("vendor_branches")
+        .update({
+          invitation_status: "accepted",
+          accepted_at: new Date().toISOString(),
+        })
+        .eq("branch_vendor_id", existingVendor.id);
+    }
+  }
+
+  const branchSteps = getStepsForBusinessType("branch");
+  await updateProfileProgress({
+    userId,
+    step: "finances",
+    vendorAlreadyComplete: existingVendor.profile_complete,
+    finalize,
+    steps: branchSteps,
   });
 
   return existingVendor.id;
@@ -957,6 +1124,21 @@ const saveOnboardingStep = async (payload: TSaveStepPayload) => {
     });
   }
 
+  if (payload.step === "branch_details") {
+    return saveBranchDetailsStep({
+      userId: payload.userId,
+      data: payload.data,
+    });
+  }
+
+  if (payload.step === "finances") {
+    return saveBranchFinancesStep({
+      userId: payload.userId,
+      data: payload.data,
+      finalize: payload.finalize,
+    });
+  }
+
   return saveFinancesStep({
     userId: payload.userId,
     data: payload.data,
@@ -981,12 +1163,16 @@ export const useSaveVendorOnboardingStep = () => {
       queryClient.invalidateQueries({
         queryKey: ["vendor-onboarding-draft", variables.userId],
       });
-      queryClient.invalidateQueries({
-        queryKey: ["user", variables.userId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["vendor", variables.userId],
-      });
+      // Only refresh user/vendor queries on finalization (last step)
+      // to avoid cascading re-renders during onboarding
+      if ("finalize" in variables && variables.finalize) {
+        queryClient.invalidateQueries({
+          queryKey: ["user", variables.userId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["vendor", variables.userId],
+        });
+      }
     },
   });
 };

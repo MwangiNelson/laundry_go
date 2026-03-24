@@ -18,6 +18,12 @@ declare module "@tanstack/react-query" {
   }
 }
 const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 30_000,
+    },
+  },
   mutationCache: new MutationCache({
     onSuccess: (_data, _variables, _context, mutation) => {
       console.log({ _data });

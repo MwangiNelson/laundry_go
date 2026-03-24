@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@supabase/supabase-js";
-import React, { Dispatch, useEffect, useState } from "react";
+import React, { Dispatch, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseClient } from "@/api/supabase/client";
 import { IUser, useGetUser } from "@/api/auth/use_auth";
 
@@ -29,30 +29,43 @@ export const AuthContextProvider = ({
   const [vendor_id, setVendorId] = useState<string | undefined>(undefined);
   const [authInitialized, setAuthInitialized] = useState(false);
   const { data: user, isPending, refetch } = useGetUser(auth_user?.id);
-  const supabase = createSupabaseClient();
+  const supabaseRef = useRef(createSupabaseClient());
   const loading = !authInitialized || (auth_user !== null && isPending);
   const loggedIn = Boolean(auth_user && user);
-  const clearState = () => {
+  const clearState = useCallback(() => {
     setAuthUser(null);
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
-      await supabase.auth.signOut();
+      await supabaseRef.current.auth.signOut();
       setAuthUser(null);
     } catch (error) {
       console.error("Logout error:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
+    const supabase = supabaseRef.current;
+
+    // Set up auth state listener first so we don't miss events
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_OUT") {
+        setAuthUser(null);
+      } else if (session?.user) {
+        setAuthUser(session.user);
+      }
+    });
+
+    // Then initialize current auth state
     const initializeAuth = async () => {
       try {
         const { data: sessionData, error: sessionError } =
           await supabase.auth.getSession();
 
         if (!sessionData.session || sessionError) {
-          console.log("No session found");
           setAuthUser(null);
           setAuthInitialized(true);
           return;
@@ -70,22 +83,6 @@ export const AuthContextProvider = ({
           setAuthUser(user);
         }
         setAuthInitialized(true);
-        const {
-          data: { subscription },
-        } = supabase.auth.onAuthStateChange((event, session) => {
-          console.log("Auth state change:", event, session?.user?.id);
-          if (event === "SIGNED_OUT") {
-            setAuthUser(null);
-          } else if (session?.user) {
-            setAuthUser(session.user);
-          } else {
-            setAuthUser(null);
-          }
-        });
-
-        return () => {
-          subscription.unsubscribe();
-        };
       } catch (error) {
         console.error("Auth initialization error:", error);
         setAuthUser(null);
@@ -94,23 +91,30 @@ export const AuthContextProvider = ({
     };
 
     initializeAuth();
-  }, [supabase.auth]);
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const contextValue = useMemo<IAuthContext>(
+    () => ({
+      auth_user,
+      setAuthUser,
+      user,
+      loading: loading ?? false,
+      logout,
+      fetchUser: refetch,
+      clearState,
+      loggedIn,
+      vendor_id,
+      setVendorId,
+    }),
+    [auth_user, user, loading, logout, refetch, clearState, loggedIn, vendor_id]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        auth_user,
-        setAuthUser,
-        user,
-        loading: loading ?? false,
-        logout,
-        fetchUser: refetch,
-        clearState,
-        loggedIn,
-        vendor_id,
-        setVendorId,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

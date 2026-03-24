@@ -4,6 +4,7 @@ import React, { ReactNode, createContext, useContext, useEffect, useMemo, useRef
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/context/auth_provider";
 import { useFetchMainServices } from "@/api/vendor/onboarding/use_fetch_services";
 import {
@@ -17,8 +18,12 @@ import {
   OnboardingFinancesAndTerms,
   OnboardingOperationSetup,
   OnboardingServiceAndPricing,
+  OnboardingBranchDetails,
+  OnboardingBranchFinances,
 } from "./steps";
 import {
+  TBranchDetails,
+  TBranchFinances,
   TBranchInformation,
   TBusinessInformation,
   TBusinessType,
@@ -27,10 +32,14 @@ import {
   TOnboardingStepKey,
   TOperationHours,
   TServiceAndPricing,
+  branch_details,
+  branch_finances,
   branch_information,
   business_information,
   business_type,
   convertToServiceTypes,
+  createDefaultBranchDetails,
+  createDefaultBranchFinances,
   createDefaultBranchInformation,
   createDefaultFinancesAndTerms,
   createDefaultOperationHours,
@@ -47,13 +56,13 @@ import {
 
 const useOnboardingProvider = () => {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, loggedIn, loading } = useAuth();
   const [navigation_state, set_navigation_state] = useState<{
     userId: string | null;
     current_step: number;
     completed_steps: number[];
   } | null>(null);
-  const [show_success, set_show_success] = useState(false);
   const { data: mainServices = [], isLoading: loadingMainServices } =
     useFetchMainServices();
   const { data: vendorDraft, isLoading: loadingVendorDraft } =
@@ -94,6 +103,14 @@ const useOnboardingProvider = () => {
     resolver: zodResolver(branch_information),
     defaultValues: createDefaultBranchInformation(),
   });
+  const branch_details_form = useForm<TBranchDetails>({
+    resolver: zodResolver(branch_details),
+    defaultValues: createDefaultBranchDetails(),
+  });
+  const branch_finances_form = useForm<TBranchFinances>({
+    resolver: zodResolver(branch_finances),
+    defaultValues: createDefaultBranchFinances(),
+  });
 
   const hasHydratedRef = useRef(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -103,7 +120,11 @@ const useOnboardingProvider = () => {
     [mainServices]
   );
 
-  const selected_business_type = business_type_form.watch("business_type");
+  // If vendor has a parent_vendor_id it's a branch sub-vendor
+  const is_branch_vendor = !!vendorDraft?.vendor?.parent_vendor_id;
+  const selected_business_type = is_branch_vendor
+    ? ("branch" as const)
+    : business_type_form.watch("business_type");
 
   const STEP_COMPONENT_MAP: Record<
     TOnboardingStepKey,
@@ -134,6 +155,14 @@ const useOnboardingProvider = () => {
         component: OnboardingBranchInformation,
         form: branch_information_form,
       },
+      branch_details: {
+        component: OnboardingBranchDetails,
+        form: branch_details_form,
+      },
+      finances: {
+        component: OnboardingBranchFinances,
+        form: branch_finances_form,
+      },
     }),
     [
       business_info_form,
@@ -142,6 +171,8 @@ const useOnboardingProvider = () => {
       operation_hours_form,
       finances_and_terms_form,
       branch_information_form,
+      branch_details_form,
+      branch_finances_form,
     ]
   );
 
@@ -238,14 +269,43 @@ const useOnboardingProvider = () => {
       terms_and_conditions: vendor?.terms_and_conditions ?? "",
     });
 
-    // TODO: remove casts after running: supabase gen types typescript
-    const vendorAny = vendor as any;
+    // Hydrate branch information for multi-branch vendors
     branch_information_form.reset({
       branches: vendorDraft?.branches ?? [],
-      contact_person: vendorAny?.contact_person ?? "",
-      contact_phone: vendorAny?.contact_phone ?? "",
-      contact_email: vendorAny?.contact_email ?? "",
+      contact_person: vendor?.contact_person ?? "",
+      contact_phone: vendor?.contact_phone ?? "",
+      contact_email: vendor?.contact_email ?? "",
     });
+
+    // Hydrate branch-specific forms (for branch sub-vendors)
+    if (vendor?.parent_vendor_id) {
+      branch_details_form.reset({
+        branch_name: vendor?.business_name ?? "",
+        location: vendor?.location
+          ? {
+            place_id: vendor.location.place_id ?? undefined,
+            description: vendor.location.description ?? null,
+            main_text: vendor.location.main_text ?? undefined,
+            secondary_text: vendor.location.secondary_text ?? undefined,
+            coordinates:
+              vendor.location.coordinates &&
+                typeof vendor.location.coordinates === "object" &&
+                "lat" in vendor.location.coordinates &&
+                "lng" in vendor.location.coordinates
+                ? {
+                  lat: Number(vendor.location.coordinates.lat),
+                  lng: Number(vendor.location.coordinates.lng),
+                }
+                : undefined,
+          }
+          : null,
+      });
+      branch_finances_form.reset({
+        bank_name: bankDetails?.bank_name ?? "",
+        bank_account_name: bankDetails?.bank_account_name ?? "",
+        bank_account_number: bankDetails?.bank_account_number ?? "",
+      });
+    }
 
     hasHydratedRef.current = true;
     setInitialLoadComplete(true);
@@ -262,6 +322,8 @@ const useOnboardingProvider = () => {
     operation_hours_form,
     finances_and_terms_form,
     branch_information_form,
+    branch_details_form,
+    branch_finances_form,
   ]);
 
   const default_current_step = user
@@ -377,6 +439,25 @@ const useOnboardingProvider = () => {
       return;
     }
 
+    if (stepKey === "branch_details") {
+      await saveVendorStep({
+        userId: user.id,
+        step: stepKey,
+        data: branch_details_form.getValues(),
+      });
+      return;
+    }
+
+    if (stepKey === "finances") {
+      await saveVendorStep({
+        userId: user.id,
+        step: stepKey,
+        data: branch_finances_form.getValues(),
+        finalize,
+      });
+      return;
+    }
+
     await saveVendorStep({
       userId: user.id,
       step: "finances_and_terms",
@@ -388,7 +469,7 @@ const useOnboardingProvider = () => {
   const handleNextStep = async () => {
     const stepKey = getOnboardingStepKey(current_step, activeStepDefinitions);
     const finalize =
-      (stepKey === "finances_and_terms" || stepKey === "branch_information") &&
+      (stepKey === "finances_and_terms" || stepKey === "branch_information" || stepKey === "finances") &&
       !profile_is_complete;
     await saveStepByKey(stepKey, finalize);
     const updatedCompletedSteps = completed_steps.includes(current_step)
@@ -404,7 +485,14 @@ const useOnboardingProvider = () => {
     }
 
     markStepComplete(current_step);
-    set_show_success(true);
+
+    // Ensure vendor query cache is refreshed with profile_complete: true
+    // before navigating, to prevent VendorProvider from redirecting back
+    if (finalize && user?.id) {
+      await queryClient.refetchQueries({ queryKey: ["vendor", user.id] });
+    }
+
+    router.push("/vendor?onboarding=complete");
   };
 
   const handleback = () => {
@@ -429,15 +517,18 @@ const useOnboardingProvider = () => {
     operation_hours_form,
     finances_and_terms_form,
     branch_information_form,
+    branch_details_form,
+    branch_finances_form,
     SERVICE_TYPES,
     handleback,
     saving_step,
     canNavigateToStep,
     existing_vendor: vendorDraft?.vendor ?? null,
+    parent_business_name: (vendorDraft as any)?.parentBusinessName ?? null,
+    is_branch_vendor,
     loading_page: !initialLoadComplete,
     furthest_accessible_step,
     profile_is_complete,
-    show_success,
   };
 };
 

@@ -28,19 +28,30 @@ export const MULTI_BRANCH_STEPS = [
   { key: "branch_information", title: "Branch Information" },
 ] as const;
 
+export const BRANCH_STEPS = [
+  { key: "branch_details", title: "Branch Details" },
+  { key: "services_and_pricing", title: "Services & Pricing" },
+  { key: "operations_setup", title: "Operations Setup" },
+  { key: "finances", title: "Finances" },
+] as const;
+
 /** @deprecated Use INDIVIDUAL_STEPS or MULTI_BRANCH_STEPS based on business type */
 export const ONBOARDING_STEPS = INDIVIDUAL_STEPS;
 
 export type TOnboardingStepKey =
   | (typeof INDIVIDUAL_STEPS)[number]["key"]
-  | (typeof MULTI_BRANCH_STEPS)[number]["key"];
+  | (typeof MULTI_BRANCH_STEPS)[number]["key"]
+  | (typeof BRANCH_STEPS)[number]["key"];
 
 export type TOnboardingStep = { key: TOnboardingStepKey; title: string };
 
 export const getStepsForBusinessType = (
-  businessType: "individual" | "multi_branch"
-): readonly TOnboardingStep[] =>
-  businessType === "multi_branch" ? MULTI_BRANCH_STEPS : INDIVIDUAL_STEPS;
+  businessType: "individual" | "multi_branch" | "branch"
+): readonly TOnboardingStep[] => {
+  if (businessType === "branch") return BRANCH_STEPS;
+  if (businessType === "multi_branch") return MULTI_BRANCH_STEPS;
+  return INDIVIDUAL_STEPS;
+};
 
 export type TMainService = Tables<"main_services">;
 
@@ -188,11 +199,7 @@ const file_value = z
   .optional()
   .nullable();
 
-const business_location = locationSchema
-  .nullable()
-  .refine((value) => Boolean(value?.description), {
-    message: "Please select a business location",
-  });
+const business_location = locationSchema.nullable();
 
 export const business_information = z.object({
   business_name: z
@@ -390,11 +397,7 @@ export type TFinancesAndTerms = z.infer<typeof finances_and_terms>;
 const branch_schema = z.object({
   id: z.string().optional(),
   branch_name: z.string().min(2, "Branch name must be at least 2 characters"),
-  location: locationSchema
-    .nullable()
-    .refine((v) => Boolean(v?.description), {
-      message: "Please select a branch location",
-    }),
+  location: locationSchema.nullable(),
   email: z.string().email("Please enter a valid email address"),
 });
 
@@ -415,6 +418,35 @@ export const createDefaultBranchInformation = (): TBranchInformation => ({
   contact_person: "",
   contact_phone: "",
   contact_email: "",
+});
+
+// --- Branch Details (branch onboarding flow) ---
+
+export const branch_details = z.object({
+  branch_name: z.string().min(2, "Branch name must be at least 2 characters"),
+  location: locationSchema.nullable(),
+});
+
+export type TBranchDetails = z.infer<typeof branch_details>;
+
+export const createDefaultBranchDetails = (): TBranchDetails => ({
+  branch_name: "",
+  location: null,
+});
+
+// Finances schema for branch onboarding (no T&Cs)
+export const branch_finances = z.object({
+  bank_name: z.string().min(2, "Please enter your bank name"),
+  bank_account_name: z.string().min(2, "Please enter the account holder name"),
+  bank_account_number: z.string().min(6, "Please enter a valid account number"),
+});
+
+export type TBranchFinances = z.infer<typeof branch_finances>;
+
+export const createDefaultBranchFinances = (): TBranchFinances => ({
+  bank_name: "",
+  bank_account_name: "",
+  bank_account_number: "",
 });
 
 export const createEmptyServiceAndPricing = (): TServiceAndPricing => ({

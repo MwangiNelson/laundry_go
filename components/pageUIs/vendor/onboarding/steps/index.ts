@@ -4,3 +4,5 @@ export { OnboardingServiceAndPricing } from "./onboarding_service_and_pricing";
 export { OnboardingOperationSetup } from "./onboarding_operation_setup";
 export { OnboardingFinancesAndTerms } from "./onboarding_finances_and_terms";
 export { OnboardingBranchInformation } from "./onboarding_branch_information";
+export { OnboardingBranchDetails } from "./onboarding_branch_details";
+export { OnboardingBranchFinances } from "./onboarding_branch_finances";

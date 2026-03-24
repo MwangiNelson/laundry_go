@@ -14,6 +14,7 @@ import Image from "next/image";
 import { useLoginWithEmail } from "@/api/auth/use_auth";
 import { useRememberMe } from "@/api/auth/use_remember_me";
 import { createSupabaseClient } from "@/api/supabase/client";
+import { useRouter } from "next/navigation";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
@@ -25,6 +26,7 @@ const schema = z.object({
 const SignInPageUI = () => {
   const { mutateAsync: signInWithEmail, isPending } = useLoginWithEmail();
   const { getRememberedEmail } = useRememberMe();
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -50,8 +52,7 @@ const SignInPageUI = () => {
       password: data.password,
       rememberMe: data.rememberMe,
     }).then(() => {
-      window.location.href = "/vendor";
-      form.reset();
+      router.push("/vendor");
     });
   };
   const handleGoogleLogin = async () => {

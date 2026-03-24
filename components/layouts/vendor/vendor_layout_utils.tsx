@@ -7,6 +7,7 @@ import {
   ClockCounterClockwiseIcon,
   GearIcon,
   ChartDonutIcon,
+  BuildingsIcon,
 } from "@phosphor-icons/react";
 import { MessageCircle } from "lucide-react";
 
@@ -36,6 +37,12 @@ export const VENDOR_NAV_ITEMS: TVendorNavItem[] = [
     label: "Business Profile",
     icon: BroomIcon,
     link: "/vendor/profile",
+  },
+  {
+    key: "branches",
+    label: "Branches",
+    icon: BuildingsIcon,
+    link: "/vendor/branches",
   },
   {
     key: "orders",

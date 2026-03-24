@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/components/context/auth_provider";
 import { useLoginWithEmail } from "@/api/auth/use_auth";
 import { useRememberMe } from "@/api/auth/use_remember_me";
+import { useRouter } from "next/navigation";
 
 const signInSchema = z.object({
   email: z
@@ -28,6 +29,7 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export const SigninPageUI = () => {
   const { mutateAsync: loginWithEmail, isPending } = useLoginWithEmail();
   const { getRememberedEmail } = useRememberMe();
+  const router = useRouter();
 
   const form = useForm<SignInFormValues>({
     resolver: zodResolver(signInSchema),
@@ -58,7 +60,7 @@ export const SigninPageUI = () => {
       password: data.password,
       rememberMe: data.rememberMe,
     }).then(() => {
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     });
   };
 
