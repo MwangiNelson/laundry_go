@@ -13,46 +13,50 @@ import {
 import { Button } from "@/components/ui/button";
 import { useGetMainServices } from "@/api/vendor/services/use_get_main_services";
 import { useGetVendorServices } from "@/api/vendor/services/use_get_vendor_services";
+import { useAddVendorService } from "@/api/vendor/services/use_vendor_price_mutations";
+import { useVendor } from "@/components/context/vendors/vendor_provider";
 import { Plus, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface AddServiceDialogProps {
   trigger?: React.ReactNode;
-  onServiceSelected?: (mainServiceId: number, slug: string) => void;
 }
 
-export const AddServiceDialog = ({
-  trigger,
-  onServiceSelected,
-}: AddServiceDialogProps) => {
+export const AddServiceDialog = ({ trigger }: AddServiceDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
     null
   );
 
-  const { data: mainServices = [], isLoading } = useGetMainServices();
+  const { vendor } = useVendor();
+  const { data: allServices = [], isLoading } = useGetMainServices();
   const { data: vendorServices = [] } = useGetVendorServices();
+  const addServiceMutation = useAddVendorService();
 
   // Get IDs of services the vendor already has
-  const vendorServiceIds = vendorServices.map((vs) => vs.main_service_id);
+  const vendorServiceIds = vendorServices.map((vs) => vs.service_id);
 
   // Filter out services the vendor already has
-  const availableServices = mainServices.filter(
+  const availableServices = allServices.filter(
     (service) => !vendorServiceIds.includes(service.id)
   );
 
   const handleAddService = () => {
-    if (!selectedServiceId) return;
+    if (!selectedServiceId || !vendor?.id) return;
 
-    const selectedService = mainServices.find(
-      (s) => s.id === selectedServiceId
+    addServiceMutation.mutate(
+      {
+        vendor_id: vendor.id,
+        service_id: selectedServiceId,
+      },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          setSelectedServiceId(null);
+        },
+      }
     );
-    if (selectedService && onServiceSelected) {
-      onServiceSelected(selectedServiceId, selectedService.slug);
-    }
-    setOpen(false);
-    setSelectedServiceId(null);
   };
 
   return (
@@ -72,8 +76,8 @@ export const AddServiceDialog = ({
         <DialogHeader>
           <DialogTitle>Add Service</DialogTitle>
           <DialogDescription>
-            Select a service you want to offer. You'll be able to set prices for
-            items after adding.
+            Select a service you want to offer. You'll be able to set prices
+            after adding.
           </DialogDescription>
         </DialogHeader>
 
@@ -106,9 +110,9 @@ export const AddServiceDialog = ({
               >
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col items-start">
-                    <span className="font-medium">{service.service}</span>
+                    <span className="font-medium">{service.name}</span>
                     <span className="text-xs text-muted-foreground capitalize">
-                      {service.slug.replace(/_/g, " ")}
+                      {service.service_type ?? "service"}
                     </span>
                   </div>
                 </div>
@@ -133,9 +137,13 @@ export const AddServiceDialog = ({
           </Button>
           <Button
             onClick={handleAddService}
-            disabled={!selectedServiceId || availableServices.length === 0}
+            disabled={
+              !selectedServiceId ||
+              availableServices.length === 0 ||
+              addServiceMutation.isPending
+            }
           >
-            Continue
+            {addServiceMutation.isPending ? "Adding..." : "Continue"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,13 +8,14 @@ import {
   TBusinessInformation,
   TBusinessType,
   TFinancesAndTerms,
-  TMainService,
   TOnboardingStepKey,
   TOnboardingStep,
   TOperationHours,
   TServiceAndPricing,
-  TVendorEnabledService,
-  TVendorPriceDraftRow,
+  TVendorServiceDraft,
+  TVendorKgPricingDraft,
+  TVendorItemPricingDraft,
+  TVendorRoomRateDraft,
   TBranch,
   getNextOnboardingStep,
   getStepsForBusinessType,
@@ -30,8 +31,10 @@ type TVendorWithLocation = Tables<"vendors"> & {
 
 export type TVendorOnboardingDraft = {
   vendor: TVendorWithLocation;
-  enabledServices: TVendorEnabledService[];
-  vendorPrices: TVendorPriceDraftRow[];
+  vendorServices: TVendorServiceDraft[];
+  kgPricing: TVendorKgPricingDraft[];
+  itemPricing: TVendorItemPricingDraft[];
+  roomRates: TVendorRoomRateDraft[];
   branches: TBranch[];
   parentBusinessName: string | null;
 } | null;
@@ -51,7 +54,6 @@ type TSaveStepPayload =
     userId: string;
     step: "services_and_pricing";
     data: TServiceAndPricing;
-    mainServices: TMainService[];
   }
   | {
     userId: string;
@@ -107,30 +109,12 @@ const getVendorDraft = async (
   }
 
   const [
-    { data: enabledServices, error: enabledServicesError },
-    { data: vendorPrices, error: vendorPricesError },
+    { data: vendorServicesData, error: vendorServicesError },
     { data: vendorBranches, error: vendorBranchesError },
   ] = await Promise.all([
     supabase
-      .from("vendor_main_services")
-      .select(
-        `
-            main_service_id,
-            main_service:main_services(id, service, slug)
-          `
-      )
-      .eq("vendor_id", vendor.id),
-    supabase
-      .from("vendor_prices")
-      .select(
-        `
-            price,
-            service_item_id,
-            service_option_id,
-            service_item:service_items(id, name, main_service_id),
-            service_option:service_options(id, name, service_item_id)
-          `
-      )
+      .from("vendor_services")
+      .select("id, service_id, is_enabled")
       .eq("vendor_id", vendor.id),
     supabase
       .from("vendor_branches")
@@ -145,17 +129,72 @@ const getVendorDraft = async (
       .eq("vendor_id", vendor.id),
   ]);
 
-  if (enabledServicesError) {
-    throw enabledServicesError;
-  }
+  if (vendorServicesError) throw vendorServicesError;
+  if (vendorBranchesError) throw vendorBranchesError;
 
-  if (vendorPricesError) {
-    throw vendorPricesError;
-  }
+  const vendorServices: TVendorServiceDraft[] = (vendorServicesData ?? []).map(
+    (vs) => ({
+      vendor_service_id: vs.id,
+      service_id: vs.service_id,
+      is_enabled: vs.is_enabled,
+    })
+  );
 
-  if (vendorBranchesError) {
-    throw vendorBranchesError;
-  }
+  const vsIds = vendorServices.map((vs) => vs.vendor_service_id);
+
+  const [
+    { data: kgData, error: kgError },
+    { data: itemData, error: itemError },
+    { data: roomData, error: roomError },
+  ] = await Promise.all([
+    vsIds.length
+      ? supabase
+        .from("vendor_service_kg_pricing")
+        .select("vendor_service_id, standard_cost_per_kg, express_cost_per_kg")
+        .in("vendor_service_id", vsIds)
+      : { data: [] as any[], error: null },
+    vsIds.length
+      ? supabase
+        .from("vendor_service_item_pricing")
+        .select("vendor_service_id, item_id, standard_price, express_price, item:items(name)")
+        .in("vendor_service_id", vsIds)
+      : { data: [] as any[], error: null },
+    vsIds.length
+      ? supabase
+        .from("vendor_service_room_rates")
+        .select("vendor_service_id, room_type, regular_cost, deep_cost")
+        .in("vendor_service_id", vsIds)
+      : { data: [] as any[], error: null },
+  ]);
+
+  if (kgError) throw kgError;
+  if (itemError) throw itemError;
+  if (roomError) throw roomError;
+
+  const kgPricing: TVendorKgPricingDraft[] = (kgData ?? []).map((kg: any) => ({
+    vendor_service_id: kg.vendor_service_id,
+    standard_cost_per_kg: kg.standard_cost_per_kg,
+    express_cost_per_kg: kg.express_cost_per_kg,
+  }));
+
+  const itemPricing: TVendorItemPricingDraft[] = (itemData ?? []).map(
+    (ip: any) => ({
+      vendor_service_id: ip.vendor_service_id,
+      item_id: ip.item_id,
+      item_name: ip.item?.name ?? null,
+      standard_price: ip.standard_price,
+      express_price: ip.express_price,
+    })
+  );
+
+  const roomRates: TVendorRoomRateDraft[] = (roomData ?? []).map(
+    (rr: any) => ({
+      vendor_service_id: rr.vendor_service_id,
+      room_type: rr.room_type,
+      regular_cost: rr.regular_cost,
+      deep_cost: rr.deep_cost,
+    })
+  );
 
   const branches: TBranch[] = (vendorBranches ?? []).map((b: any) => ({
     id: b.id,
@@ -188,8 +227,10 @@ const getVendorDraft = async (
 
   return {
     vendor: vendor as TVendorWithLocation,
-    enabledServices: (enabledServices ?? []) as TVendorEnabledService[],
-    vendorPrices: (vendorPrices ?? []) as TVendorPriceDraftRow[],
+    vendorServices,
+    kgPricing,
+    itemPricing,
+    roomRates,
     branches,
     parentBusinessName,
   };
@@ -391,170 +432,127 @@ const uploadVendorLicense = async ({
   return uploadResult?.url ?? vendor.business_license_url;
 };
 
-const saveVendorMainServices = async ({
+const saveVendorServices = async ({
   vendorId,
   services,
-  mainServices,
 }: {
   vendorId: string;
   services: TServiceAndPricing;
-  mainServices: TMainService[];
 }) => {
   const supabase = createSupabaseClient();
-  const enabledMainServices = mainServices
-    .filter((service) => services[service.slug].enabled)
-    .map((service) => ({
-      vendor_id: vendorId,
-      main_service_id: service.id,
-    }));
 
+  // Delete existing vendor_services (cascades to pricing tables via FK)
   const { error: deleteError } = await supabase
-    .from("vendor_main_services")
+    .from("vendor_services")
     .delete()
     .eq("vendor_id", vendorId);
 
-  if (deleteError) {
-    throw deleteError;
-  }
+  if (deleteError) throw deleteError;
 
-  if (enabledMainServices.length > 0) {
-    const { error: insertError } = await supabase
-      .from("vendor_main_services")
-      .insert(enabledMainServices);
+  const enabledServices = services.services.filter((s) => s.enabled);
+  if (enabledServices.length === 0) return;
 
-    if (insertError) {
-      throw insertError;
-    }
-  }
-};
+  // Insert vendor_services
+  const { data: insertedServices, error: insertError } = await supabase
+    .from("vendor_services")
+    .insert(
+      enabledServices.map((s) => ({
+        vendor_id: vendorId,
+        service_id: s.service_id,
+        is_enabled: true,
+      }))
+    )
+    .select("id, service_id");
 
-const saveVendorPrices = async ({
-  vendorId,
-  services,
-}: {
-  vendorId: string;
-  services: TServiceAndPricing;
-}) => {
-  const supabase = createSupabaseClient();
-  const pricesToInsert: TablesInsert<"vendor_prices">[] = [];
+  if (insertError) throw insertError;
 
-  if (services.laundry.enabled) {
-    services.laundry.items.forEach((item) => {
-      item.options
-        .filter((option) => option.enabled && option.service_option_id)
-        .forEach((option) => {
-          pricesToInsert.push({
-            vendor_id: vendorId,
-            service_item_id: item.service_item_id,
-            service_option_id: option.service_option_id,
-            price: option.price,
-            is_available: true,
+  const serviceIdToVsId = new Map(
+    (insertedServices ?? []).map((vs) => [vs.service_id, vs.id])
+  );
+
+  // Build pricing records
+  const kgRecords: Array<{
+    vendor_service_id: string;
+    standard_cost_per_kg: number;
+    express_cost_per_kg: number;
+  }> = [];
+  const itemRecords: Array<{
+    vendor_service_id: string;
+    item_id: string;
+    standard_price: number;
+    express_price: number;
+  }> = [];
+  const roomRecords: Array<{
+    vendor_service_id: string;
+    room_type: string;
+    regular_cost: number;
+    deep_cost: number;
+  }> = [];
+
+  enabledServices.forEach((service) => {
+    const vsId = serviceIdToVsId.get(service.service_id);
+    if (!vsId) return;
+
+    if (service.service_type === "main") {
+      // Per-kg pricing
+      if (
+        service.kg_pricing.standard_cost_per_kg > 0 ||
+        service.kg_pricing.express_cost_per_kg > 0
+      ) {
+        kgRecords.push({
+          vendor_service_id: vsId,
+          standard_cost_per_kg: service.kg_pricing.standard_cost_per_kg,
+          express_cost_per_kg: service.kg_pricing.express_cost_per_kg,
+        });
+      }
+
+      // Per-item pricing
+      service.item_pricing.forEach((item) => {
+        if (item.item_id) {
+          itemRecords.push({
+            vendor_service_id: vsId,
+            item_id: item.item_id,
+            standard_price: item.standard_price,
+            express_price: item.express_price,
           });
-        });
-    });
-  }
-
-  if (services.moving.enabled) {
-    services.moving.items.forEach((item) => {
-      pricesToInsert.push({
-        vendor_id: vendorId,
-        service_item_id: item.service_item_id,
-        service_option_id: null,
-        price: item.price,
-        is_available: true,
+        }
       });
-    });
-  }
-
-  if (services.house_cleaning.enabled) {
-    services.house_cleaning.items.forEach((item) => {
-      if (item.regular_clean_option_id) {
-        pricesToInsert.push({
-          vendor_id: vendorId,
-          service_item_id: item.service_item_id,
-          service_option_id: item.regular_clean_option_id,
-          price: item.regular_clean_price,
-          is_available: true,
-        });
-      }
-
-      if (item.deep_clean_option_id) {
-        pricesToInsert.push({
-          vendor_id: vendorId,
-          service_item_id: item.service_item_id,
-          service_option_id: item.deep_clean_option_id,
-          price: item.deep_clean_price,
-          is_available: true,
-        });
-      }
-    });
-  }
-
-  if (services.office_cleaning.enabled) {
-    services.office_cleaning.items.forEach((item) => {
-      if (item.regular_clean_option_id) {
-        pricesToInsert.push({
-          vendor_id: vendorId,
-          service_item_id: item.service_item_id,
-          service_option_id: item.regular_clean_option_id,
-          price: item.regular_clean_price,
-          is_available: true,
-        });
-      }
-
-      if (item.deep_clean_option_id) {
-        pricesToInsert.push({
-          vendor_id: vendorId,
-          service_item_id: item.service_item_id,
-          service_option_id: item.deep_clean_option_id,
-          price: item.deep_clean_price,
-          is_available: true,
-        });
-      }
-    });
-  }
-
-  if (services.fumigation.enabled) {
-    services.fumigation.items.forEach((item) => {
-      pricesToInsert.push({
-        vendor_id: vendorId,
-        service_item_id: item.service_item_id,
-        service_option_id: null,
-        price: item.price,
-        is_available: true,
+    } else {
+      // Room rates for "other" services
+      service.room_rates.forEach((rate) => {
+        if (rate.room_type) {
+          roomRecords.push({
+            vendor_service_id: vsId,
+            room_type: rate.room_type,
+            regular_cost: rate.regular_cost,
+            deep_cost: rate.deep_cost,
+          });
+        }
       });
-    });
-  }
-
-  if (services.dry_cleaning.enabled) {
-    services.dry_cleaning.items.forEach((item) => {
-      pricesToInsert.push({
-        vendor_id: vendorId,
-        service_item_id: item.service_item_id,
-        service_option_id: null,
-        price: item.price,
-        is_available: true,
-      });
-    });
-  }
-
-  const { error: deleteError } = await supabase
-    .from("vendor_prices")
-    .delete()
-    .eq("vendor_id", vendorId);
-
-  if (deleteError) {
-    throw deleteError;
-  }
-
-  if (pricesToInsert.length > 0) {
-    const { error: insertError } = await supabase
-      .from("vendor_prices")
-      .insert(pricesToInsert);
-
-    if (insertError) {
-      throw insertError;
     }
+  });
+
+  // Insert all pricing in parallel
+  const inserts = [];
+  if (kgRecords.length > 0) {
+    inserts.push(
+      supabase.from("vendor_service_kg_pricing").insert(kgRecords)
+    );
+  }
+  if (itemRecords.length > 0) {
+    inserts.push(
+      supabase.from("vendor_service_item_pricing").insert(itemRecords)
+    );
+  }
+  if (roomRecords.length > 0) {
+    inserts.push(
+      supabase.from("vendor_service_room_rates").insert(roomRecords)
+    );
+  }
+
+  const results = await Promise.all(inserts);
+  for (const result of results) {
+    if (result.error) throw result.error;
   }
 };
 
@@ -740,11 +738,9 @@ const saveBusinessTypeStep = async ({
 const saveServicesAndPricingStep = async ({
   userId,
   data,
-  mainServices,
 }: {
   userId: string;
   data: TServiceAndPricing;
-  mainServices: TMainService[];
 }) => {
   const existingVendor = await getExistingVendor(userId);
 
@@ -752,13 +748,7 @@ const saveServicesAndPricingStep = async ({
     throw new Error("Save business information before continuing.");
   }
 
-  await saveVendorMainServices({
-    vendorId: existingVendor.id,
-    services: data,
-    mainServices,
-  });
-
-  await saveVendorPrices({
+  await saveVendorServices({
     vendorId: existingVendor.id,
     services: data,
   });
@@ -1105,7 +1095,6 @@ const saveOnboardingStep = async (payload: TSaveStepPayload) => {
     return saveServicesAndPricingStep({
       userId: payload.userId,
       data: payload.data,
-      mainServices: payload.mainServices,
     });
   }
 

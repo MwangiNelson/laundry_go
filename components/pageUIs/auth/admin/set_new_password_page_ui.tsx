@@ -11,7 +11,7 @@ import { Form } from "@/components/ui/form";
 import { PasswordInput } from "@/components/fields/inputs/password_input";
 import { Button } from "@/components/ui/button";
 import { useSetNewPassword } from "@/api/auth/use_auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const setNewPasswordSchema = z
   .object({
@@ -28,6 +28,8 @@ type SetNewPasswordFormValues = z.infer<typeof setNewPasswordSchema>;
 export const SetNewPasswordPageUI = () => {
   const { mutateAsync, isPending } = useSetNewPassword();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const form = useForm<SetNewPasswordFormValues>({
     resolver: zodResolver(setNewPasswordSchema),
     defaultValues: {
@@ -40,7 +42,10 @@ export const SetNewPasswordPageUI = () => {
     await mutateAsync({
       password: data.password,
     }).then(() => {
-      router.push("/auth/password-success");
+      const successUrl = next
+        ? `/auth/password-success?next=${encodeURIComponent(next)}`
+        : "/auth/password-success";
+      router.push(successUrl);
     });
   };
 
@@ -91,7 +96,7 @@ export const SetNewPasswordPageUI = () => {
           {/* Back to Sign In Link */}
           <div className="flex items-center justify-center gap-1.5 text-sm">
             <span className="text-label">Remember old password?</span>
-            <Link href="/auth/signin" className="text-link hover:underline">
+            <Link href={next?.startsWith("/vendor") ? "/auth/vendor/signin" : "/auth/signin"} className="text-link hover:underline">
               Sign in
             </Link>
           </div>

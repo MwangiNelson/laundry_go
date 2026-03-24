@@ -45,7 +45,7 @@ export async function sendBranchInvitation({
 }: SendBranchInvitationParams) {
   try {
     const supabase = createAdminClient();
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/vendor/onboarding`;
+    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?next=${encodeURIComponent('auth/set-new-password?next=/vendor/onboarding')}`;
 
     // 1. Create auth user (or find existing)
     let userId: string;
@@ -156,10 +156,10 @@ export async function sendBranchInvitation({
       console.error("Error updating branch status:", branchUpdateError);
     }
 
-    // 6. Generate magic link
+    // 6. Generate recovery link so the invited user sets their password first
     const { data: linkData, error: linkError } =
       await supabase.auth.admin.generateLink({
-        type: "magiclink",
+        type: "recovery",
         email: branchEmail,
         options: { redirectTo },
       });

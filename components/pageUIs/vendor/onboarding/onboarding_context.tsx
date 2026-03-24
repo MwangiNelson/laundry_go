@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/context/auth_provider";
-import { useFetchMainServices } from "@/api/vendor/onboarding/use_fetch_services";
+import { useFetchServices } from "@/api/vendor/onboarding/use_fetch_services";
 import {
   useGetVendorOnboardingDraft,
   useSaveVendorOnboardingStep,
@@ -28,7 +28,7 @@ import {
   TBusinessInformation,
   TBusinessType,
   TFinancesAndTerms,
-  TMainService,
+  TService,
   TOnboardingStepKey,
   TOperationHours,
   TServiceAndPricing,
@@ -63,8 +63,8 @@ const useOnboardingProvider = () => {
     current_step: number;
     completed_steps: number[];
   } | null>(null);
-  const { data: mainServices = [], isLoading: loadingMainServices } =
-    useFetchMainServices();
+  const { data: allServices = [], isLoading: loadingServices } =
+    useFetchServices();
   const { data: vendorDraft, isLoading: loadingVendorDraft } =
     useGetVendorOnboardingDraft(user?.id);
   const { mutateAsync: saveVendorStep, isPending: saving_step } =
@@ -116,8 +116,8 @@ const useOnboardingProvider = () => {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const SERVICE_TYPES = useMemo(
-    () => convertToServiceTypes(mainServices as TMainService[]),
-    [mainServices]
+    () => convertToServiceTypes(allServices as TService[]),
+    [allServices]
   );
 
   // If vendor has a parent_vendor_id it's a branch sub-vendor
@@ -198,7 +198,7 @@ const useOnboardingProvider = () => {
   }, [loading, loggedIn, router]);
 
   useEffect(() => {
-    if (loading || !user || loadingMainServices || loadingVendorDraft) {
+    if (loading || !user || loadingServices || loadingVendorDraft) {
       return;
     }
 
@@ -246,9 +246,11 @@ const useOnboardingProvider = () => {
 
     service_and_pricing_form.reset(
       hydrateServiceAndPricing({
-        mainServices: mainServices as TMainService[],
-        enabledServices: vendorDraft?.enabledServices ?? [],
-        vendorPrices: vendorDraft?.vendorPrices ?? [],
+        allServices: allServices as TService[],
+        vendorServices: vendorDraft?.vendorServices ?? [],
+        kgPricing: vendorDraft?.kgPricing ?? [],
+        itemPricing: vendorDraft?.itemPricing ?? [],
+        roomRates: vendorDraft?.roomRates ?? [],
       })
     );
 
@@ -312,10 +314,10 @@ const useOnboardingProvider = () => {
   }, [
     loading,
     user,
-    loadingMainServices,
+    loadingServices,
     loadingVendorDraft,
     vendorDraft,
-    mainServices,
+    allServices,
     business_info_form,
     business_type_form,
     service_and_pricing_form,
@@ -415,7 +417,6 @@ const useOnboardingProvider = () => {
         userId: user.id,
         step: stepKey,
         data: service_and_pricing_form.getValues(),
-        mainServices: mainServices as TMainService[],
       });
       return;
     }

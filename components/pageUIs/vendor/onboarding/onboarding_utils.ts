@@ -2,16 +2,10 @@ import { locationSchema } from "@/components/schema/shared.schema";
 import { Tables } from "@/database.types";
 import { z } from "zod";
 
-export const SERVICE_KEYS = [
-  "laundry",
-  "moving",
-  "house_cleaning",
-  "office_cleaning",
-  "fumigation",
-  "dry_cleaning",
-] as const;
+// ─── Service Types (New Schema) ──────────────────────────────
 
-export type TServiceKey = (typeof SERVICE_KEYS)[number];
+export type TService = Tables<"services">;
+export type TItem = Tables<"items">;
 
 export const INDIVIDUAL_STEPS = [
   { key: "business_information", title: "Business Information" },
@@ -53,35 +47,12 @@ export const getStepsForBusinessType = (
   return INDIVIDUAL_STEPS;
 };
 
-export type TMainService = Tables<"main_services">;
-
-export type TVendorEnabledService = {
-  main_service_id: number;
-  main_service: Pick<TMainService, "id" | "service" | "slug"> | null;
-};
-
-export type TVendorPriceDraftRow = {
-  price: number;
-  service_item_id: string;
-  service_option_id: string | null;
-  service_item: {
-    id: string;
-    name: string;
-    main_service_id: number;
-  } | null;
-  service_option: {
-    id: string;
-    name: string;
-    service_item_id: string;
-  } | null;
-};
-
 export type TServiceType = {
-  id: TServiceKey;
+  id: string;
   label: string;
-  title: string;
+  service_type: "main" | "other";
   description: string;
-  mainServiceId: number;
+  image_url: string | null;
 };
 
 const toStepIndexMap = (steps: readonly TOnboardingStep[] = INDIVIDUAL_STEPS) =>
@@ -125,74 +96,26 @@ export const getCompletedStepsFromProgress = (
   return steps.slice(0, currentIndex).map((_, index) => index);
 };
 
-const getServiceDescription = (
-  slug: TServiceKey,
-  label: string
-): { title: string; description: string } => {
-  const descriptions: Record<
-    TServiceKey,
-    { title: string; description: string }
-  > = {
-    laundry: {
-      title: "Per Kg and Per Item Pricing",
-      description:
-        "Configure everyday wear, express cleaning, and add custom billable items.",
-    },
-    moving: {
-      title: "Configure Moving Rates",
-      description: "Set prices for room sizes, packages, or custom moving jobs.",
-    },
-    house_cleaning: {
-      title: "Setup Cleaning Pricing",
-      description:
-        "Define standard and deep-clean prices for the spaces you service.",
-    },
-    office_cleaning: {
-      title: "Setup Office Cleaning Pricing",
-      description:
-        "Define standard and deep-clean prices for your office cleaning services.",
-    },
-    fumigation: {
-      title: "Setup Fumigation Pricing",
-      description: "Set base pricing for the areas and packages you cover.",
-    },
-    dry_cleaning: {
-      title: "Setup Dry Cleaning Pricing",
-      description:
-        "Add dry-cleaning items and define how much each one costs.",
-    },
-  };
-
-  return (
-    descriptions[slug] ?? {
-      title: `Setup ${label} Pricing`,
-      description: `Configure pricing for ${label.toLowerCase()} services.`,
-    }
-  );
+const getServiceDescription = (serviceType: string, name: string): string => {
+  if (serviceType === "main") {
+    return `Configure per-kg and per-item pricing for ${name.toLowerCase()}.`;
+  }
+  return `Set room rates for ${name.toLowerCase()} services.`;
 };
 
 export const convertToServiceTypes = (
-  mainServices: TMainService[]
+  services: TService[]
 ): TServiceType[] =>
-  mainServices
-    .filter((service) =>
-      SERVICE_KEYS.includes(service.slug as TServiceKey)
-    )
-    .map((service) => {
-      const slug = service.slug as TServiceKey;
-      const { title, description } = getServiceDescription(
-        slug,
-        service.service
-      );
-
-      return {
-        id: slug,
-        label: service.service,
-        title,
-        description,
-        mainServiceId: service.id,
-      };
-    });
+  services.map((service) => ({
+    id: service.id,
+    label: service.name ?? "Unknown Service",
+    service_type: (service.service_type ?? "main") as "main" | "other",
+    description: getServiceDescription(
+      service.service_type ?? "main",
+      service.name ?? ""
+    ),
+    image_url: service.service_image_url,
+  }));
 
 const file_value = z
   .union([z.instanceof(File), z.string().url()])
@@ -218,105 +141,56 @@ export const business_type = z.object({
   }),
 });
 
-const laundry_option = z.object({
-  service_option_id: z.string(),
-  option_name: z.string(),
-  enabled: z.boolean(),
-  price: z.number().min(0, "Price must be a positive number"),
+const kg_pricing_schema = z.object({
+  standard_cost_per_kg: z.number().min(0, "Price must be positive"),
+  express_cost_per_kg: z.number().min(0, "Price must be positive"),
 });
 
-const laundry_item = z.object({
-  service_item_id: z.string().min(1, "Item is required"),
+const item_pricing_entry = z.object({
+  item_id: z.string().min(1, "Item is required"),
   item_name: z.string(),
-  options: z.array(laundry_option),
+  standard_price: z.number().min(0, "Price must be positive"),
+  express_price: z.number().min(0, "Price must be positive"),
 });
 
-const moving_item = z.object({
-  service_item_id: z.string().min(1, "Room or place is required"),
-  price: z.number().min(0, "Price must be a positive number"),
+const room_rate_entry = z.object({
+  room_type: z.string().min(1, "Room type is required"),
+  regular_cost: z.number().min(0, "Price must be positive"),
+  deep_cost: z.number().min(0, "Price must be positive"),
 });
 
-const cleaning_item = z.object({
-  service_item_id: z.string().min(1, "Room or place is required"),
-  regular_clean_option_id: z.string().min(1, "Standard option is required"),
-  regular_clean_price: z
-    .number()
-    .min(0, "Standard price must be a positive number"),
-  deep_clean_option_id: z.string().min(1, "Deep clean option is required"),
-  deep_clean_price: z
-    .number()
-    .min(0, "Deep clean price must be a positive number"),
-});
-
-const fumigation_item = z.object({
-  service_item_id: z.string().min(1, "Room or place is required"),
-  price: z.number().min(0, "Price must be a positive number"),
-});
-
-const dry_cleaning_item = z.object({
-  service_item_id: z.string().min(1, "Item is required"),
-  price: z.number().min(0, "Price must be a positive number"),
-});
-
-const laundry_config = z.object({
+const service_entry_schema = z.object({
   enabled: z.boolean(),
-  items: z.array(laundry_item),
-});
-
-const moving_config = z.object({
-  enabled: z.boolean(),
-  items: z.array(moving_item),
-});
-
-const cleaning_config = z.object({
-  enabled: z.boolean(),
-  items: z.array(cleaning_item),
-});
-
-const fumigation_config = z.object({
-  enabled: z.boolean(),
-  items: z.array(fumigation_item),
-});
-
-const dry_cleaning_config = z.object({
-  enabled: z.boolean(),
-  items: z.array(dry_cleaning_item),
+  service_id: z.string(),
+  service_name: z.string(),
+  service_type: z.enum(["main", "other"]),
+  kg_pricing: kg_pricing_schema,
+  item_pricing: z.array(item_pricing_entry),
+  room_rates: z.array(room_rate_entry),
 });
 
 export const service_and_pricing_base = z.object({
-  laundry: laundry_config,
-  moving: moving_config,
-  house_cleaning: cleaning_config,
-  office_cleaning: cleaning_config,
-  fumigation: fumigation_config,
-  dry_cleaning: dry_cleaning_config,
+  services: z.array(service_entry_schema),
 });
 
 export const service_and_pricing = service_and_pricing_base
   .refine(
-    (data) =>
-      data.laundry.enabled ||
-      data.moving.enabled ||
-      data.house_cleaning.enabled ||
-      data.office_cleaning.enabled ||
-      data.fumigation.enabled ||
-      data.dry_cleaning.enabled,
+    (data) => data.services.some((s) => s.enabled),
     { message: "Please select at least one service" }
   )
   .refine(
-    (data) => {
-      const services = [
-        data.laundry,
-        data.moving,
-        data.house_cleaning,
-        data.office_cleaning,
-        data.fumigation,
-        data.dry_cleaning,
-      ];
-
-      return services.every((service) => !service.enabled || service.items.length);
-    },
-    { message: "Each enabled service must have at least one billable item" }
+    (data) =>
+      data.services.every((service) => {
+        if (!service.enabled) return true;
+        if (service.service_type === "main") {
+          return (
+            service.kg_pricing.standard_cost_per_kg > 0 ||
+            service.item_pricing.length > 0
+          );
+        }
+        return service.room_rates.length > 0;
+      }),
+    { message: "Each enabled service must have pricing configured" }
   );
 
 export const day_hours = z
@@ -380,12 +254,10 @@ export const finances_and_terms = z.object({
     }),
 });
 
-export type TLaundryOption = z.infer<typeof laundry_option>;
-export type TLaundryItem = z.infer<typeof laundry_item>;
-export type TMovingItem = z.infer<typeof moving_item>;
-export type TCleaningItem = z.infer<typeof cleaning_item>;
-export type TFumigationItem = z.infer<typeof fumigation_item>;
-export type TDryCleaningItem = z.infer<typeof dry_cleaning_item>;
+export type TKgPricing = z.infer<typeof kg_pricing_schema>;
+export type TItemPricingEntry = z.infer<typeof item_pricing_entry>;
+export type TRoomRateEntry = z.infer<typeof room_rate_entry>;
+export type TServiceEntry = z.infer<typeof service_entry_schema>;
 export type TBusinessInformation = z.infer<typeof business_information>;
 export type TBusinessType = z.infer<typeof business_type>;
 export type TServiceAndPricing = z.infer<typeof service_and_pricing_base>;
@@ -449,13 +321,20 @@ export const createDefaultBranchFinances = (): TBranchFinances => ({
   bank_account_number: "",
 });
 
-export const createEmptyServiceAndPricing = (): TServiceAndPricing => ({
-  laundry: { enabled: false, items: [] },
-  moving: { enabled: false, items: [] },
-  house_cleaning: { enabled: false, items: [] },
-  office_cleaning: { enabled: false, items: [] },
-  fumigation: { enabled: false, items: [] },
-  dry_cleaning: { enabled: false, items: [] },
+export const createEmptyServiceEntry = (service: TService): TServiceEntry => ({
+  enabled: false,
+  service_id: service.id,
+  service_name: service.name ?? "",
+  service_type: (service.service_type ?? "main") as "main" | "other",
+  kg_pricing: { standard_cost_per_kg: 0, express_cost_per_kg: 0 },
+  item_pricing: [],
+  room_rates: [],
+});
+
+export const createEmptyServiceAndPricing = (
+  services: TService[] = []
+): TServiceAndPricing => ({
+  services: services.map(createEmptyServiceEntry),
 });
 
 export const createDefaultOperationHours = (): TOperationHours => ({
@@ -475,136 +354,98 @@ export const createDefaultFinancesAndTerms = (): TFinancesAndTerms => ({
   terms_and_conditions: "",
 });
 
+export type TVendorServiceDraft = {
+  vendor_service_id: string;
+  service_id: string;
+  is_enabled: boolean;
+};
+
+export type TVendorKgPricingDraft = {
+  vendor_service_id: string;
+  standard_cost_per_kg: number | null;
+  express_cost_per_kg: number | null;
+};
+
+export type TVendorItemPricingDraft = {
+  vendor_service_id: string;
+  item_id: string;
+  item_name: string | null;
+  standard_price: number | null;
+  express_price: number | null;
+};
+
+export type TVendorRoomRateDraft = {
+  vendor_service_id: string;
+  room_type: string;
+  regular_cost: number | null;
+  deep_cost: number | null;
+};
+
 export const hydrateServiceAndPricing = ({
-  mainServices,
-  enabledServices,
-  vendorPrices,
+  allServices,
+  vendorServices,
+  kgPricing,
+  itemPricing,
+  roomRates,
 }: {
-  mainServices: TMainService[];
-  enabledServices: TVendorEnabledService[];
-  vendorPrices: TVendorPriceDraftRow[];
+  allServices: TService[];
+  vendorServices: TVendorServiceDraft[];
+  kgPricing: TVendorKgPricingDraft[];
+  itemPricing: TVendorItemPricingDraft[];
+  roomRates: TVendorRoomRateDraft[];
 }): TServiceAndPricing => {
-  const draft = createEmptyServiceAndPricing();
-  const serviceIdToKey = new Map(
-    mainServices.map((service) => [service.id, service.slug as TServiceKey])
+  const vendorServiceMap = new Map(
+    vendorServices.map((vs) => [vs.service_id, vs])
   );
-  const laundryItems = new Map<string, TLaundryItem>();
-  const movingItems = new Map<string, TMovingItem>();
-  const dryCleaningItems = new Map<string, TDryCleaningItem>();
-  const fumigationItems = new Map<string, TFumigationItem>();
-  const cleaningItems = new Map<string, TCleaningItem>();
-
-  enabledServices.forEach((service) => {
-    const serviceKey =
-      (service.main_service?.slug as TServiceKey | undefined) ??
-      serviceIdToKey.get(service.main_service_id);
-
-    if (serviceKey) {
-      draft[serviceKey].enabled = true;
-    }
+  const kgMap = new Map(
+    kgPricing.map((kg) => [kg.vendor_service_id, kg])
+  );
+  const itemMap = new Map<string, TVendorItemPricingDraft[]>();
+  itemPricing.forEach((ip) => {
+    const existing = itemMap.get(ip.vendor_service_id) ?? [];
+    existing.push(ip);
+    itemMap.set(ip.vendor_service_id, existing);
+  });
+  const roomMap = new Map<string, TVendorRoomRateDraft[]>();
+  roomRates.forEach((rr) => {
+    const existing = roomMap.get(rr.vendor_service_id) ?? [];
+    existing.push(rr);
+    roomMap.set(rr.vendor_service_id, existing);
   });
 
-  vendorPrices.forEach((priceRow) => {
-    const serviceKey = priceRow.service_item
-      ? serviceIdToKey.get(priceRow.service_item.main_service_id)
-      : undefined;
+  return {
+    services: allServices.map((service) => {
+      const vs = vendorServiceMap.get(service.id);
+      const vendorServiceId = vs?.vendor_service_id;
+      const kg = vendorServiceId ? kgMap.get(vendorServiceId) : undefined;
+      const items = vendorServiceId
+        ? (itemMap.get(vendorServiceId) ?? [])
+        : [];
+      const rooms = vendorServiceId
+        ? (roomMap.get(vendorServiceId) ?? [])
+        : [];
 
-    if (!serviceKey || !priceRow.service_item) {
-      return;
-    }
-
-    draft[serviceKey].enabled = true;
-
-    if (serviceKey === "laundry") {
-      const existingLaundryItem = laundryItems.get(priceRow.service_item_id);
-
-      if (existingLaundryItem) {
-        existingLaundryItem.options.push({
-          service_option_id: priceRow.service_option_id ?? "",
-          option_name: priceRow.service_option?.name ?? "",
-          enabled: true,
-          price: priceRow.price,
-        });
-      } else {
-        laundryItems.set(priceRow.service_item_id, {
-          service_item_id: priceRow.service_item_id,
-          item_name: priceRow.service_item.name,
-          options: [
-            {
-              service_option_id: priceRow.service_option_id ?? "",
-              option_name: priceRow.service_option?.name ?? "",
-              enabled: true,
-              price: priceRow.price,
-            },
-          ],
-        });
-      }
-
-      return;
-    }
-
-    if (serviceKey === "moving") {
-      movingItems.set(priceRow.service_item_id, {
-        service_item_id: priceRow.service_item_id,
-        price: priceRow.price,
-      });
-      return;
-    }
-
-    if (serviceKey === "fumigation") {
-      fumigationItems.set(priceRow.service_item_id, {
-        service_item_id: priceRow.service_item_id,
-        price: priceRow.price,
-      });
-      return;
-    }
-
-    if (serviceKey === "dry_cleaning") {
-      dryCleaningItems.set(priceRow.service_item_id, {
-        service_item_id: priceRow.service_item_id,
-        price: priceRow.price,
-      });
-      return;
-    }
-
-    if (
-      serviceKey === "house_cleaning" ||
-      serviceKey === "office_cleaning"
-    ) {
-      const cleaningMapKey = `${serviceKey}:${priceRow.service_item_id}`;
-      const existingCleaningItem = cleaningItems.get(cleaningMapKey) ?? {
-        service_item_id: priceRow.service_item_id,
-        regular_clean_option_id: "",
-        regular_clean_price: 0,
-        deep_clean_option_id: "",
-        deep_clean_price: 0,
+      return {
+        enabled: vs?.is_enabled ?? false,
+        service_id: service.id,
+        service_name: service.name ?? "",
+        service_type: (service.service_type ?? "main") as "main" | "other",
+        kg_pricing: {
+          standard_cost_per_kg: kg?.standard_cost_per_kg ?? 0,
+          express_cost_per_kg: kg?.express_cost_per_kg ?? 0,
+        },
+        item_pricing: items.map((ip) => ({
+          item_id: ip.item_id,
+          item_name: ip.item_name ?? "",
+          standard_price: ip.standard_price ?? 0,
+          express_price: ip.express_price ?? 0,
+        })),
+        room_rates: rooms.map((rr) => ({
+          room_type: rr.room_type,
+          regular_cost: rr.regular_cost ?? 0,
+          deep_cost: rr.deep_cost ?? 0,
+        })),
       };
-      const optionName = priceRow.service_option?.name.toLowerCase() ?? "";
-
-      if (optionName.includes("deep")) {
-        existingCleaningItem.deep_clean_option_id =
-          priceRow.service_option_id ?? "";
-        existingCleaningItem.deep_clean_price = priceRow.price;
-      } else {
-        existingCleaningItem.regular_clean_option_id =
-          priceRow.service_option_id ?? "";
-        existingCleaningItem.regular_clean_price = priceRow.price;
-      }
-
-      cleaningItems.set(cleaningMapKey, existingCleaningItem);
-    }
-  });
-
-  draft.laundry.items = Array.from(laundryItems.values());
-  draft.moving.items = Array.from(movingItems.values());
-  draft.fumigation.items = Array.from(fumigationItems.values());
-  draft.dry_cleaning.items = Array.from(dryCleaningItems.values());
-  draft.house_cleaning.items = Array.from(cleaningItems.entries())
-    .filter(([key]) => key.startsWith("house_cleaning:"))
-    .map(([, value]) => value);
-  draft.office_cleaning.items = Array.from(cleaningItems.entries())
-    .filter(([key]) => key.startsWith("office_cleaning:"))
-    .map(([, value]) => value);
-
-  return draft;
+    }),
+  };
 };

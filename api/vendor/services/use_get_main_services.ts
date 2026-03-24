@@ -1,22 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { createSupabaseClient } from "@/api/supabase/client";
-import { Database } from "@/database.types";
+import { Tables } from "@/database.types";
 
-export type MainService = Database["public"]["Tables"]["main_services"]["Row"];
+export type Service = Tables<"services">;
 
 /**
- * Fetches all available main services
+ * Fetches all available services from the services table
  */
 export const useGetMainServices = () => {
   return useQuery({
-    queryKey: ["main_services"],
-    queryFn: async (): Promise<MainService[]> => {
+    queryKey: ["services"],
+    queryFn: async (): Promise<Service[]> => {
       const supabase = createSupabaseClient();
 
       const { data, error } = await supabase
-        .from("main_services")
+        .from("services")
         .select("*")
-        .order("service", { ascending: true });
+        .order("name", { ascending: true });
 
       if (error) throw error;
 

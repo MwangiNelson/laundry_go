@@ -2,11 +2,16 @@
 
 import React from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import AuthSharedPageUI from "./auth_shared_page_ui";
 import { Button } from "@/components/ui/button";
 
 export const PasswordSuccessPageUI = () => {
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
+  const signInHref = next?.startsWith("/vendor") ? "/auth/vendor/signin" : "/auth/signin";
+
   return (
     <AuthSharedPageUI>
       <div className="flex flex-col gap-6 pt-6">
@@ -26,7 +31,7 @@ export const PasswordSuccessPageUI = () => {
             asChild
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg py-3 h-auto text-sm font-normal"
           >
-            <Link href="/auth/signin">Sign in</Link>
+            <Link href={signInHref}>Sign in</Link>
           </Button>
         </div>
       </div>

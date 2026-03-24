@@ -1,6 +1,9 @@
-import { useMemo } from "react";
-import { VendorServiceData } from "@/api/vendor/services/use_get_vendor_services";
-import { AllServiceData } from "@/api/vendor/services/use_get_all_service_items";
+/**
+ * @deprecated This file is no longer used. The services settings now use
+ * the new schema (services, vendor_services, vendor_service_item_pricing,
+ * vendor_service_kg_pricing, vendor_service_room_rates).
+ * See service_form.tsx for the current implementation.
+ */
 
 export interface MergedOption {
   id: string;
@@ -19,53 +22,10 @@ export interface MergedItem {
   options: MergedOption[];
 }
 
-/**
- * Custom hook to merge all available service items/options with vendor's existing prices
- */
+/** @deprecated */
 export const useLaundryServiceMergedData = (
-  service: VendorServiceData,
-  allServiceItems: AllServiceData | null | undefined
+  _service: unknown,
+  _allServiceItems: unknown
 ): MergedItem[] => {
-  return useMemo(() => {
-    if (!allServiceItems) {
-      // Transform service items to MergedItem format
-      return service.service_items.map((item) => ({
-        ...item,
-        options: item.options.map((opt) => ({
-          ...opt,
-          price: opt.price || 0,
-          is_available: opt.is_available || false,
-          vendor_price_id: opt.vendor_price_id,
-          has_vendor_price: !!opt.vendor_price_id,
-        })),
-      }));
-    }
-
-    return allServiceItems.service_items.map((allItem) => {
-      // Find vendor's existing item
-      const vendorItem = service.service_items.find(
-        (item) => item.id === allItem.id
-      );
-
-      // Merge options: show all available options, mark which ones vendor has
-      const mergedOptions: MergedOption[] = allItem.options.map((allOption) => {
-        const vendorOption = vendorItem?.options.find(
-          (opt) => opt.id === allOption.id
-        );
-
-        return {
-          ...allOption,
-          price: vendorOption?.price || 0,
-          is_available: vendorOption?.is_available || false,
-          vendor_price_id: vendorOption?.vendor_price_id,
-          has_vendor_price: !!vendorOption,
-        };
-      });
-
-      return {
-        ...allItem,
-        options: mergedOptions,
-      };
-    });
-  }, [allServiceItems, service.service_items]);
+  return [];
 };
