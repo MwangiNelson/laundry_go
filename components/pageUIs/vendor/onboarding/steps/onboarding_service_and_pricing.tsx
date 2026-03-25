@@ -64,10 +64,6 @@ const ServiceCard = ({
   const enabledPath = `services.${serviceIndex}.enabled` as Path<TServiceAndPricing>;
   const isEnabled = service_and_pricing_form.watch(enabledPath) as boolean;
 
-  const toggleEnabled = () => {
-    service_and_pricing_form.setValue(enabledPath, !isEnabled as never);
-  };
-
   return (
     <div
       className={cn(
@@ -75,11 +71,7 @@ const ServiceCard = ({
         isEnabled ? "border-landing-primary/40" : "border-border"
       )}
     >
-      <button
-        type="button"
-        onClick={toggleEnabled}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left"
-      >
+      <div className="flex w-full items-center gap-3 px-4 py-3 text-left">
         <Checkbox
           checked={isEnabled}
           onCheckedChange={(checked) =>
@@ -88,11 +80,10 @@ const ServiceCard = ({
               Boolean(checked) as never
             )
           }
-          onClick={(event) => event.stopPropagation()}
           className="size-4 border-muted-foreground/40 data-[state=checked]:border-landing-accent data-[state=checked]:bg-landing-accent data-[state=checked]:text-title"
         />
         <span className="text-sm font-semibold text-title">{label}</span>
-      </button>
+      </div>
 
       {isEnabled && (
         <div className="border-t border-border px-4 py-3">
