@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "../../context/auth_provider";
+import { useVendor } from "../../context/vendors/vendor_provider";
 import { PanelLeft } from "lucide-react";
 import { BellIcon } from "@phosphor-icons/react";
 import { useVendorUI } from "./vendor_ui_provider";
@@ -73,8 +74,9 @@ const MessageTootip = () => {
 };
 const UserDropdown = () => {
   const { user, logout } = useAuth();
+  const { vendor } = useVendor();
   const router = useRouter();
-  const userName = user?.full_name || "User";
+  const userName = user?.full_name || vendor?.contact_person || "User";
 
   return (
     <div className="ml-auto flex items-center gap-3">
