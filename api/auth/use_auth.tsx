@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { createSupabaseClient } from "../supabase/client";
 import { replaceFile, uploadFile } from "@/api/supabase/supabase_file_upload";
 export const useLoginWithEmail = () => {
-  const router = useRouter();
   return useMutation({
     meta: {
       successMessage: "Login successful",

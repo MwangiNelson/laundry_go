@@ -29,6 +29,7 @@ type SignInFormValues = z.infer<typeof signInSchema>;
 export const SigninPageUI = () => {
   const { mutateAsync: loginWithEmail, isPending } = useLoginWithEmail();
   const { getRememberedEmail } = useRememberMe();
+  const { auth_user } = useAuth();
   const router = useRouter();
 
   const form = useForm<SignInFormValues>({
@@ -41,13 +42,21 @@ export const SigninPageUI = () => {
   });
 
   // Pre-fill email if remembered
-  // useEffect(() => {
-  //   const rememberedEmail = getRememberedEmail();
-  //   if (rememberedEmail) {
-  //     form.setValue("email", rememberedEmail);
-  //     form.setValue("rememberMe", true);
-  //   }
-  // }, [form, getRememberedEmail]);
+  useEffect(() => {
+    const rememberedEmail = getRememberedEmail();
+    if (rememberedEmail) {
+      form.setValue("email", rememberedEmail);
+      form.setValue("rememberMe", true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Redirect once auth state is established after login
+  useEffect(() => {
+    if (auth_user) {
+      router.push("/dashboard");
+    }
+  }, [auth_user, router]);
 
   const rememberMe = useWatch({
     control: form.control,
@@ -59,8 +68,6 @@ export const SigninPageUI = () => {
       email: data.email,
       password: data.password,
       rememberMe: data.rememberMe,
-    }).then(() => {
-      router.push("/dashboard");
     });
   };
 
@@ -96,7 +103,7 @@ export const SigninPageUI = () => {
                   placeholder="Set your password"
                 />
                 <div className="flex items-center justify-between">
-                  {/* <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5">
                     <Checkbox
                       id="rememberMe"
                       checked={rememberMe}
@@ -111,7 +118,7 @@ export const SigninPageUI = () => {
                     >
                       Remember me
                     </label>
-                  </div> */}
+                  </div>
                   <Link
                     href="/auth/forgot-password"
                     className="text-sm leading-normal text-link hover:underline"

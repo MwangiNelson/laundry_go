@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useLoginWithEmail } from "@/api/auth/use_auth";
 import { useRememberMe } from "@/api/auth/use_remember_me";
+import { useAuth } from "@/components/context/auth_provider";
 import { createSupabaseClient } from "@/api/supabase/client";
 import { useRouter } from "next/navigation";
 
@@ -26,6 +27,7 @@ const schema = z.object({
 const SignInPageUI = () => {
   const { mutateAsync: signInWithEmail, isPending } = useLoginWithEmail();
   const { getRememberedEmail } = useRememberMe();
+  const { auth_user } = useAuth();
   const router = useRouter();
 
   const form = useForm({
@@ -47,13 +49,18 @@ const SignInPageUI = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Redirect once auth state is established after login
+  useEffect(() => {
+    if (auth_user) {
+      router.push("/vendor");
+    }
+  }, [auth_user, router]);
+
   const onSubmit = async (data: z.infer<typeof schema>) => {
     await signInWithEmail({
       email: data.email,
       password: data.password,
       rememberMe: data.rememberMe,
-    }).then(() => {
-      router.push("/vendor");
     });
   };
   const handleGoogleLogin = async () => {
