@@ -15,6 +15,7 @@ import { useVendorUI } from "./vendor_ui_provider";
 import { TVendorNavItem, VENDOR_NAV_ITEMS } from "./vendor_layout_utils";
 import { CaretRightIcon, SignOutIcon } from "@phosphor-icons/react";
 import { useVendor } from "@/components/context/vendors/vendor_provider";
+import { useVendorRole } from "@/components/context/vendors/vendor_gate";
 import Image from "next/image";
 import { get_vendor_logo } from "@/api/supabase/functions";
 import { StorefrontIcon } from "@phosphor-icons/react";
@@ -51,6 +52,7 @@ const VendorLogo = ({
 export const VendorSidebar = () => {
   const { sidebar } = useVendorUI();
   const { vendor } = useVendor();
+  const { canManageBranches } = useVendorRole();
   const isCollapsed = !sidebar.isOpen;
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -101,7 +103,9 @@ export const VendorSidebar = () => {
 
       <nav className="flex-1">
         <ul className="flex w-full flex-col gap-1">
-          {VENDOR_NAV_ITEMS.map((item) => (
+          {VENDOR_NAV_ITEMS.filter(
+            (item) => item.key !== "branches" || canManageBranches
+          ).map((item) => (
             <li key={item.key}>
               {item.children && item.children.length > 0 ? (
                 <SidebarItemWithChildren
