@@ -174,7 +174,7 @@ export const useAddRoomRate = () => {
   return useMutation({
     mutationFn: async (params: {
       vendor_service_id: string;
-      room_type: string;
+      service_room_id: string;
       regular_cost: number;
       deep_cost: number;
     }) => {
@@ -201,7 +201,7 @@ export const useUpdateRoomRate = () => {
   return useMutation({
     mutationFn: async (params: {
       id: string;
-      room_type: string;
+      service_room_id: string;
       regular_cost: number;
       deep_cost: number;
     }) => {
@@ -209,7 +209,7 @@ export const useUpdateRoomRate = () => {
       const { data, error } = await supabase
         .from("vendor_service_room_rates")
         .update({
-          room_type: params.room_type,
+          service_room_id: params.service_room_id,
           regular_cost: params.regular_cost,
           deep_cost: params.deep_cost,
         })

@@ -18,7 +18,8 @@ export type VendorServiceItemPricing = {
 
 export type VendorServiceRoomRate = {
   id: string;
-  room_type: string;
+  service_room_id: string;
+  room_name: string;
   regular_cost: number | null;
   deep_cost: number | null;
 };
@@ -70,7 +71,7 @@ export const useGetVendorServices = () => {
           .in("vendor_service_id", vsIds),
         supabase
           .from("vendor_service_room_rates")
-          .select("id, vendor_service_id, room_type, regular_cost, deep_cost")
+          .select("id, vendor_service_id, service_room_id, regular_cost, deep_cost, service_room:service_rooms(name)")
           .in("vendor_service_id", vsIds),
       ]);
 
@@ -130,7 +131,9 @@ export const useGetVendorServices = () => {
           })),
           room_rates: rooms.map((rr) => ({
             id: rr.id,
-            room_type: rr.room_type,
+            service_room_id: rr.service_room_id,
+            room_name:
+              (rr as any).service_room?.name ?? "",
             regular_cost: rr.regular_cost,
             deep_cost: rr.deep_cost,
           })),

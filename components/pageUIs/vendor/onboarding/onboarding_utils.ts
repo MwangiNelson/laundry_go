@@ -154,7 +154,8 @@ const item_pricing_entry = z.object({
 });
 
 const room_rate_entry = z.object({
-  room_type: z.string().min(1, "Room type is required"),
+  service_room_id: z.string().min(1, "Room type is required"),
+  room_name: z.string(),
   regular_cost: z.number().min(0, "Price must be positive"),
   deep_cost: z.number().min(0, "Price must be positive"),
 });
@@ -379,7 +380,8 @@ export type TVendorItemPricingDraft = {
 
 export type TVendorRoomRateDraft = {
   vendor_service_id: string;
-  room_type: string;
+  service_room_id: string;
+  room_name: string | null;
   regular_cost: number | null;
   deep_cost: number | null;
 };
@@ -446,7 +448,8 @@ export const hydrateServiceAndPricing = ({
           express_price: ip.express_price ?? 0,
         })),
         room_rates: rooms.map((rr) => ({
-          room_type: rr.room_type,
+          service_room_id: rr.service_room_id,
+          room_name: rr.room_name ?? "",
           regular_cost: rr.regular_cost ?? 0,
           deep_cost: rr.deep_cost ?? 0,
         })),

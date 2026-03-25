@@ -264,11 +264,16 @@ const RoomRatePricingForm = ({
 }: {
   serviceIndex: number;
 }) => {
-  const { service_and_pricing_form } = useOnboarding();
+  const { service_and_pricing_form, service_rooms } = useOnboarding();
   const { fields, append, remove } = useFieldArray({
     control: service_and_pricing_form.control,
     name: `services.${serviceIndex}.room_rates` as never,
   });
+
+  // Collect service_room_ids already used in this service
+  const usedRoomIds = new Set(
+    fields.map((f: any) => f.service_room_id as string).filter(Boolean)
+  );
 
   return (
     <div className="space-y-2">
@@ -282,7 +287,7 @@ const RoomRatePricingForm = ({
               <div className="grid gap-2 sm:grid-cols-3">
                 <FormField
                   control={service_and_pricing_form.control}
-                  name={`services.${serviceIndex}.room_rates.${rateIndex}.room_type` as Path<TServiceAndPricing>}
+                  name={`services.${serviceIndex}.room_rates.${rateIndex}.service_room_id` as Path<TServiceAndPricing>}
                   render={({ field: roomField }) => (
                     <FormItem>
                       <FormControl>
@@ -290,13 +295,34 @@ const RoomRatePricingForm = ({
                           <p className="text-[10px] font-medium text-label">
                             Room / Area type
                           </p>
-                          <input
-                            type="text"
-                            placeholder="e.g. 1 Bedroom"
+                          <select
                             value={String(roomField.value ?? "")}
-                            onChange={roomField.onChange}
-                            className="mt-0.5 w-full bg-transparent text-sm text-title outline-none placeholder:text-muted-foreground"
-                          />
+                            onChange={(e) => {
+                              roomField.onChange(e.target.value);
+                              const room = service_rooms.find(
+                                (r) => r.id === e.target.value
+                              );
+                              service_and_pricing_form.setValue(
+                                `services.${serviceIndex}.room_rates.${rateIndex}.room_name` as any,
+                                room?.name ?? ""
+                              );
+                            }}
+                            className="mt-0.5 w-full bg-transparent text-sm text-title outline-none"
+                          >
+                            <option value="">Select room type</option>
+                            {service_rooms.map((room) => (
+                              <option
+                                key={room.id}
+                                value={room.id}
+                                disabled={
+                                  room.id !== String(roomField.value ?? "") &&
+                                  usedRoomIds.has(room.id)
+                                }
+                              >
+                                {room.name}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -335,7 +361,8 @@ const RoomRatePricingForm = ({
         type="button"
         onClick={() =>
           append({
-            room_type: "",
+            service_room_id: "",
+            room_name: "",
             regular_cost: 0,
             deep_cost: 0,
           } as never)

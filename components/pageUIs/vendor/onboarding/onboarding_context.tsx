@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/context/auth_provider";
-import { useFetchServices, useFetchParentVendorServiceIds } from "@/api/vendor/onboarding/use_fetch_services";
+import { useFetchServices, useFetchParentVendorServiceIds, useFetchServiceRooms } from "@/api/vendor/onboarding/use_fetch_services";
 import {
   useGetVendorOnboardingDraft,
   useSaveVendorOnboardingStep,
@@ -70,6 +70,7 @@ const useOnboardingProvider = () => {
   const parentVendorId = vendorDraft?.vendor?.parent_vendor_id ?? null;
   const { data: parentServiceIds } =
     useFetchParentVendorServiceIds(parentVendorId);
+  const { data: service_rooms = [] } = useFetchServiceRooms();
   const { mutateAsync: saveVendorStep, isPending: saving_step } =
     useSaveVendorOnboardingStep();
 
@@ -212,6 +213,12 @@ const useOnboardingProvider = () => {
 
     if (hasHydratedRef.current) {
       if (!initialLoadComplete) setInitialLoadComplete(true);
+      return;
+    }
+
+    // Don't hydrate until the draft query has settled.
+    // undefined = query pending/errored; null = new user (no vendor yet).
+    if (vendorDraft === undefined) {
       return;
     }
 
@@ -538,6 +545,7 @@ const useOnboardingProvider = () => {
     branch_details_form,
     branch_finances_form,
     SERVICE_TYPES,
+    service_rooms,
     handleback,
     saving_step,
     canNavigateToStep,

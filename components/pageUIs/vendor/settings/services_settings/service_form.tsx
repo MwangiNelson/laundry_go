@@ -16,6 +16,7 @@ import {
   useUpdateRoomRate,
   useDeleteRoomRate,
 } from "@/api/vendor/services/use_vendor_price_mutations";
+import { useFetchServiceRooms } from "@/api/vendor/onboarding/use_fetch_services";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -325,19 +326,28 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
   const addRate = useAddRoomRate();
   const updateRate = useUpdateRoomRate();
   const deleteRate = useDeleteRoomRate();
+  const { data: serviceRooms = [] } = useFetchServiceRooms();
 
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editRoomType, setEditRoomType] = useState("");
+  const [editServiceRoomId, setEditServiceRoomId] = useState("");
   const [editRegular, setEditRegular] = useState(0);
   const [editDeep, setEditDeep] = useState(0);
+  const [newServiceRoomId, setNewServiceRoomId] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
   } | null>(null);
 
+  // Room IDs already used in this service (exclude the one being edited)
+  const usedRoomIds = new Set(
+    service.room_rates
+      .filter((rr) => rr.id !== editingId)
+      .map((rr) => rr.service_room_id)
+  );
+
   const startEdit = (rr: VendorServiceRoomRate) => {
     setEditingId(rr.id);
-    setEditRoomType(rr.room_type);
+    setEditServiceRoomId(rr.service_room_id);
     setEditRegular(rr.regular_cost ?? 0);
     setEditDeep(rr.deep_cost ?? 0);
   };
@@ -357,13 +367,25 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
               >
                 {isEditing ? (
                   <>
-                    <Input
-                      type="text"
-                      value={editRoomType}
-                      onChange={(e) => setEditRoomType(e.target.value)}
-                      className="flex-1 h-8"
-                      placeholder="Room type"
-                    />
+                    <select
+                      value={editServiceRoomId}
+                      onChange={(e) => setEditServiceRoomId(e.target.value)}
+                      className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm"
+                    >
+                      <option value="">Select room type</option>
+                      {serviceRooms.map((room) => (
+                        <option
+                          key={room.id}
+                          value={room.id}
+                          disabled={
+                            room.id !== editServiceRoomId &&
+                            usedRoomIds.has(room.id)
+                          }
+                        >
+                          {room.name}
+                        </option>
+                      ))}
+                    </select>
                     <Input
                       type="number"
                       min={0}
@@ -388,12 +410,12 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
                       size="icon"
                       variant="ghost"
                       className="h-8 w-8"
-                      disabled={updateRate.isPending}
+                      disabled={updateRate.isPending || !editServiceRoomId}
                       onClick={() =>
                         updateRate.mutate(
                           {
                             id: rr.id,
-                            room_type: editRoomType,
+                            service_room_id: editServiceRoomId,
                             regular_cost: editRegular,
                             deep_cost: editDeep,
                           },
@@ -415,7 +437,7 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
                 ) : (
                   <>
                     <span className="text-sm font-medium min-w-[100px]">
-                      {rr.room_type}
+                      {rr.room_name}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       Regular: KES {rr.regular_cost ?? 0}
@@ -437,7 +459,7 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
                         variant="ghost"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={() =>
-                          setDeleteTarget({ id: rr.id, name: rr.room_type })
+                          setDeleteTarget({ id: rr.id, name: rr.room_name })
                         }
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -455,23 +477,42 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
         </p>
       )}
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-fit"
-        disabled={addRate.isPending}
-        onClick={() =>
-          addRate.mutate({
-            vendor_service_id: service.id,
-            room_type: "",
-            regular_cost: 0,
-            deep_cost: 0,
-          })
-        }
-      >
-        <Plus className="h-3.5 w-3.5 mr-1" />
-        Add room / area
-      </Button>
+      <div className="flex items-center gap-2">
+        <select
+          value={newServiceRoomId}
+          onChange={(e) => setNewServiceRoomId(e.target.value)}
+          className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-sm"
+        >
+          <option value="">Select room type to add</option>
+          {serviceRooms
+            .filter((room) => !usedRoomIds.has(room.id))
+            .map((room) => (
+              <option key={room.id} value={room.id}>
+                {room.name}
+              </option>
+            ))}
+        </select>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-fit"
+          disabled={addRate.isPending || !newServiceRoomId}
+          onClick={() =>
+            addRate.mutate(
+              {
+                vendor_service_id: service.id,
+                service_room_id: newServiceRoomId,
+                regular_cost: 0,
+                deep_cost: 0,
+              },
+              { onSuccess: () => setNewServiceRoomId("") }
+            )
+          }
+        >
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          Add room / area
+        </Button>
+      </div>
 
       <AlertDialog
         open={!!deleteTarget}

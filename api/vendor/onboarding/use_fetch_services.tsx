@@ -59,3 +59,25 @@ export const useFetchParentVendorServiceIds = (
     },
   });
 };
+
+// Fetch all service rooms (room types for "other" services)
+export type TServiceRoom = { id: string; name: string };
+
+export const useFetchServiceRooms = () => {
+  return useQuery({
+    queryKey: ["service_rooms"],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase
+        .from("service_rooms")
+        .select("id, name")
+        .order("name", { ascending: true });
+
+      if (error) throw error;
+      return (data ?? []).filter(
+        (r): r is TServiceRoom => r.name !== null
+      );
+    },
+  });
+};

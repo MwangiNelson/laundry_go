@@ -163,7 +163,7 @@ const getVendorDraft = async (
     vsIds.length
       ? supabase
         .from("vendor_service_room_rates")
-        .select("vendor_service_id, room_type, regular_cost, deep_cost")
+        .select("vendor_service_id, service_room_id, regular_cost, deep_cost, service_room:service_rooms(name)")
         .in("vendor_service_id", vsIds)
       : { data: [] as any[], error: null },
   ]);
@@ -191,7 +191,8 @@ const getVendorDraft = async (
   const roomRates: TVendorRoomRateDraft[] = (roomData ?? []).map(
     (rr: any) => ({
       vendor_service_id: rr.vendor_service_id,
-      room_type: rr.room_type,
+      service_room_id: rr.service_room_id,
+      room_name: rr.service_room?.name ?? null,
       regular_cost: rr.regular_cost,
       deep_cost: rr.deep_cost,
     })
@@ -491,7 +492,7 @@ const saveVendorServices = async ({
   }> = [];
   const roomRecords: Array<{
     vendor_service_id: string;
-    room_type: string;
+    service_room_id: string;
     regular_cost: number;
     deep_cost: number;
   }> = [];
@@ -527,10 +528,10 @@ const saveVendorServices = async ({
     } else {
       // Room rates for "other" services
       service.room_rates.forEach((rate) => {
-        if (rate.room_type) {
+        if (rate.service_room_id) {
           roomRecords.push({
             vendor_service_id: vsId,
-            room_type: rate.room_type,
+            service_room_id: rate.service_room_id,
             regular_cost: rate.regular_cost,
             deep_cost: rate.deep_cost,
           });
@@ -696,10 +697,15 @@ const saveBusinessInformationStep = async ({
     }
   }
 
+  const stepsForType = existingVendor?.business_type
+    ? getStepsForBusinessType(existingVendor.business_type as "individual" | "multi_branch" | "branch")
+    : undefined;
+
   await updateProfileProgress({
     userId,
     step: "business_information",
     vendorAlreadyComplete: existingVendor?.profile_complete,
+    steps: stepsForType,
   });
 
   return vendor.id;
@@ -733,10 +739,15 @@ const saveBusinessTypeStep = async ({
     throw error;
   }
 
+  const businessTypeSteps = getStepsForBusinessType(
+    (data.business_type === "multi_branch" ? "multi_branch" : "individual") as "individual" | "multi_branch"
+  );
+
   await updateProfileProgress({
     userId,
     step: "business_type",
     vendorAlreadyComplete: existingVendor.profile_complete,
+    steps: businessTypeSteps,
   });
 
   return existingVendor.id;
@@ -760,10 +771,15 @@ const saveServicesAndPricingStep = async ({
     services: data,
   });
 
+  const stepsForType = getStepsForBusinessType(
+    (existingVendor.business_type ?? "individual") as "individual" | "multi_branch" | "branch"
+  );
+
   await updateProfileProgress({
     userId,
     step: "services_and_pricing",
     vendorAlreadyComplete: existingVendor.profile_complete,
+    steps: stepsForType,
   });
 
   return existingVendor.id;
@@ -797,10 +813,15 @@ const saveOperationsStep = async ({
     throw error;
   }
 
+  const stepsForType = getStepsForBusinessType(
+    (existingVendor.business_type ?? "individual") as "individual" | "multi_branch" | "branch"
+  );
+
   await updateProfileProgress({
     userId,
     step: "operations_setup",
     vendorAlreadyComplete: existingVendor.profile_complete,
+    steps: stepsForType,
   });
 
   return existingVendor.id;
@@ -858,11 +879,16 @@ const saveFinancesStep = async ({
     throw bankError;
   }
 
+  const stepsForType = getStepsForBusinessType(
+    (existingVendor.business_type ?? "individual") as "individual" | "multi_branch" | "branch"
+  );
+
   await updateProfileProgress({
     userId,
     step: "finances_and_terms",
     vendorAlreadyComplete: existingVendor.profile_complete,
     finalize,
+    steps: stepsForType,
   });
 
   return existingVendor.id;
