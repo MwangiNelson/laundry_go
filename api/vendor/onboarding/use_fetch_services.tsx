@@ -37,3 +37,25 @@ export const useFetchItems = () => {
     },
   });
 };
+
+// Fetch the service IDs that a parent vendor has enabled
+export const useFetchParentVendorServiceIds = (
+  parentVendorId: string | null | undefined
+) => {
+  return useQuery({
+    queryKey: ["parent-vendor-services", parentVendorId],
+    enabled: !!parentVendorId,
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const supabase = createSupabaseClient();
+      const { data, error } = await supabase
+        .from("vendor_services")
+        .select("service_id")
+        .eq("vendor_id", parentVendorId!)
+        .eq("is_enabled", true);
+
+      if (error) throw error;
+      return (data ?? []).map((vs) => vs.service_id);
+    },
+  });
+};

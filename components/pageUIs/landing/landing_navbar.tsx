@@ -22,7 +22,7 @@ export function LandingNavbar() {
             href="/auth/vendor/signin"
             className="text-sm font-medium text-white/90 transition hover:text-white"
           >
-            Already a partner? Sign in
+            Already a vendor? Sign in
           </Link>
           <Button
             asChild

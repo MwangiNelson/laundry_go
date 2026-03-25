@@ -950,17 +950,8 @@ const saveBranchInformationStep = async ({
     steps: multiBranchSteps,
   });
 
-  // Fire-and-forget: send invitations in the background so the RSC
-  // server-action response can never block onboarding completion.
-  if (finalize) {
-    import("@/app/actions/send_branch_invitation.action")
-      .then(({ sendAllBranchInvitations }) =>
-        sendAllBranchInvitations({ vendorId: existingVendor.id })
-      )
-      .catch((err) =>
-        console.error("Failed to send branch invitations:", err)
-      );
-  }
+  // Branch invitations are now sent when the admin approves the parent
+  // business, not during onboarding. See useApproveVendor.
 
   return existingVendor.id;
 };

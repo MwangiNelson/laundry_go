@@ -126,7 +126,7 @@ export function Hero() {
           <div className="space-y-6">
             <div className="space-y-1">
               <p className="text-2xl font-bold tracking-[-0.03em] text-title">
-                Become a Partner
+                Become a Vendor
               </p>
               <p className="text-sm leading-6 text-subtitle">
                 Set up your storefront, choose your services, and get your first
@@ -237,7 +237,7 @@ export function Hero() {
             </Button>
 
             <p className="text-center text-sm text-subtitle">
-              By joining, you agree to LaundryGo&apos;s Partner{" "}
+              By joining, you agree to LaundryGo&apos;s Vendor{" "}
               <Link href="#faqs" className="text-landing-primary underline">
                 Terms of Service
               </Link>{" "}

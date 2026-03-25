@@ -6,7 +6,7 @@ import Link from "next/link";
 
 const partnerLinks = [
   {
-    label: "Partner Dashboard",
+    label: "Vendor Dashboard",
     href: "#how-it-works",
   },
   {
@@ -59,7 +59,7 @@ export function LandingFooter() {
 
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/70">
-              Partner Resources
+              Vendor Resources
             </p>
             <div className="mt-4 flex flex-col gap-3">
               {partnerLinks.map((link) => (
@@ -134,7 +134,7 @@ export function LandingFooter() {
 
         <div className="flex flex-col gap-3 py-5 text-sm text-white/65 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {new Date().getFullYear()} LaundryGo. Built for service partners.
+            © {new Date().getFullYear()} LaundryGo. Built for service vendors.
           </p>
           <p>Vendor operations, reporting, and messaging in one place.</p>
         </div>

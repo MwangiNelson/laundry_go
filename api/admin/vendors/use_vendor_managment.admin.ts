@@ -40,6 +40,18 @@ export const useApproveVendor = () => {
         .single();
 
       if (error) throw new Error(error.message);
+
+      // Send branch invitations when approving a multi-branch vendor
+      if (data.business_type === "multi_branch") {
+        import("@/app/actions/send_branch_invitation.action")
+          .then(({ sendAllBranchInvitations }) =>
+            sendAllBranchInvitations({ vendorId })
+          )
+          .catch((err) =>
+            console.error("Failed to send branch invitations:", err)
+          );
+      }
+
       return data;
     },
     onSuccess: () => {

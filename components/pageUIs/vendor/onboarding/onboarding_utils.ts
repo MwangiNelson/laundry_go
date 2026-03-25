@@ -23,7 +23,6 @@ export const MULTI_BRANCH_STEPS = [
 ] as const;
 
 export const BRANCH_STEPS = [
-  { key: "branch_details", title: "Branch Details" },
   { key: "services_and_pricing", title: "Services & Pricing" },
   { key: "operations_setup", title: "Operations Setup" },
   { key: "finances", title: "Finances" },
@@ -35,7 +34,8 @@ export const ONBOARDING_STEPS = INDIVIDUAL_STEPS;
 export type TOnboardingStepKey =
   | (typeof INDIVIDUAL_STEPS)[number]["key"]
   | (typeof MULTI_BRANCH_STEPS)[number]["key"]
-  | (typeof BRANCH_STEPS)[number]["key"];
+  | (typeof BRANCH_STEPS)[number]["key"]
+  | "branch_details";
 
 export type TOnboardingStep = { key: TOnboardingStepKey; title: string };
 
@@ -384,12 +384,14 @@ export const hydrateServiceAndPricing = ({
   kgPricing,
   itemPricing,
   roomRates,
+  forceEnabled,
 }: {
   allServices: TService[];
   vendorServices: TVendorServiceDraft[];
   kgPricing: TVendorKgPricingDraft[];
   itemPricing: TVendorItemPricingDraft[];
   roomRates: TVendorRoomRateDraft[];
+  forceEnabled?: boolean;
 }): TServiceAndPricing => {
   const vendorServiceMap = new Map(
     vendorServices.map((vs) => [vs.service_id, vs])
@@ -423,7 +425,7 @@ export const hydrateServiceAndPricing = ({
         : [];
 
       return {
-        enabled: vs?.is_enabled ?? false,
+        enabled: forceEnabled ? true : (vs?.is_enabled ?? false),
         service_id: service.id,
         service_name: service.name ?? "",
         service_type: (service.service_type ?? "main") as "main" | "other",

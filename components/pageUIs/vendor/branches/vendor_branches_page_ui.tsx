@@ -58,10 +58,12 @@ const BranchCard = ({
   branch,
   parentVendorId,
   parentBusinessName,
+  parentVendorStatus,
 }: {
   branch: TVendorBranchRow;
   parentVendorId: string;
   parentBusinessName: string;
+  parentVendorStatus: string | null;
 }) => {
   const { mutate: resend, isPending: isResending } =
     useResendBranchInvitation();
@@ -139,21 +141,23 @@ const BranchCard = ({
 
           {canManageBranches && (
             <div className="flex items-center gap-2">
-              {branch.invitation_status !== "accepted" && branch.email && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResend}
-                  disabled={isResending}
-                  className="h-8 gap-1.5 rounded-lg px-3 text-xs"
-                >
-                  <ArrowClockwise
-                    size={14}
-                    className={isResending ? "animate-spin" : ""}
-                  />
-                  Resend
-                </Button>
-              )}
+              {parentVendorStatus === "approved" &&
+                branch.invitation_status !== "accepted" &&
+                branch.email && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResend}
+                    disabled={isResending}
+                    className="h-8 gap-1.5 rounded-lg px-3 text-xs"
+                  >
+                    <ArrowClockwise
+                      size={14}
+                      className={isResending ? "animate-spin" : ""}
+                    />
+                    Resend
+                  </Button>
+                )}
               <Button
                 type="button"
                 variant="outline"
@@ -362,6 +366,7 @@ export const VendorBranchesPageUI = () => {
               branch={branch}
               parentVendorId={vendor.id}
               parentBusinessName={vendor.business_name ?? ""}
+              parentVendorStatus={vendor.status ?? null}
             />
           ))}
         </div>

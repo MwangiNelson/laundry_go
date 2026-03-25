@@ -53,7 +53,7 @@ export function Preview() {
             Manage your shop on the go
           </h2>
           <p className="mt-4 text-base leading-8 text-subtitle">
-            Our partner dashboard is built for efficiency and speed.
+            Our vendor dashboard is built for efficiency and speed.
           </p>
         </div>
 
@@ -67,12 +67,12 @@ export function Preview() {
               </div>
 
               <div className="hidden h-11 flex-1 items-center justify-center rounded-full bg-slate-100 text-sm font-medium text-subtitle md:flex">
-                partner.laundrygo.com/dashboard
+                laundrygo.glitexsolutions.co.ke/dashboard
               </div>
 
               <div className="ml-auto flex items-center gap-2 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-title">
                 <BellRing className="size-4 text-landing-primary" />
-                LaundryGo Partner
+                LaundryGo Vendor
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@ export function Preview() {
           <div className="">
             <Image
               src={PreviewPhoto}
-              alt="LaundryGo partner dashboard preview"
+              alt="LaundryGo vendor dashboard preview"
               width={1160}
               height={600}
               className="h-auto w-full object-cover"

@@ -15,7 +15,7 @@ import {
 } from "../onboarding_utils";
 
 export const OnboardingServiceAndPricing = () => {
-  const { service_and_pricing_form, SERVICE_TYPES } = useOnboarding();
+  const { service_and_pricing_form, SERVICE_TYPES, is_branch_vendor } = useOnboarding();
 
   return (
     <Form {...service_and_pricing_form}>
@@ -25,8 +25,9 @@ export const OnboardingServiceAndPricing = () => {
             Services and Pricing
           </h2>
           <p className="mt-1 text-sm text-landing-primary">
-            Add the services you offer and set prices per item or package. You
-            can customize quantities and pricing units for each service.
+            {is_branch_vendor
+              ? "Set your prices for items and packages for each service."
+              : "Add the services you offer and set prices per item or package. You can customize quantities and pricing units for each service."}
           </p>
         </div>
 
@@ -38,6 +39,7 @@ export const OnboardingServiceAndPricing = () => {
               serviceType={serviceType.service_type}
               label={serviceType.label}
               description={serviceType.description}
+              isBranch={is_branch_vendor}
             />
           ))}
           <FormMessage>
@@ -54,11 +56,13 @@ const ServiceCard = ({
   serviceType,
   label,
   description,
+  isBranch,
 }: {
   serviceIndex: number;
   serviceType: "main" | "other";
   label: string;
   description: string;
+  isBranch: boolean;
 }) => {
   const { service_and_pricing_form } = useOnboarding();
   const enabledPath = `services.${serviceIndex}.enabled` as Path<TServiceAndPricing>;
@@ -72,16 +76,24 @@ const ServiceCard = ({
       )}
     >
       <div className="flex w-full items-center gap-3 px-4 py-3 text-left">
-        <Checkbox
-          checked={isEnabled}
-          onCheckedChange={(checked) =>
-            service_and_pricing_form.setValue(
-              enabledPath,
-              Boolean(checked) as never
-            )
-          }
-          className="size-4 border-muted-foreground/40 data-[state=checked]:border-landing-accent data-[state=checked]:bg-landing-accent data-[state=checked]:text-title"
-        />
+        {isBranch ? (
+          <div className="size-4 shrink-0 rounded-sm border border-landing-accent bg-landing-accent flex items-center justify-center">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1.5 5L4 7.5L8.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-title" />
+            </svg>
+          </div>
+        ) : (
+          <Checkbox
+            checked={isEnabled}
+            onCheckedChange={(checked) =>
+              service_and_pricing_form.setValue(
+                enabledPath,
+                Boolean(checked) as never
+              )
+            }
+            className="size-4 border-muted-foreground/40 data-[state=checked]:border-landing-accent data-[state=checked]:bg-landing-accent data-[state=checked]:text-title"
+          />
+        )}
         <span className="text-sm font-semibold text-title">{label}</span>
       </div>
 

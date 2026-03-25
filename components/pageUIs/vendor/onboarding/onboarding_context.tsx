@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/components/context/auth_provider";
-import { useFetchServices } from "@/api/vendor/onboarding/use_fetch_services";
+import { useFetchServices, useFetchParentVendorServiceIds } from "@/api/vendor/onboarding/use_fetch_services";
 import {
   useGetVendorOnboardingDraft,
   useSaveVendorOnboardingStep,
@@ -67,6 +67,9 @@ const useOnboardingProvider = () => {
     useFetchServices();
   const { data: vendorDraft, isLoading: loadingVendorDraft } =
     useGetVendorOnboardingDraft(user?.id);
+  const parentVendorId = vendorDraft?.vendor?.parent_vendor_id ?? null;
+  const { data: parentServiceIds } =
+    useFetchParentVendorServiceIds(parentVendorId);
   const { mutateAsync: saveVendorStep, isPending: saving_step } =
     useSaveVendorOnboardingStep();
 
@@ -115,16 +118,21 @@ const useOnboardingProvider = () => {
   const hasHydratedRef = useRef(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
-  const SERVICE_TYPES = useMemo(
-    () => convertToServiceTypes(allServices as TService[]),
-    [allServices]
-  );
-
   // If vendor has a parent_vendor_id it's a branch sub-vendor
   const is_branch_vendor = !!vendorDraft?.vendor?.parent_vendor_id;
   const selected_business_type = is_branch_vendor
     ? ("branch" as const)
     : business_type_form.watch("business_type");
+
+  const SERVICE_TYPES = useMemo(() => {
+    const all = convertToServiceTypes(allServices as TService[]);
+    // Branch vendors only see the services their parent business selected
+    if (is_branch_vendor && parentServiceIds) {
+      const parentSet = new Set(parentServiceIds);
+      return all.filter((s) => parentSet.has(s.id));
+    }
+    return all;
+  }, [allServices, is_branch_vendor, parentServiceIds]);
 
   const STEP_COMPONENT_MAP: Record<
     TOnboardingStepKey,
@@ -244,13 +252,22 @@ const useOnboardingProvider = () => {
           : "individual",
     });
 
+    // For branch vendors, only include parent-selected services and pre-enable them
+    const servicesToHydrate =
+      is_branch_vendor && parentServiceIds
+        ? (allServices as TService[]).filter((s) =>
+          parentServiceIds.includes(s.id)
+        )
+        : (allServices as TService[]);
+
     service_and_pricing_form.reset(
       hydrateServiceAndPricing({
-        allServices: allServices as TService[],
+        allServices: servicesToHydrate,
         vendorServices: vendorDraft?.vendorServices ?? [],
         kgPricing: vendorDraft?.kgPricing ?? [],
         itemPricing: vendorDraft?.itemPricing ?? [],
         roomRates: vendorDraft?.roomRates ?? [],
+        forceEnabled: is_branch_vendor,
       })
     );
 
@@ -315,6 +332,8 @@ const useOnboardingProvider = () => {
     loadingVendorDraft,
     vendorDraft,
     allServices,
+    parentServiceIds,
+    is_branch_vendor,
     business_info_form,
     business_type_form,
     service_and_pricing_form,

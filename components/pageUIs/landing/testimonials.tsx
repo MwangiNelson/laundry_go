@@ -32,7 +32,7 @@ export function Testimonials() {
       <div className="mx-auto w-full max-w-[1180px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em] text-title sm:text-4xl">
-            Partner success stories
+            Vendor success stories
           </h2>
           <p className="mt-4 text-base leading-8 text-subtitle">
             Join the community of thriving laundry entrepreneurs.

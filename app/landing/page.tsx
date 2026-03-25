@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Landing",
   description:
-    "LaundryGo partner landing page with onboarding details, product features, testimonials, and FAQs.",
+    "LaundryGo vendor landing page with onboarding details, product features, testimonials, and FAQs.",
 };
 
 export default function LandingPage() {

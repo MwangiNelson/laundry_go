@@ -38,7 +38,7 @@ export const OnboardingFinancesAndTerms = () => {
               control={finances_and_terms_form.control}
               name="bank_name"
                 label="Bank name"
-                placeholder="Equity Bank"
+                placeholder="Enter Bank Name"
                 className="rounded-lg px-3 py-2"
               />
               <BasicInput<TFinancesAndTerms>

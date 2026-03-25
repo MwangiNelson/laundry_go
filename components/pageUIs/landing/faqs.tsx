@@ -12,14 +12,14 @@ const faqs = [
       "LaundryGo is designed for laundry businesses and related home service operators who want to accept local orders, manage pricing, and run daily operations from one dashboard.",
   },
   {
-    question: "How does LaundryGo work for partners?",
+    question: "How does LaundryGo work for vendors?",
     answer:
-      "Partners create a business profile, choose service categories, set their service areas, and then manage incoming requests through the partner dashboard.",
+      "Vendors create a business profile, choose service categories, set their service areas, and then manage incoming requests through the vendor dashboard.",
   },
   {
-    question: "How long does it take to become a partner?",
+    question: "How long does it take to become a vendor?",
     answer:
-      "Most partner setups can be reviewed quickly once the required business details are complete, letting you move from signup to launch without unnecessary delays.",
+      "Most vendor setups can be reviewed quickly once the required business details are complete, letting you move from signup to launch without unnecessary delays.",
   },
   {
     question: "How will I receive the orders?",
