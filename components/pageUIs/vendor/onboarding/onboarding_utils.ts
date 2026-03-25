@@ -303,11 +303,16 @@ export const createDefaultBranchDetails = (): TBranchDetails => ({
   location: null,
 });
 
-// Finances schema for branch onboarding (no T&Cs)
 export const branch_finances = z.object({
   bank_name: z.string().min(2, "Please enter your bank name"),
   bank_account_name: z.string().min(2, "Please enter the account holder name"),
   bank_account_number: z.string().min(6, "Please enter a valid account number"),
+  terms_and_conditions: z
+    .string()
+    .transform(cleanRichTextHtml)
+    .refine((value) => extractPlainTextFromHtml(value).length >= 10, {
+      message: "Please add your terms and conditions",
+    }),
 });
 
 export type TBranchFinances = z.infer<typeof branch_finances>;
@@ -316,6 +321,7 @@ export const createDefaultBranchFinances = (): TBranchFinances => ({
   bank_name: "",
   bank_account_name: "",
   bank_account_number: "",
+  terms_and_conditions: "",
 });
 
 export const createEmptyServiceEntry = (service: TService): TServiceEntry => ({

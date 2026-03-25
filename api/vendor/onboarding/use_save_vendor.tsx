@@ -1025,6 +1025,7 @@ const saveBranchFinancesStep = async ({
   const vendorUpdate: TablesUpdate<"vendors"> = {
     profile_complete: finalize ? true : existingVendor.profile_complete,
     profile_completed_at: completedAt,
+    terms_and_conditions: data.terms_and_conditions,
     updated_at: new Date().toISOString(),
   };
 

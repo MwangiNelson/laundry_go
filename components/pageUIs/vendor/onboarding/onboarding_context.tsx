@@ -320,6 +320,7 @@ const useOnboardingProvider = () => {
         bank_name: bankDetails?.bank_name ?? "",
         bank_account_name: bankDetails?.bank_account_name ?? "",
         bank_account_number: bankDetails?.bank_account_number ?? "",
+        terms_and_conditions: vendor?.terms_and_conditions ?? "",
       });
     }
 
