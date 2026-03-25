@@ -123,6 +123,7 @@ const getVendorDraft = async (
             id,
             branch_name,
             email,
+            rules,
             location:locations(*)
           `
       )
@@ -196,29 +197,35 @@ const getVendorDraft = async (
     })
   );
 
-  const branches: TBranch[] = (vendorBranches ?? []).map((b: any) => ({
-    id: b.id,
-    branch_name: b.branch_name,
-    email: b.email ?? "",
-    location: b.location
-      ? {
-        place_id: b.location.place_id ?? undefined,
-        description: b.location.description ?? null,
-        main_text: b.location.main_text ?? undefined,
-        secondary_text: b.location.secondary_text ?? undefined,
-        coordinates:
-          b.location.coordinates &&
-            typeof b.location.coordinates === "object" &&
-            "lat" in b.location.coordinates &&
-            "lng" in b.location.coordinates
-            ? {
-              lat: Number(b.location.coordinates.lat),
-              lng: Number(b.location.coordinates.lng),
-            }
-            : undefined,
-      }
-      : null,
-  }));
+  const branches: TBranch[] = (vendorBranches ?? []).map((b: any) => {
+    const rules = b.rules && typeof b.rules === "object" ? b.rules : {};
+    return {
+      id: b.id,
+      branch_name: b.branch_name,
+      email: b.email ?? "",
+      contact_person: rules.contact_person ?? "",
+      contact_phone: rules.contact_phone ?? "",
+      contact_email: rules.contact_email ?? "",
+      location: b.location
+        ? {
+          place_id: b.location.place_id ?? undefined,
+          description: b.location.description ?? null,
+          main_text: b.location.main_text ?? undefined,
+          secondary_text: b.location.secondary_text ?? undefined,
+          coordinates:
+            b.location.coordinates &&
+              typeof b.location.coordinates === "object" &&
+              "lat" in b.location.coordinates &&
+              "lng" in b.location.coordinates
+              ? {
+                lat: Number(b.location.coordinates.lat),
+                lng: Number(b.location.coordinates.lng),
+              }
+              : undefined,
+        }
+        : null,
+    };
+  });
 
   // Fetch parent business name for branch sub-vendors
   const parentBusinessName = vendor?.parent_vendor_id
@@ -877,11 +884,12 @@ const saveBranchInformationStep = async ({
     throw new Error("Save business information before continuing.");
   }
 
-  // Sync contact person fields on the vendor
+  // Sync contact person from first branch onto the vendor record (HQ contact)
+  const firstBranch = data.branches[0];
   const vendorUpdate: TablesUpdate<"vendors"> = {
-    contact_person: data.contact_person,
-    contact_phone: data.contact_phone,
-    contact_email: data.contact_email,
+    contact_person: firstBranch?.contact_person ?? null,
+    contact_phone: firstBranch?.contact_phone ?? null,
+    contact_email: firstBranch?.contact_email ?? null,
     profile_complete: finalize ? true : existingVendor.profile_complete,
     profile_completed_at: finalize
       ? new Date().toISOString()
@@ -921,6 +929,11 @@ const saveBranchInformationStep = async ({
         branch_name: branch.branch_name,
         email: branch.email,
         location_id: locationResult.locationId,
+        rules: {
+          contact_person: branch.contact_person,
+          contact_phone: branch.contact_phone,
+          contact_email: branch.contact_email,
+        },
       });
 
     if (insertError) {

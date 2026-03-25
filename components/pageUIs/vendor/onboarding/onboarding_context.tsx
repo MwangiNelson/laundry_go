@@ -274,9 +274,6 @@ const useOnboardingProvider = () => {
     // Hydrate branch information for multi-branch vendors
     branch_information_form.reset({
       branches: vendorDraft?.branches ?? [],
-      contact_person: vendor?.contact_person ?? "",
-      contact_phone: vendor?.contact_phone ?? "",
-      contact_email: vendor?.contact_email ?? "",
     });
 
     // Hydrate branch-specific forms (for branch sub-vendors)

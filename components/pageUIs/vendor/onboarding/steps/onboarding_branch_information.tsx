@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { BasicInput } from "@/components/fields/inputs/basic_input";
-import { PhoneInput } from "@/components/fields/inputs/phone_input";
 import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, MapPin, Pencil, Trash2, Building2 } from "lucide-react";
 import { useOnboarding } from "../onboarding_context";
-import { TBranch, TBranchInformation } from "../onboarding_utils";
+import { TBranch } from "../onboarding_utils";
 import { AddBranchModal } from "./add_branch_modal";
 
 export const OnboardingBranchInformation = () => {
@@ -78,36 +76,75 @@ export const OnboardingBranchInformation = () => {
             </Button>
           </div>
 
+          {/* Empty state */}
           {branches.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No branches added yet. Click &quot;Add Branch&quot; to get
-              started.
-            </p>
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Building2 className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">
+                No branches added yet
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground/70">
+                Click &quot;Add Branch&quot; to add your first branch
+              </p>
+            </div>
           )}
 
+          {/* Branch cards */}
           {branches.map((branch, index) => (
             <div
               key={branch.id ?? index}
-              className="flex items-center justify-between border-b border-border py-2 last:border-b-0"
+              className="rounded-xl border border-border p-4"
             >
-              <button
-                type="button"
-                onClick={() => handleEditBranch(index)}
-                className="text-sm text-title hover:underline"
-              >
-                {branch.branch_name}
-                {branch.location?.main_text
-                  ? ` ${branch.location.main_text}`
-                  : ""}
-              </button>
-              <button
-                type="button"
-                onClick={() => handleRemoveBranch(index)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition hover:text-destructive"
-                aria-label={`Remove ${branch.branch_name}`}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+              {/* Branch header with actions */}
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-semibold text-title">
+                      {branch.branch_name}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {branch.location?.description ?? branch.location?.main_text ?? "No location set"}
+                      {branch.email ? ` · ${branch.email}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEditBranch(index)}
+                    className="h-8 gap-1.5 rounded-lg px-3 text-xs"
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleRemoveBranch(index)}
+                    className="h-8 gap-1.5 rounded-lg px-3 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+
+              {/* Contact person nested inside card */}
+              <div className="ml-6.5 mt-3 rounded-lg bg-muted/50 px-4 py-3">
+                <p className="text-sm font-medium text-title">
+                  {branch.contact_person}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {branch.contact_phone}
+                  {branch.contact_email ? ` · ${branch.contact_email}` : ""}
+                </p>
+              </div>
             </div>
           ))}
 
@@ -116,38 +153,6 @@ export const OnboardingBranchInformation = () => {
               {branch_information_form.formState.errors.branches.message}
             </p>
           )}
-        </div>
-
-        {/* Contact Person Details */}
-        <div className="space-y-3">
-          <p className="text-sm font-semibold text-title">
-            Contact Person Details
-          </p>
-
-          <BasicInput<TBranchInformation>
-            control={branch_information_form.control}
-            name="contact_person"
-            label="Contact Person"
-            placeholder="Nicholas Wairimu"
-            className="rounded-lg px-3 py-2"
-          />
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <PhoneInput<TBranchInformation>
-              control={branch_information_form.control}
-              name="contact_phone"
-              label="Phone Number"
-              placeholder="Enter number"
-              className="rounded-lg"
-            />
-            <BasicInput<TBranchInformation>
-              control={branch_information_form.control}
-              name="contact_email"
-              label="Email"
-              placeholder="Enter email address"
-              className="rounded-lg px-3 py-2"
-            />
-          </div>
         </div>
       </form>
 

@@ -11,6 +11,11 @@ export type TVendorBranchRow = {
   branch_vendor_id: string | null;
   invited_at: string | null;
   accepted_at: string | null;
+  rules: {
+    contact_person?: string;
+    contact_phone?: string;
+    contact_email?: string;
+  } | null;
   location: {
     description: string | null;
     main_text: string | null;
@@ -34,6 +39,7 @@ const fetchVendorBranches = async (
         branch_vendor_id,
         invited_at,
         accepted_at,
+        rules,
         location:locations(description, main_text, secondary_text)
       `
     )

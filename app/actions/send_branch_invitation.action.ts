@@ -243,7 +243,7 @@ export async function sendAllBranchInvitations({
     // Get all branches that haven't been sent an invite yet
     const { data: branches, error: branchesError } = await supabase
       .from("vendor_branches")
-      .select("id, branch_name, email, invitation_status")
+      .select("id, branch_name, email, rules, invitation_status")
       .eq("vendor_id", vendorId);
 
     if (branchesError) {
@@ -252,15 +252,18 @@ export async function sendAllBranchInvitations({
 
     const pendingBranches = (branches ?? []).filter(
       (b) =>
-        b.email &&
+        (b.email || (b.rules as any)?.contact_email) &&
         (!b.invitation_status || b.invitation_status === "pending")
     );
 
     const results = [];
     for (const branch of pendingBranches) {
+      // Prefer the contact_email for invitations, fall back to branch email
+      const rules = branch.rules && typeof branch.rules === "object" ? branch.rules as Record<string, string> : {};
+      const invitationEmail = rules.contact_email || branch.email!;
       const result = await sendBranchInvitation({
         branchId: branch.id,
-        branchEmail: branch.email!,
+        branchEmail: invitationEmail,
         branchName: branch.branch_name,
         parentVendorId: parentVendor.id,
         parentBusinessName: parentVendor.business_name ?? "LaundryGo Business",

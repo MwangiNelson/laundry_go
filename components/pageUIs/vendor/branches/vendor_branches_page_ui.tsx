@@ -37,11 +37,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   ArrowClockwise,
-  MapPin,
-  EnvelopeSimple,
   Plus,
   Trash,
 } from "@phosphor-icons/react";
+import { MapPin, Pencil, Building2 } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_LABELS: Record<
@@ -109,29 +108,79 @@ const BranchCard = ({
     );
   };
 
+  const rules =
+    branch.rules && typeof branch.rules === "object" ? branch.rules : {};
+  const contactPerson = rules.contact_person;
+  const contactPhone = rules.contact_phone;
+  const contactEmail = rules.contact_email;
+
   return (
     <>
       <div className="rounded-xl border border-border bg-card p-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-title">
-                {branch.branch_name}
-              </h3>
-              <Badge variant={status.variant}>{status.label}</Badge>
+        {/* Branch header with actions */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-2.5">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-title">
+                  {branch.branch_name}
+                </p>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </div>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {branch.location?.description ??
+                  branch.location?.main_text ??
+                  "No location set"}
+                {branch.email ? ` · ${branch.email}` : ""}
+              </p>
             </div>
-            {branch.email && (
-              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <EnvelopeSimple size={14} />
-                {branch.email}
-              </p>
-            )}
-            {branch.location?.description && (
-              <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <MapPin size={14} />
-                {branch.location.description}
-              </p>
-            )}
+          </div>
+
+          {canManageBranches && (
+            <div className="flex items-center gap-2">
+              {branch.invitation_status !== "accepted" && branch.email && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResend}
+                  disabled={isResending}
+                  className="h-8 gap-1.5 rounded-lg px-3 text-xs"
+                >
+                  <ArrowClockwise
+                    size={14}
+                    className={isResending ? "animate-spin" : ""}
+                  />
+                  Resend
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete(true)}
+                className="h-8 gap-1.5 rounded-lg px-3 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash size={14} />
+                Delete
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Contact person nested inside card */}
+        {contactPerson && (
+          <div className="ml-6.5 mt-3 rounded-lg bg-muted/50 px-4 py-3">
+            <p className="text-sm font-medium text-title">{contactPerson}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {contactPhone}
+              {contactEmail ? ` · ${contactEmail}` : ""}
+            </p>
+          </div>
+        )}
+
+        {(branch.invited_at || branch.accepted_at) && (
+          <div className="ml-6.5 mt-2 flex gap-3">
             {branch.invited_at && (
               <p className="text-xs text-muted-foreground">
                 Invited: {new Date(branch.invited_at).toLocaleDateString()}
@@ -143,34 +192,7 @@ const BranchCard = ({
               </p>
             )}
           </div>
-
-          {canManageBranches && (
-            <div className="flex items-center gap-1.5">
-              {branch.invitation_status !== "accepted" && branch.email && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleResend}
-                  disabled={isResending}
-                >
-                  <ArrowClockwise
-                    size={16}
-                    className={isResending ? "animate-spin" : ""}
-                  />
-                  Resend
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                onClick={() => setConfirmDelete(true)}
-              >
-                <Trash size={16} />
-              </Button>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Delete confirmation */}
@@ -322,7 +344,15 @@ export const VendorBranchesPageUI = () => {
         </div>
       ) : !branches?.length ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12">
-          <p className="text-sm text-muted-foreground">No branches found.</p>
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+            <Building2 className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">
+            No branches added yet
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground/70">
+            Add a branch to get started
+          </p>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

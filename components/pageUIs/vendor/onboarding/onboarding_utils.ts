@@ -271,15 +271,15 @@ const branch_schema = z.object({
   branch_name: z.string().min(2, "Branch name must be at least 2 characters"),
   location: locationSchema.nullable(),
   email: z.string().email("Please enter a valid email address"),
+  contact_person: z.string().min(2, "Please enter the contact person name"),
+  contact_phone: z.string().min(10, "Please enter a valid phone number"),
+  contact_email: z.string().email("Please enter a valid email address"),
 });
 
 export const branch_information = z.object({
   branches: z
     .array(branch_schema)
     .min(1, "Please add at least one branch"),
-  contact_person: z.string().min(2, "Please enter the contact person name"),
-  contact_phone: z.string().min(10, "Please enter a valid phone number"),
-  contact_email: z.string().email("Please enter a valid email address"),
 });
 
 export type TBranch = z.infer<typeof branch_schema>;
@@ -287,9 +287,6 @@ export type TBranchInformation = z.infer<typeof branch_information>;
 
 export const createDefaultBranchInformation = (): TBranchInformation => ({
   branches: [],
-  contact_person: "",
-  contact_phone: "",
-  contact_email: "",
 });
 
 // --- Branch Details (branch onboarding flow) ---
