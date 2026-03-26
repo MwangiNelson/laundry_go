@@ -141,16 +141,33 @@ export const business_type = z.object({
   }),
 });
 
+export const PER_KG_WEIGHT_THRESHOLDS = [
+  { value: 3, label: "3kg" },
+  { value: 5, label: "5kg" },
+  { value: 7, label: "7kg" },
+  { value: 10, label: "10kg" },
+] as const;
+
 const kg_pricing_schema = z.object({
   standard_cost_per_kg: z.number().min(0, "Price must be positive"),
   express_cost_per_kg: z.number().min(0, "Price must be positive"),
+  per_kg_weight_threshold: z.number().min(0, "Threshold must be positive"),
 });
+
+export const PRICING_BASIS_OPTIONS = [
+  { value: "item", label: "Item" },
+  { value: "per_kg", label: "Per KG" },
+] as const;
+
+export type TPricingBasis = (typeof PRICING_BASIS_OPTIONS)[number]["value"];
 
 const item_pricing_entry = z.object({
   item_id: z.string().min(1, "Item is required"),
   item_name: z.string(),
   standard_price: z.number().min(0, "Price must be positive"),
   express_price: z.number().min(0, "Price must be positive"),
+  pricing_basis_standard: z.enum(["item", "per_kg"]).default("item"),
+  pricing_basis_express: z.enum(["item", "per_kg"]).default("item"),
 });
 
 const room_rate_entry = z.object({
@@ -330,7 +347,7 @@ export const createEmptyServiceEntry = (service: TService): TServiceEntry => ({
   service_id: service.id,
   service_name: service.name ?? "",
   service_type: (service.service_type ?? "main") as "main" | "other",
-  kg_pricing: { standard_cost_per_kg: 0, express_cost_per_kg: 0 },
+  kg_pricing: { standard_cost_per_kg: 0, express_cost_per_kg: 0, per_kg_weight_threshold: 5 },
   item_pricing: [],
   room_rates: [],
 });
@@ -368,6 +385,7 @@ export type TVendorKgPricingDraft = {
   vendor_service_id: string;
   standard_cost_per_kg: number | null;
   express_cost_per_kg: number | null;
+  per_kg_weight_threshold?: number | null;
 };
 
 export type TVendorItemPricingDraft = {
@@ -376,6 +394,8 @@ export type TVendorItemPricingDraft = {
   item_name: string | null;
   standard_price: number | null;
   express_price: number | null;
+  pricing_basis_standard?: string | null;
+  pricing_basis_express?: string | null;
 };
 
 export type TVendorRoomRateDraft = {
@@ -440,12 +460,15 @@ export const hydrateServiceAndPricing = ({
         kg_pricing: {
           standard_cost_per_kg: kg?.standard_cost_per_kg ?? 0,
           express_cost_per_kg: kg?.express_cost_per_kg ?? 0,
+          per_kg_weight_threshold: kg?.per_kg_weight_threshold ?? 5,
         },
         item_pricing: items.map((ip) => ({
           item_id: ip.item_id,
           item_name: ip.item_name ?? "",
           standard_price: ip.standard_price ?? 0,
           express_price: ip.express_price ?? 0,
+          pricing_basis_standard: ip.pricing_basis_standard ?? "item",
+          pricing_basis_express: ip.pricing_basis_express ?? "item",
         })),
         room_rates: rooms.map((rr) => ({
           service_room_id: rr.service_room_id,

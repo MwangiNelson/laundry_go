@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -43,11 +44,46 @@ export const VendorOboardingPageUI = () => {
 
   if (loading_page) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]">
-        <div className="flex items-center gap-3 rounded-full border border-border bg-white px-5 py-3 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Preparing your onboarding workspace...
-        </div>
+      <div className="flex min-h-screen flex-col bg-[#f4f7fb] text-foreground">
+        <VendorOnboardingNavbar />
+        <main className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+          <Image
+            src="/logos/main.svg"
+            alt="LaundryGo!"
+            width={202}
+            height={47}
+            className="mb-8 h-auto w-[180px]"
+            priority
+          />
+
+          <div className="mb-6 flex items-center gap-3 rounded-full border border-border bg-white px-5 py-3 text-sm text-muted-foreground shadow-sm">
+            <Loader2 className="h-4 w-4 animate-spin text-landing-primary" />
+            Preparing your onboarding workspace...
+          </div>
+
+          <div className="mx-auto max-w-md space-y-4 text-center">
+            <h2 className="text-lg font-semibold text-title">
+              Welcome to LaundryGo for Business
+            </h2>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              You&apos;re moments away from joining Kenya&apos;s fastest-growing
+              laundry platform. Set up your services, pricing, and operations
+              &mdash; and start receiving orders from customers near you.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 pt-2 text-xs text-muted-foreground">
+              <span className="rounded-full bg-landing-accent/15 px-3 py-1 font-medium text-title">
+                Easy Setup
+              </span>
+              <span className="rounded-full bg-landing-primary/10 px-3 py-1 font-medium text-title">
+                Real-time Orders
+              </span>
+              <span className="rounded-full bg-green-100 px-3 py-1 font-medium text-title">
+                Fast Payouts
+              </span>
+            </div>
+          </div>
+        </main>
+        <VendorOnboardingFooter />
       </div>
     );
   }

@@ -176,6 +176,7 @@ const getVendorDraft = async (
     vendor_service_id: kg.vendor_service_id,
     standard_cost_per_kg: kg.standard_cost_per_kg,
     express_cost_per_kg: kg.express_cost_per_kg,
+    per_kg_weight_threshold: kg.per_kg_weight_threshold ?? null,
   }));
 
   const itemPricing: TVendorItemPricingDraft[] = (itemData ?? []).map(
@@ -185,6 +186,8 @@ const getVendorDraft = async (
       item_name: ip.item?.name ?? null,
       standard_price: ip.standard_price,
       express_price: ip.express_price,
+      pricing_basis_standard: ip.pricing_basis_standard ?? null,
+      pricing_basis_express: ip.pricing_basis_express ?? null,
     })
   );
 

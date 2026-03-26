@@ -6,6 +6,7 @@ export type VendorServiceKgPricing = {
   id: string;
   standard_cost_per_kg: number | null;
   express_cost_per_kg: number | null;
+  per_kg_weight_threshold: number | null;
 };
 
 export type VendorServiceItemPricing = {
@@ -14,6 +15,8 @@ export type VendorServiceItemPricing = {
   item_name: string | null;
   standard_price: number | null;
   express_price: number | null;
+  pricing_basis_standard: string | null;
+  pricing_basis_express: string | null;
 };
 
 export type VendorServiceRoomRate = {
@@ -119,6 +122,7 @@ export const useGetVendorServices = () => {
                 id: kg.id,
                 standard_cost_per_kg: kg.standard_cost_per_kg,
                 express_cost_per_kg: kg.express_cost_per_kg,
+                per_kg_weight_threshold: (kg as any).per_kg_weight_threshold ?? null,
               }
             : null,
           item_pricing: items.map((ip) => ({
@@ -128,6 +132,8 @@ export const useGetVendorServices = () => {
               (ip.items as unknown as { name: string | null })?.name ?? null,
             standard_price: ip.standard_price,
             express_price: ip.express_price,
+            pricing_basis_standard: (ip as any).pricing_basis_standard ?? null,
+            pricing_basis_express: (ip as any).pricing_basis_express ?? null,
           })),
           room_rates: rooms.map((rr) => ({
             id: rr.id,
