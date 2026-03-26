@@ -166,8 +166,8 @@ const item_pricing_entry = z.object({
   item_name: z.string(),
   standard_price: z.number().min(0, "Price must be positive"),
   express_price: z.number().min(0, "Price must be positive"),
-  pricing_basis_standard: z.enum(["item", "per_kg"]).default("item"),
-  pricing_basis_express: z.enum(["item", "per_kg"]).default("item"),
+  pricing_basis_standard: z.enum(["item", "per_kg"]),
+  pricing_basis_express: z.enum(["item", "per_kg"]),
 });
 
 const room_rate_entry = z.object({
@@ -467,8 +467,8 @@ export const hydrateServiceAndPricing = ({
           item_name: ip.item_name ?? "",
           standard_price: ip.standard_price ?? 0,
           express_price: ip.express_price ?? 0,
-          pricing_basis_standard: ip.pricing_basis_standard ?? "item",
-          pricing_basis_express: ip.pricing_basis_express ?? "item",
+          pricing_basis_standard: (ip.pricing_basis_standard ?? "item") as "item" | "per_kg",
+          pricing_basis_express: (ip.pricing_basis_express ?? "item") as "item" | "per_kg",
         })),
         room_rates: rooms.map((rr) => ({
           service_room_id: rr.service_room_id,

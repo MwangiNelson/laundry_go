@@ -62,6 +62,20 @@ export function Hero() {
   const [selectedServices, setSelectedServices] = useState<string[]>([
     services[0].title,
   ]);
+  const [businessName, setBusinessName] = useState("");
+  const [email, setEmail] = useState("");
+  const [location, setLocation] = useState("");
+
+  const savePrefillData = () => {
+    try {
+      const data = { business_name: businessName, email, location };
+      if (businessName || email || location) {
+        sessionStorage.setItem("laundrygo_landing_prefill", JSON.stringify(data));
+      }
+    } catch {
+      // sessionStorage may be unavailable
+    }
+  };
 
   const toggleService = (serviceTitle: string) => {
     setSelectedServices((current) =>
@@ -141,6 +155,8 @@ export function Hero() {
                 </label>
                 <Input
                   placeholder="Sparkle Cleaners"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
                   className="h-12 rounded-full border-border/70 bg-white px-4 shadow-none"
                 />
               </div>
@@ -151,6 +167,8 @@ export function Hero() {
                 <Input
                   type="email"
                   placeholder="johndoe@laundrygo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="h-12 rounded-full border-border/70 bg-white px-4 shadow-none"
                 />
               </div>
@@ -162,6 +180,8 @@ export function Hero() {
               </label>
               <Input
                 placeholder="Westlands, Nairobi"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 className="h-12 rounded-full border-border/70 bg-white px-4 shadow-none"
               />
             </div>
@@ -229,6 +249,7 @@ export function Hero() {
             >
               <Link
                 href="/auth/vendor/signup"
+                onClick={savePrefillData}
                 className="flex flex-row items-center gap-2 font-bold"
               >
                 Join LaundryGo!

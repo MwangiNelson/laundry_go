@@ -252,6 +252,25 @@ const useOnboardingProvider = () => {
       business_license: null,
     });
 
+    // Prefill from landing page session data for new vendors
+    if (!vendor) {
+      try {
+        const raw = typeof window !== "undefined" ? sessionStorage.getItem("laundrygo_landing_prefill") : null;
+        if (raw) {
+          const prefill = JSON.parse(raw) as { business_name?: string; email?: string; location?: string };
+          if (prefill.business_name) {
+            business_info_form.setValue("business_name", prefill.business_name);
+          }
+          if (prefill.email) {
+            business_info_form.setValue("email", prefill.email);
+          }
+          sessionStorage.removeItem("laundrygo_landing_prefill");
+        }
+      } catch {
+        // sessionStorage may be unavailable
+      }
+    }
+
     business_type_form.reset({
       business_type:
         vendor?.business_type === "multi_branch"

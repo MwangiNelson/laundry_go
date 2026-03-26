@@ -22,28 +22,32 @@ import { StorefrontIcon } from "@phosphor-icons/react";
 
 const VendorLogo = ({
   vendorId,
+  parentVendorId,
   businessName,
 }: {
   vendorId?: string;
+  parentVendorId?: string | null;
   businessName?: string;
 }) => {
   const [imgError, setImgError] = useState(false);
+  // Branch vendors inherit the parent logo
+  const logoId = parentVendorId || vendorId;
 
-  if (!vendorId || imgError) {
+  if (!logoId || imgError) {
     return (
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
-        <StorefrontIcon className="h-5 w-5 text-muted-foreground" />
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+        <StorefrontIcon className="h-4 w-4 text-muted-foreground" />
       </div>
     );
   }
 
   return (
     <Image
-      src={get_vendor_logo(vendorId)}
+      src={get_vendor_logo(logoId)}
       alt={`${businessName ?? "Vendor"} Logo`}
-      width={40}
-      height={40}
-      className="h-10 w-10 shrink-0 rounded-full object-cover"
+      width={32}
+      height={32}
+      className="h-8 w-8 shrink-0 rounded-lg object-cover"
       onError={() => setImgError(true)}
     />
   );
@@ -52,7 +56,7 @@ const VendorLogo = ({
 export const VendorSidebar = () => {
   const { sidebar } = useVendorUI();
   const { vendor } = useVendor();
-  const { canManageBranches } = useVendorRole();
+  const { canManageBranches, isBranch } = useVendorRole();
   const isCollapsed = !sidebar.isOpen;
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
@@ -90,14 +94,37 @@ export const VendorSidebar = () => {
       animate={{ width: isCollapsed ? 60 : 272 }}
       transition={{ type: "spring", stiffness: 260, damping: 30 }}
     >
-      <div className={cn("pb-1 relative", !isCollapsed ? "pt-6 px-4" : "pt-4")}>
-        <div className="flex items-center gap-3">
-          <VendorLogo vendorId={vendor?.id} businessName={vendor?.business_name ?? undefined} />
-          {!isCollapsed && vendor?.business_name && (
-            <span className="text-sm font-semibold text-foreground truncate">
-              {vendor.business_name}
-            </span>
-          )}
+      <div className={cn("pb-1 relative", !isCollapsed ? "pt-5 px-3" : "pt-4")}>
+        <div className="flex items-center gap-2.5">
+          <VendorLogo
+            vendorId={vendor?.id}
+            parentVendorId={vendor?.parent_vendor_id}
+            businessName={vendor?.business_name ?? undefined}
+          />
+          <AnimatePresence initial={false}>
+            {!isCollapsed && vendor?.business_name && (
+              <motion.div
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
+                className="flex min-w-0 flex-col"
+              >
+                <span className="text-sm font-semibold leading-tight text-foreground truncate">
+                  {vendor.business_name}
+                </span>
+                {isBranch ? (
+                  <span className="mt-0.5 inline-flex w-fit max-w-full items-center truncate rounded-full bg-amber-100 px-2 py-[1px] text-[10px] font-semibold leading-tight text-amber-700">
+                    {vendor.business_name.split(" - ").pop() || "Branch"}
+                  </span>
+                ) : (
+                  <span className="mt-0.5 inline-flex w-fit items-center rounded-full bg-secondary/10 px-2 py-[1px] text-[10px] font-semibold leading-tight text-secondary">
+                    MAIN ACCOUNT
+                  </span>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

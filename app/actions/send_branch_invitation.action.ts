@@ -124,7 +124,8 @@ export async function sendBranchInvitation({
           email: branchEmail,
           parent_vendor_id: parentVendorId,
           profile_complete: false,
-          status: "pending",
+          status: "approved",
+          approved_at: new Date().toISOString(),
         })
         .select("id")
         .single();

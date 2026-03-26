@@ -6,7 +6,7 @@ import {
   VendorServiceItemPricing,
   VendorServiceRoomRate,
 } from "@/api/vendor/services/use_get_vendor_services";
-import { useGetAllItems, Item } from "@/api/vendor/services/use_get_all_service_items";
+import { useGetAllItems } from "@/api/vendor/services/use_get_all_service_items";
 import {
   useUpsertKgPricing,
   useAddItemPricing,
@@ -18,7 +18,7 @@ import {
 } from "@/api/vendor/services/use_vendor_price_mutations";
 import { useFetchServiceRooms } from "@/api/vendor/onboarding/use_fetch_services";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,6 +41,35 @@ export const ServiceForm = ({ service }: ServiceFormProps) => {
   }
   return <OtherServiceForm service={service} />;
 };
+
+// ─── Shared: Price field (matches onboarding PriceInput style) ──────
+
+const PriceField = ({
+  label,
+  value,
+  onChange,
+  className,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+  className?: string;
+}) => (
+  <div className={cn("rounded-lg border border-border px-3 py-2", className)}>
+    <p className="text-[10px] font-medium text-muted-foreground">{label}</p>
+    <div className="mt-0.5 flex items-center gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">KES</span>
+      <input
+        type="number"
+        min={0}
+        step={1}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value || 0))}
+        className="w-full bg-transparent text-sm text-foreground outline-none"
+      />
+    </div>
+  </div>
+);
 
 // ─── Main Service: Kg Pricing + Item Pricing ────────────────
 
@@ -66,13 +95,14 @@ const KgPricingSection = ({ service }: { service: VendorServiceData }) => {
     expressKg !== (service.kg_pricing?.express_cost_per_kg ?? 0);
 
   return (
-    <div className="rounded-lg border p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="font-medium text-sm">Per Kg Pricing</h4>
+    <div className="rounded-xl border border-border p-4">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs font-semibold text-foreground">Per Kg Pricing</p>
         {hasChanged && (
           <Button
             size="sm"
             variant="outline"
+            className="h-7 text-xs"
             disabled={upsertKg.isPending}
             onClick={() =>
               upsertKg.mutate({
@@ -82,33 +112,24 @@ const KgPricingSection = ({ service }: { service: VendorServiceData }) => {
               })
             }
           >
-            {upsertKg.isPending ? "Saving..." : "Save"}
+            {upsertKg.isPending ? "Saving..." : "Save changes"}
           </Button>
         )}
       </div>
+      <p className="mb-3 text-[10px] text-muted-foreground">
+        Set the cost per kilogram for standard and express services.
+      </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Standard (KES/kg)
-          </label>
-          <Input
-            type="number"
-            min={0}
-            value={standardKg}
-            onChange={(e) => setStandardKg(Number(e.target.value || 0))}
-          />
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground mb-1 block">
-            Express (KES/kg)
-          </label>
-          <Input
-            type="number"
-            min={0}
-            value={expressKg}
-            onChange={(e) => setExpressKg(Number(e.target.value || 0))}
-          />
-        </div>
+        <PriceField
+          label="Standard Rate (per kg)"
+          value={standardKg}
+          onChange={setStandardKg}
+        />
+        <PriceField
+          label="Express Rate (per kg)"
+          value={expressKg}
+          onChange={setExpressKg}
+        />
       </div>
     </div>
   );
@@ -145,15 +166,20 @@ const ItemPricingSection = ({ service }: { service: VendorServiceData }) => {
   };
 
   return (
-    <div className="rounded-lg border p-4">
-      <h4 className="font-medium text-sm mb-3">Per Item Pricing</h4>
+    <div className="rounded-xl border border-border p-4">
+      <div className="flex items-center justify-between mb-1">
+        <p className="text-xs font-semibold text-foreground">Per Item Pricing</p>
+      </div>
+      <p className="mb-3 text-[10px] text-muted-foreground">
+        Configure individual item prices for standard and express service tiers.
+      </p>
 
       {/* Add item row */}
       <div className="flex gap-2 mb-3">
         <select
           value={selectedItemId}
           onChange={(e) => setSelectedItemId(e.target.value)}
-          className="h-9 flex-1 rounded-md border bg-background px-3 text-sm"
+          className="h-9 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="">Select item to add</option>
           {availableItems.map((item) => (
@@ -191,92 +217,99 @@ const ItemPricingSection = ({ service }: { service: VendorServiceData }) => {
             return (
               <div
                 key={ip.id}
-                className="flex items-center gap-2 rounded-lg border p-3"
+                className="rounded-xl border border-border p-3"
               >
-                <span className="text-sm font-medium min-w-[100px]">
-                  {ip.item_name ?? "Unknown"}
-                </span>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-medium text-foreground">
+                    {ip.item_name ?? "Unknown"}
+                  </p>
+                  <div className="flex gap-1">
+                    {isEditing ? (
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          disabled={updateItem.isPending}
+                          onClick={() =>
+                            updateItem.mutate(
+                              {
+                                id: ip.id,
+                                standard_price: editStandard,
+                                express_price: editExpress,
+                              },
+                              { onSuccess: () => setEditingId(null) }
+                            )
+                          }
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => setEditingId(null)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => startEdit(ip)}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() =>
+                            setDeleteTarget({
+                              id: ip.id,
+                              name: ip.item_name ?? "item",
+                            })
+                          }
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
                 {isEditing ? (
-                  <>
-                    <Input
-                      type="number"
-                      min={0}
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <PriceField
+                      label="Standard Rate"
                       value={editStandard}
-                      onChange={(e) =>
-                        setEditStandard(Number(e.target.value || 0))
-                      }
-                      className="w-24 h-8"
-                      placeholder="Standard"
+                      onChange={setEditStandard}
                     />
-                    <Input
-                      type="number"
-                      min={0}
+                    <PriceField
+                      label="Express Rate"
                       value={editExpress}
-                      onChange={(e) =>
-                        setEditExpress(Number(e.target.value || 0))
-                      }
-                      className="w-24 h-8"
-                      placeholder="Express"
+                      onChange={setEditExpress}
                     />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      disabled={updateItem.isPending}
-                      onClick={() =>
-                        updateItem.mutate(
-                          {
-                            id: ip.id,
-                            standard_price: editStandard,
-                            express_price: editExpress,
-                          },
-                          { onSuccess: () => setEditingId(null) }
-                        )
-                      }
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      onClick={() => setEditingId(null)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <span className="text-xs text-muted-foreground">
-                      Std: KES {ip.standard_price ?? 0}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Exp: KES {ip.express_price ?? 0}
-                    </span>
-                    <div className="ml-auto flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={() => startEdit(ip)}
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                        onClick={() =>
-                          setDeleteTarget({
-                            id: ip.id,
-                            name: ip.item_name ?? "item",
-                          })
-                        }
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
+                      <p className="text-[10px] font-medium text-muted-foreground">Standard Rate</p>
+                      <p className="mt-0.5 text-sm text-foreground">
+                        <span className="text-xs text-muted-foreground">KES </span>
+                        {ip.standard_price ?? 0}
+                      </p>
                     </div>
-                  </>
+                    <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
+                      <p className="text-[10px] font-medium text-muted-foreground">Express Rate</p>
+                      <p className="mt-0.5 text-sm text-foreground">
+                        <span className="text-xs text-muted-foreground">KES </span>
+                        {ip.express_price ?? 0}
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
             );
@@ -354,7 +387,12 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
 
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <h4 className="font-medium text-sm">Room / Area Rates</h4>
+      <div>
+        <p className="text-xs font-semibold text-foreground">Room / Area Rates</p>
+        <p className="text-[10px] text-muted-foreground">
+          Set pricing for regular and deep cleaning by room or area type.
+        </p>
+      </div>
 
       {service.room_rates.length > 0 ? (
         <div className="flex flex-col gap-2">
@@ -363,107 +401,115 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
             return (
               <div
                 key={rr.id}
-                className="flex items-center gap-2 rounded-lg border p-3"
+                className="rounded-xl border border-border p-3"
               >
                 {isEditing ? (
                   <>
-                    <select
-                      value={editServiceRoomId}
-                      onChange={(e) => setEditServiceRoomId(e.target.value)}
-                      className="flex-1 h-8 rounded-md border border-input bg-background px-2 text-sm"
-                    >
-                      <option value="">Select room type</option>
-                      {serviceRooms.map((room) => (
-                        <option
-                          key={room.id}
-                          value={room.id}
-                          disabled={
-                            room.id !== editServiceRoomId &&
-                            usedRoomIds.has(room.id)
+                    <div className="flex items-center justify-between mb-2">
+                      <select
+                        value={editServiceRoomId}
+                        onChange={(e) => setEditServiceRoomId(e.target.value)}
+                        className="h-8 flex-1 rounded-lg border border-border bg-background px-2 text-sm outline-none"
+                      >
+                        <option value="">Select room type</option>
+                        {serviceRooms.map((room) => (
+                          <option
+                            key={room.id}
+                            value={room.id}
+                            disabled={
+                              room.id !== editServiceRoomId &&
+                              usedRoomIds.has(room.id)
+                            }
+                          >
+                            {room.name}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="flex gap-1 ml-2">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          disabled={updateRate.isPending || !editServiceRoomId}
+                          onClick={() =>
+                            updateRate.mutate(
+                              {
+                                id: rr.id,
+                                service_room_id: editServiceRoomId,
+                                regular_cost: editRegular,
+                                deep_cost: editDeep,
+                              },
+                              { onSuccess: () => setEditingId(null) }
+                            )
                           }
                         >
-                          {room.name}
-                        </option>
-                      ))}
-                    </select>
-                    <Input
-                      type="number"
-                      min={0}
-                      value={editRegular}
-                      onChange={(e) =>
-                        setEditRegular(Number(e.target.value || 0))
-                      }
-                      className="w-24 h-8"
-                      placeholder="Regular"
-                    />
-                    <Input
-                      type="number"
-                      min={0}
-                      value={editDeep}
-                      onChange={(e) =>
-                        setEditDeep(Number(e.target.value || 0))
-                      }
-                      className="w-24 h-8"
-                      placeholder="Deep"
-                    />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      disabled={updateRate.isPending || !editServiceRoomId}
-                      onClick={() =>
-                        updateRate.mutate(
-                          {
-                            id: rr.id,
-                            service_room_id: editServiceRoomId,
-                            regular_cost: editRegular,
-                            deep_cost: editDeep,
-                          },
-                          { onSuccess: () => setEditingId(null) }
-                        )
-                      }
-                    >
-                      <Check className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      onClick={() => setEditingId(null)}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
+                          <Check className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => setEditingId(null)}
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <PriceField
+                        label="Regular Cleaning"
+                        value={editRegular}
+                        onChange={setEditRegular}
+                      />
+                      <PriceField
+                        label="Deep Cleaning"
+                        value={editDeep}
+                        onChange={setEditDeep}
+                      />
+                    </div>
                   </>
                 ) : (
                   <>
-                    <span className="text-sm font-medium min-w-[100px]">
-                      {rr.room_name}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Regular: KES {rr.regular_cost ?? 0}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      Deep: KES {rr.deep_cost ?? 0}
-                    </span>
-                    <div className="ml-auto flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7"
-                        onClick={() => startEdit(rr)}
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                        onClick={() =>
-                          setDeleteTarget({ id: rr.id, name: rr.room_name })
-                        }
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-medium text-foreground">
+                        {rr.room_name}
+                      </p>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7"
+                          onClick={() => startEdit(rr)}
+                        >
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() =>
+                            setDeleteTarget({ id: rr.id, name: rr.room_name })
+                          }
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
+                        <p className="text-[10px] font-medium text-muted-foreground">Regular Cleaning</p>
+                        <p className="mt-0.5 text-sm text-foreground">
+                          <span className="text-xs text-muted-foreground">KES </span>
+                          {rr.regular_cost ?? 0}
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-border bg-muted/30 px-3 py-2">
+                        <p className="text-[10px] font-medium text-muted-foreground">Deep Cleaning</p>
+                        <p className="mt-0.5 text-sm text-foreground">
+                          <span className="text-xs text-muted-foreground">KES </span>
+                          {rr.deep_cost ?? 0}
+                        </p>
+                      </div>
                     </div>
                   </>
                 )}
@@ -481,7 +527,7 @@ const OtherServiceForm = ({ service }: { service: VendorServiceData }) => {
         <select
           value={newServiceRoomId}
           onChange={(e) => setNewServiceRoomId(e.target.value)}
-          className="h-8 flex-1 rounded-md border border-input bg-background px-2 text-sm"
+          className="h-8 flex-1 rounded-lg border border-border bg-background px-2 text-sm outline-none"
         >
           <option value="">Select room type to add</option>
           {serviceRooms
